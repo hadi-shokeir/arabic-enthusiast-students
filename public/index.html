@@ -913,41 +913,14 @@ function AuthScreen({onAuth}) {
       </div>`}
 
       ${supabaseReady && h`<div>
-        <div class="auth-tabs">
-          <div class=${"auth-tab "+(mode==="login"?"on":"")} onClick=${()=>setMode("login")}>Log In</div>
-          <div class=${"auth-tab "+(mode==="signup"?"on":"")} onClick=${()=>setMode("signup")}>Sign Up</div>
+        <div class="fg"><label>Email</label><input type="email" value=${email} onInput=${e=>setEmail(e.target.value)} placeholder="you@example.com"/></div>
+        <div class="fg"><label>Password</label><input type="password" value=${password} onInput=${e=>setPassword(e.target.value)} placeholder="Your password"/></div>
+        <button class="btn btn-p" style=${{width:"100%",justifyContent:"center",padding:"12px"}} onClick=${handleEmailAuth} disabled=${loading}>
+          ${loading?"Please wait...":"Log In"}
+        </button>
+        <div style=${{marginTop:14,padding:"10px 12px",background:"var(--g50)",border:"1px solid var(--g200)",fontSize:11,color:"var(--g500)",lineHeight:1.6}}>
+          No account yet? Contact your tutor — accounts are set up for you.
         </div>
-
-        ${mode==="signup" && h`<div class="auth-role-sel">
-          <div class=${"auth-role "+(role==="tutor"?"on":"")} onClick=${()=>setRole("tutor")}>
-            <h4>TUTOR</h4>
-            <p>Manage students & lessons</p>
-          </div>
-          <div class=${"auth-role "+(role==="student"?"on":"")} onClick=${()=>setRole("student")}>
-            <h4>STUDENT</h4>
-            <p>View my progress</p>
-          </div>
-        </div>`}
-
-        <div class="auth-tabs" style=${{marginBottom:16}}>
-          <div class=${"auth-tab "+(method==="email"?"on":"")} onClick=${()=>{setMethod("email");setOtpSent(false);}}>Email</div>
-          <div class=${"auth-tab "+(method==="phone"?"on":"")} onClick=${()=>{setMethod("phone");setOtpSent(false);}}>Phone</div>
-        </div>
-
-        ${method==="email" ? h`<div>
-          <div class="fg"><label>Email</label><input type="email" value=${email} onInput=${e=>setEmail(e.target.value)} placeholder="you@example.com"/></div>
-          <div class="fg"><label>Password</label><input type="password" value=${password} onInput=${e=>setPassword(e.target.value)} placeholder="Minimum 6 characters"/></div>
-          <button class="btn btn-p" style=${{width:"100%",justifyContent:"center",padding:"12px"}} onClick=${handleEmailAuth} disabled=${loading}>
-            ${loading?"Please wait...":mode==="login"?"Log In":"Create Account"}
-          </button>
-        </div>` : h`<div>
-          <div class="fg"><label>Phone (with country code)</label><input type="tel" value=${phone} onInput=${e=>setPhone(e.target.value)} placeholder="+961 XX XXX XXX"/></div>
-          ${otpSent && h`<div class="fg"><label>Verification Code</label><input type="text" value=${otp} onInput=${e=>setOtp(e.target.value)} placeholder="Enter 6-digit code"/></div>`}
-          <button class="btn btn-p" style=${{width:"100%",justifyContent:"center",padding:"12px"}} onClick=${handlePhoneAuth} disabled=${loading}>
-            ${loading?"Please wait...":otpSent?"Verify Code":"Send Code"}
-          </button>
-        </div>`}
-
         ${error && h`<div class="error">${error}</div>`}
         ${success && h`<div class="success">${success}</div>`}
       </div>`}
