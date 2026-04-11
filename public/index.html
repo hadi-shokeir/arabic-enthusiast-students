@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="Arabic Enthusiast">
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/logo.jpeg">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;600;700&family=Montserrat:wght@400;600;700;800&family=Raleway:wght@400;600;700;800&family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Lato:wght@400;700&family=Nunito:wght@400;600;700&family=Noto+Kufi+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;600;700&family=Montserrat:wght@400;600;700;800&family=Raleway:wght@400;600;700;800&family=Playfair+Display:wght@400;600;700&family=Anton&family=Teko:wght@400;500;600;700&family=Russo+One&family=Black+Han+Sans&family=Exo+2:wght@400;600;700;800&family=Orbitron:wght@400;600;700&family=Cinzel:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Lato:wght@400;700&family=Nunito:wght@400;600;700&family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600;700&family=Source+Sans+3:wght@400;600;700&family=Manrope:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;600;700&family=Noto+Kufi+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/htm/3.1.1/htm.module.js" type="module"></script>
@@ -274,6 +274,7 @@ const DEFS = {
   themeTextMain:"#000000",
   themeFontHeading:"Bebas Neue",
   themeFontBody:"DM Sans",
+  themeFontBrand:"Bebas Neue",
   themeBackgroundImage:"",
   themeSidebarImage:"",
   themeCardImage:"",
@@ -1400,25 +1401,74 @@ function StudentPortal({data, setData, user, onLogout}) {
         <p style=${{fontSize:12,color:"var(--g500)",marginBottom:10}}>Set your timezone so lesson times display correctly for you.</p>
         <select value=${s.timezone||""} onChange=${e=>setData({...data,students:data.students.map(x=>x.id===s.id?{...x,timezone:e.target.value}:x)})} style=${{width:"100%",padding:"9px 11px",border:"2px solid var(--g200)",fontFamily:"var(--fb)",fontSize:13}}>
           <option value="">— Auto-detect (browser default) —</option>
-          <option value="America/New_York">🇺🇸 Eastern (ET) — New York</option>
-          <option value="America/Chicago">🇺🇸 Central (CT) — Chicago</option>
-          <option value="America/Denver">🇺🇸 Mountain (MT) — Denver</option>
-          <option value="America/Los_Angeles">🇺🇸 Pacific (PT) — Los Angeles</option>
-          <option value="America/Toronto">🇨🇦 Toronto (ET)</option>
-          <option value="America/Vancouver">🇨🇦 Vancouver (PT)</option>
-          <option value="Europe/London">🇬🇧 London (GMT/BST)</option>
-          <option value="Europe/Paris">🇫🇷 Paris / Berlin (CET)</option>
-          <option value="Europe/Stockholm">🇸🇪 Stockholm (CET)</option>
-          <option value="Asia/Beirut">🇱🇧 Lebanon (Beirut)</option>
-          <option value="Asia/Dubai">🇦🇪 Dubai (GST)</option>
-          <option value="Asia/Riyadh">🇸🇦 Saudi Arabia (AST)</option>
-          <option value="Asia/Kuwait">🇰🇼 Kuwait (AST)</option>
-          <option value="Asia/Qatar">🇶🇦 Qatar (AST)</option>
-          <option value="Africa/Cairo">🇪🇬 Egypt (EET)</option>
-          <option value="Australia/Sydney">🇦🇺 Sydney (AEST)</option>
-          <option value="Australia/Melbourne">🇦🇺 Melbourne (AEST)</option>
-          <option value="Asia/Tokyo">🇯🇵 Tokyo (JST)</option>
-          <option value="Asia/Singapore">🇸🇬 Singapore (SGT)</option>
+          <optgroup label="🌎 USA">
+            <option value="America/New_York">🇺🇸 Eastern (ET) — New York / Miami</option>
+            <option value="America/Chicago">🇺🇸 Central (CT) — Chicago / Dallas</option>
+            <option value="America/Denver">🇺🇸 Mountain (MT) — Denver / Salt Lake</option>
+            <option value="America/Los_Angeles">🇺🇸 Pacific (PT) — LA / San Francisco</option>
+            <option value="America/Phoenix">🇺🇸 Arizona (MST, no DST)</option>
+            <option value="America/Anchorage">🇺🇸 Alaska (AKT)</option>
+            <option value="Pacific/Honolulu">🇺🇸 Hawaii (HST)</option>
+          </optgroup>
+          <optgroup label="🌎 Canada">
+            <option value="America/Toronto">🇨🇦 Toronto / Ottawa (ET)</option>
+            <option value="America/Winnipeg">🇨🇦 Winnipeg (CT)</option>
+            <option value="America/Edmonton">🇨🇦 Calgary / Edmonton (MT)</option>
+            <option value="America/Vancouver">🇨🇦 Vancouver (PT)</option>
+            <option value="America/Halifax">🇨🇦 Halifax (AT)</option>
+          </optgroup>
+          <optgroup label="🌎 South America">
+            <option value="America/Sao_Paulo">🇧🇷 São Paulo (BRT)</option>
+            <option value="America/Argentina/Buenos_Aires">🇦🇷 Buenos Aires (ART)</option>
+            <option value="America/Bogota">🇨🇴 Bogotá (COT)</option>
+            <option value="America/Lima">🇵🇪 Lima (PET)</option>
+          </optgroup>
+          <optgroup label="🌍 UK & Europe">
+            <option value="Europe/London">🇬🇧 London (GMT/BST)</option>
+            <option value="Europe/Paris">🇫🇷 Paris (CET)</option>
+            <option value="Europe/Berlin">🇩🇪 Berlin (CET)</option>
+            <option value="Europe/Amsterdam">🇳🇱 Amsterdam (CET)</option>
+            <option value="Europe/Rome">🇮🇹 Rome (CET)</option>
+            <option value="Europe/Madrid">🇪🇸 Madrid (CET)</option>
+            <option value="Europe/Stockholm">🇸🇪 Stockholm (CET)</option>
+            <option value="Europe/Zurich">🇨🇭 Zurich (CET)</option>
+            <option value="Europe/Athens">🇬🇷 Athens (EET)</option>
+            <option value="Europe/Istanbul">🇹🇷 Istanbul (TRT)</option>
+            <option value="Europe/Moscow">🇷🇺 Moscow (MSK)</option>
+          </optgroup>
+          <optgroup label="🌍 Middle East & Africa">
+            <option value="Asia/Beirut">🇱🇧 Lebanon (Beirut)</option>
+            <option value="Asia/Amman">🇯🇴 Jordan (Amman)</option>
+            <option value="Asia/Damascus">🇸🇾 Syria (Damascus)</option>
+            <option value="Asia/Baghdad">🇮🇶 Iraq (Baghdad)</option>
+            <option value="Asia/Riyadh">🇸🇦 Saudi Arabia (AST)</option>
+            <option value="Asia/Kuwait">🇰🇼 Kuwait</option>
+            <option value="Asia/Qatar">🇶🇦 Qatar</option>
+            <option value="Asia/Dubai">🇦🇪 Dubai / UAE (GST)</option>
+            <option value="Africa/Cairo">🇪🇬 Egypt (EET)</option>
+            <option value="Africa/Johannesburg">🇿🇦 South Africa (SAST)</option>
+            <option value="Africa/Lagos">🇳🇬 Nigeria (WAT)</option>
+            <option value="Africa/Nairobi">🇰🇪 Nairobi (EAT)</option>
+          </optgroup>
+          <optgroup label="🌏 Asia">
+            <option value="Asia/Kolkata">🇮🇳 India (IST)</option>
+            <option value="Asia/Karachi">🇵🇰 Pakistan (PKT)</option>
+            <option value="Asia/Dhaka">🇧🇩 Bangladesh (BST)</option>
+            <option value="Asia/Bangkok">🇹🇭 Bangkok (ICT)</option>
+            <option value="Asia/Singapore">🇸🇬 Singapore (SGT)</option>
+            <option value="Asia/Hong_Kong">🇭🇰 Hong Kong (HKT)</option>
+            <option value="Asia/Shanghai">🇨🇳 China (CST)</option>
+            <option value="Asia/Tokyo">🇯🇵 Tokyo (JST)</option>
+            <option value="Asia/Seoul">🇰🇷 Seoul (KST)</option>
+          </optgroup>
+          <optgroup label="🌏 Australia & Pacific">
+            <option value="Australia/Sydney">🇦🇺 Sydney / Melbourne (AEST)</option>
+            <option value="Australia/Brisbane">🇦🇺 Brisbane (AEST, no DST)</option>
+            <option value="Australia/Adelaide">🇦🇺 Adelaide (ACST)</option>
+            <option value="Australia/Perth">🇦🇺 Perth (AWST)</option>
+            <option value="Australia/Darwin">🇦🇺 Darwin (ACST)</option>
+            <option value="Pacific/Auckland">🇳🇿 New Zealand (NZST)</option>
+          </optgroup>
         </select>
         ${s.timezone && h`<div style=${{marginTop:8,fontSize:12,color:"var(--ok)",fontWeight:600}}>✓ Saved — lesson times will show in ${s.timezone}</div>`}
       </div>
@@ -2113,22 +2163,70 @@ function Students({data, setData, onProfile}) {
       <div class="fr3"><div class="fg"><label>Email</label><input type="email" value=${form.email} onInput=${e=>setForm({...form,email:e.target.value})}/></div><div class="fg"><label>Phone</label><input value=${form.phone} onInput=${e=>setForm({...form,phone:e.target.value})}/></div><div class="fg"><label>WhatsApp (+code)</label><input value=${form.whatsapp} onInput=${e=>setForm({...form,whatsapp:e.target.value})} placeholder="+961..."/></div></div>
       <div class="fg"><label>Student Timezone</label><select value=${form.timezone||""} onChange=${e=>setForm({...form,timezone:e.target.value})}>
         <option value="">— Not set —</option>
-        <option value="America/New_York">🇺🇸 Eastern (ET)</option>
-        <option value="America/Chicago">🇺🇸 Central (CT)</option>
-        <option value="America/Denver">🇺🇸 Mountain (MT)</option>
-        <option value="America/Los_Angeles">🇺🇸 Pacific (PT)</option>
-        <option value="America/Toronto">🇨🇦 Toronto (ET)</option>
-        <option value="Europe/London">🇬🇧 London (GMT/BST)</option>
-        <option value="Europe/Paris">🇫🇷 Paris / Berlin (CET)</option>
-        <option value="Europe/Stockholm">🇸🇪 Stockholm (CET)</option>
-        <option value="Asia/Beirut">🇱🇧 Lebanon (Beirut)</option>
-        <option value="Asia/Dubai">🇦🇪 Dubai (GST)</option>
-        <option value="Asia/Riyadh">🇸🇦 Saudi Arabia (AST)</option>
-        <option value="Asia/Kuwait">🇰🇼 Kuwait (AST)</option>
-        <option value="Asia/Qatar">🇶🇦 Qatar (AST)</option>
-        <option value="Africa/Cairo">🇪🇬 Egypt (EET)</option>
-        <option value="Australia/Sydney">🇦🇺 Sydney (AEST)</option>
-        <option value="Asia/Tokyo">🇯🇵 Tokyo (JST)</option>
+        <optgroup label="🌎 USA">
+          <option value="America/New_York">🇺🇸 Eastern (ET) — New York</option>
+          <option value="America/Chicago">🇺🇸 Central (CT) — Chicago</option>
+          <option value="America/Denver">🇺🇸 Mountain (MT) — Denver</option>
+          <option value="America/Los_Angeles">🇺🇸 Pacific (PT) — Los Angeles</option>
+          <option value="America/Phoenix">🇺🇸 Arizona (MST)</option>
+          <option value="America/Anchorage">🇺🇸 Alaska (AKT)</option>
+          <option value="Pacific/Honolulu">🇺🇸 Hawaii (HST)</option>
+        </optgroup>
+        <optgroup label="🌎 Canada">
+          <option value="America/Toronto">🇨🇦 Toronto (ET)</option>
+          <option value="America/Winnipeg">🇨🇦 Winnipeg (CT)</option>
+          <option value="America/Edmonton">🇨🇦 Calgary (MT)</option>
+          <option value="America/Vancouver">🇨🇦 Vancouver (PT)</option>
+          <option value="America/Halifax">🇨🇦 Halifax (AT)</option>
+        </optgroup>
+        <optgroup label="🌎 South America">
+          <option value="America/Sao_Paulo">🇧🇷 São Paulo (BRT)</option>
+          <option value="America/Argentina/Buenos_Aires">🇦🇷 Buenos Aires (ART)</option>
+          <option value="America/Bogota">🇨🇴 Bogotá (COT)</option>
+        </optgroup>
+        <optgroup label="🌍 UK & Europe">
+          <option value="Europe/London">🇬🇧 London (GMT/BST)</option>
+          <option value="Europe/Paris">🇫🇷 Paris (CET)</option>
+          <option value="Europe/Berlin">🇩🇪 Berlin (CET)</option>
+          <option value="Europe/Amsterdam">🇳🇱 Amsterdam (CET)</option>
+          <option value="Europe/Rome">🇮🇹 Rome (CET)</option>
+          <option value="Europe/Madrid">🇪🇸 Madrid (CET)</option>
+          <option value="Europe/Stockholm">🇸🇪 Stockholm (CET)</option>
+          <option value="Europe/Zurich">🇨🇭 Zurich (CET)</option>
+          <option value="Europe/Athens">🇬🇷 Athens (EET)</option>
+          <option value="Europe/Istanbul">🇹🇷 Istanbul (TRT)</option>
+          <option value="Europe/Moscow">🇷🇺 Moscow (MSK)</option>
+        </optgroup>
+        <optgroup label="🌍 Middle East & Africa">
+          <option value="Asia/Beirut">🇱🇧 Lebanon (Beirut)</option>
+          <option value="Asia/Amman">🇯🇴 Jordan (Amman)</option>
+          <option value="Asia/Damascus">🇸🇾 Syria (Damascus)</option>
+          <option value="Asia/Baghdad">🇮🇶 Iraq (Baghdad)</option>
+          <option value="Asia/Riyadh">🇸🇦 Saudi Arabia (AST)</option>
+          <option value="Asia/Kuwait">🇰🇼 Kuwait</option>
+          <option value="Asia/Qatar">🇶🇦 Qatar</option>
+          <option value="Asia/Dubai">🇦🇪 Dubai / UAE (GST)</option>
+          <option value="Africa/Cairo">🇪🇬 Egypt (EET)</option>
+          <option value="Africa/Johannesburg">🇿🇦 South Africa (SAST)</option>
+          <option value="Africa/Lagos">🇳🇬 Nigeria (WAT)</option>
+        </optgroup>
+        <optgroup label="🌏 Asia">
+          <option value="Asia/Kolkata">🇮🇳 India (IST)</option>
+          <option value="Asia/Karachi">🇵🇰 Pakistan (PKT)</option>
+          <option value="Asia/Bangkok">🇹🇭 Bangkok (ICT)</option>
+          <option value="Asia/Singapore">🇸🇬 Singapore (SGT)</option>
+          <option value="Asia/Hong_Kong">🇭🇰 Hong Kong (HKT)</option>
+          <option value="Asia/Shanghai">🇨🇳 China (CST)</option>
+          <option value="Asia/Tokyo">🇯🇵 Tokyo (JST)</option>
+          <option value="Asia/Seoul">🇰🇷 Seoul (KST)</option>
+        </optgroup>
+        <optgroup label="🌏 Australia & Pacific">
+          <option value="Australia/Sydney">🇦🇺 Sydney / Melbourne (AEST)</option>
+          <option value="Australia/Brisbane">🇦🇺 Brisbane (AEST, no DST)</option>
+          <option value="Australia/Adelaide">🇦🇺 Adelaide (ACST)</option>
+          <option value="Australia/Perth">🇦🇺 Perth (AWST)</option>
+          <option value="Pacific/Auckland">🇳🇿 New Zealand (NZST)</option>
+        </optgroup>
       </select></div>
       <div class="fr3"><div class="fg"><label>Type</label><select value=${form.type} onChange=${e=>setForm({...form,type:e.target.value})}>${S.types.map(t=>h`<option key=${t}>${t}</option>`)}</select></div><div class="fg"><label>Level</label><select value=${form.level} onChange=${e=>setForm({...form,level:e.target.value})}>${S.levels.map(l=>h`<option key=${l}>${l}</option>`)}</select></div><div class="fg"><label>Payment Plan</label><select value=${form.paymentPlan} onChange=${e=>setForm({...form,paymentPlan:e.target.value})}>${S.payPlans.map(p=>h`<option key=${p}>${p}</option>`)}</select></div></div>
       <div class="fr3"><div class="fg"><label>Rate (${CUR})</label><input type="number" value=${form.lessonRate} onInput=${e=>setForm({...form,lessonRate:+e.target.value})}/></div><div class="fg"><label>Lessons Purchased</label><input type="number" value=${form.lessonsTotal} onInput=${e=>setForm({...form,lessonsTotal:+e.target.value})}/></div><div class="fg"><label>Lessons Taken</label><input type="number" value=${form.lessonsTaken} onInput=${e=>setForm({...form,lessonsTaken:+e.target.value})}/></div></div>
@@ -2456,8 +2554,24 @@ function Settings({data, setData}) {
             </div>`)}
           </div>
         </div>`;
+        const presets = [
+          ["⚫ Default",{themeAccent:"#c9922a",themeSidebar:"#000000",themeSidebarText:"#cccccc",themeBackground:"#fafafa",themeTopbar:"#ffffff",themeTopbarBorder:"#000000",themeCardBg:"#ffffff",themeCardBorder:"#000000",themeStatBg:"#ffffff",themeStatBorder:"#000000",themeTableHeader:"#000000",themeTableHeaderText:"#ffffff",themeCalHeader:"#000000",themeCalHeaderText:"#ffffff",themePrimaryBtn:"#000000",themePrimaryBtnText:"#ffffff",themeTextMain:"#000000"}],
+          ["🌙 Dark Mode",{themeAccent:"#7c3aed",themeSidebar:"#0f0f1a",themeSidebarText:"#a0a0c0",themeBackground:"#1a1a2e",themeTopbar:"#0f0f1a",themeTopbarBorder:"#7c3aed",themeCardBg:"#16213e",themeCardBorder:"#7c3aed",themeStatBg:"#16213e",themeStatBorder:"#7c3aed",themeTableHeader:"#7c3aed",themeTableHeaderText:"#ffffff",themeCalHeader:"#7c3aed",themeCalHeaderText:"#ffffff",themePrimaryBtn:"#7c3aed",themePrimaryBtnText:"#ffffff",themeTextMain:"#e0e0f0"}],
+          ["🌊 Ocean",{themeAccent:"#0ea5e9",themeSidebar:"#0c1a2e",themeSidebarText:"#94c8e8",themeBackground:"#f0f9ff",themeTopbar:"#ffffff",themeTopbarBorder:"#0ea5e9",themeCardBg:"#ffffff",themeCardBorder:"#bae6fd",themeStatBg:"#f0f9ff",themeStatBorder:"#0ea5e9",themeTableHeader:"#0c1a2e",themeTableHeaderText:"#ffffff",themeCalHeader:"#0c1a2e",themeCalHeaderText:"#ffffff",themePrimaryBtn:"#0ea5e9",themePrimaryBtnText:"#ffffff",themeTextMain:"#0c1a2e"}],
+          ["🌿 Forest",{themeAccent:"#16a34a",themeSidebar:"#0f1f0f",themeSidebarText:"#86efac",themeBackground:"#f0fdf4",themeTopbar:"#ffffff",themeTopbarBorder:"#16a34a",themeCardBg:"#ffffff",themeCardBorder:"#bbf7d0",themeStatBg:"#f0fdf4",themeStatBorder:"#16a34a",themeTableHeader:"#0f1f0f",themeTableHeaderText:"#ffffff",themeCalHeader:"#0f1f0f",themeCalHeaderText:"#ffffff",themePrimaryBtn:"#16a34a",themePrimaryBtnText:"#ffffff",themeTextMain:"#0f1f0f"}],
+          ["🏜 Desert",{themeAccent:"#d97706",themeSidebar:"#2c1a0e",themeSidebarText:"#fcd34d",themeBackground:"#fffbf0",themeTopbar:"#ffffff",themeTopbarBorder:"#d97706",themeCardBg:"#fff7ed",themeCardBorder:"#fed7aa",themeStatBg:"#fff7ed",themeStatBorder:"#d97706",themeTableHeader:"#2c1a0e",themeTableHeaderText:"#fcd34d",themeCalHeader:"#2c1a0e",themeCalHeaderText:"#fcd34d",themePrimaryBtn:"#d97706",themePrimaryBtnText:"#ffffff",themeTextMain:"#1c0a00"}],
+          ["💜 Royal",{themeAccent:"#9333ea",themeSidebar:"#1e0a3c",themeSidebarText:"#d8b4fe",themeBackground:"#faf5ff",themeTopbar:"#ffffff",themeTopbarBorder:"#9333ea",themeCardBg:"#ffffff",themeCardBorder:"#e9d5ff",themeStatBg:"#faf5ff",themeStatBorder:"#9333ea",themeTableHeader:"#1e0a3c",themeTableHeaderText:"#ffffff",themeCalHeader:"#1e0a3c",themeCalHeaderText:"#ffffff",themePrimaryBtn:"#9333ea",themePrimaryBtnText:"#ffffff",themeTextMain:"#1e0a3c"}],
+          ["🌹 Rose",{themeAccent:"#e11d48",themeSidebar:"#1a0010",themeSidebarText:"#fda4af",themeBackground:"#fff1f2",themeTopbar:"#ffffff",themeTopbarBorder:"#e11d48",themeCardBg:"#ffffff",themeCardBorder:"#fecdd3",themeStatBg:"#fff1f2",themeStatBorder:"#e11d48",themeTableHeader:"#1a0010",themeTableHeaderText:"#ffffff",themeCalHeader:"#1a0010",themeCalHeaderText:"#ffffff",themePrimaryBtn:"#e11d48",themePrimaryBtnText:"#ffffff",themeTextMain:"#1a0010"}],
+          ["🌤 Soft",{themeAccent:"#f59e0b",themeSidebar:"#f8f6f0",themeSidebarText:"#6b5a3e",themeBackground:"#fdfbf7",themeTopbar:"#ffffff",themeTopbarBorder:"#f59e0b",themeCardBg:"#ffffff",themeCardBorder:"#fde68a",themeStatBg:"#fdfbf7",themeStatBorder:"#f59e0b",themeTableHeader:"#6b5a3e",themeTableHeaderText:"#ffffff",themeCalHeader:"#6b5a3e",themeCalHeaderText:"#ffffff",themePrimaryBtn:"#f59e0b",themePrimaryBtnText:"#ffffff",themeTextMain:"#3a2d1e"}],
+        ];
         return h`<div>
-          ${section("🏗 Layout",[["themeSidebar","Sidebar BG","#000000"],["themeSidebarText","Sidebar Text","#cccccc"],["themeTopbar","Topbar BG","#ffffff"],["themeTopbarBorder","Topbar Border","#000000"],["themeBackground","Page BG","#fafafa"],["themeTextMain","Main Text","#000000"],["themeAccent","Accent Gold","#c9922a"]])}
+          <div style=${{marginBottom:20,paddingBottom:16,borderBottom:"2px solid var(--g200)"}}>
+            <div style=${{fontSize:10,fontWeight:800,textTransform:"uppercase",letterSpacing:2,color:"var(--g400)",marginBottom:10}}>⚡ Quick Presets — one click to apply all colors</div>
+            <div style=${{display:"flex",gap:8,flexWrap:"wrap"}}>
+              ${presets.map(([name,cols])=>h`<button key=${name} onClick=${()=>setData({...data,settings:{...S,...cols}})} style=${{padding:"8px 16px",border:"1.5px solid var(--g200)",borderRadius:20,cursor:"pointer",fontSize:12,fontWeight:700,background:"var(--wh)",color:"var(--bk)",transition:"all .15s"}}>${name}</button>`)}
+            </div>
+          </div>
+          ${section("🏗 Layout",[["themeSidebar","Sidebar BG","#000000"],["themeSidebarText","Sidebar Text","#cccccc"],["themeTopbar","Topbar BG","#ffffff"],["themeTopbarBorder","Topbar Border","#000000"],["themeBackground","Page BG","#fafafa"],["themeTextMain","Main Text","#000000"],["themeAccent","Accent / Highlight","#c9922a"]])}
           ${section("🃏 Cards & Panels",[["themeCardBg","Card BG","#ffffff"],["themeCardBorder","Card Border","#000000"],["themeStatBg","Stat Box BG","#ffffff"],["themeStatBorder","Stat Border","#000000"]])}
           ${section("📋 Tables & Calendar",[["themeTableHeader","Table Header BG","#000000"],["themeTableHeaderText","Table Header Text","#ffffff"],["themeCalHeader","Calendar Header BG","#000000"],["themeCalHeaderText","Calendar Header Text","#ffffff"]])}
           ${section("🔘 Buttons",[["themePrimaryBtn","Primary Btn BG","#000000"],["themePrimaryBtnText","Primary Btn Text","#ffffff"]])}
@@ -2474,28 +2588,76 @@ function Settings({data, setData}) {
         <div class="fg">
           <label>Heading Font</label>
           <select value=${S.themeFontHeading||"Bebas Neue"} onChange=${e=>u("themeFontHeading",e.target.value)}>
-            <option value="Bebas Neue">Bebas Neue</option>
-            <option value="Oswald">Oswald</option>
-            <option value="Montserrat">Montserrat</option>
-            <option value="Raleway">Raleway</option>
-            <option value="Playfair Display">Playfair Display</option>
+            <optgroup label="── Bold & Display ──">
+              <option value="Bebas Neue">Bebas Neue</option>
+              <option value="Anton">Anton</option>
+              <option value="Teko">Teko</option>
+              <option value="Russo One">Russo One</option>
+              <option value="Oswald">Oswald</option>
+              <option value="Exo 2">Exo 2</option>
+              <option value="Orbitron">Orbitron</option>
+            </optgroup>
+            <optgroup label="── Elegant ──">
+              <option value="Playfair Display">Playfair Display</option>
+              <option value="Cinzel">Cinzel</option>
+              <option value="Raleway">Raleway</option>
+              <option value="Montserrat">Montserrat</option>
+            </optgroup>
           </select>
           <div style=${{marginTop:8,fontFamily:"'"+(S.themeFontHeading||"Bebas Neue")+"',sans-serif",fontSize:22,letterSpacing:2,color:"var(--g600)"}}>ARABIC ENTHUSIAST</div>
         </div>
         <div class="fg">
           <label>Body Font</label>
           <select value=${S.themeFontBody||"DM Sans"} onChange=${e=>u("themeFontBody",e.target.value)}>
-            <option value="DM Sans">DM Sans</option>
-            <option value="Inter">Inter</option>
-            <option value="Poppins">Poppins</option>
-            <option value="Lato">Lato</option>
-            <option value="Nunito">Nunito</option>
-            <option value="Montserrat">Montserrat</option>
+            <optgroup label="── Modern ──">
+              <option value="DM Sans">DM Sans</option>
+              <option value="Inter">Inter</option>
+              <option value="Manrope">Manrope</option>
+              <option value="Plus Jakarta Sans">Plus Jakarta Sans</option>
+              <option value="Source Sans 3">Source Sans 3</option>
+            </optgroup>
+            <optgroup label="── Friendly ──">
+              <option value="Poppins">Poppins</option>
+              <option value="Nunito">Nunito</option>
+              <option value="Lato">Lato</option>
+            </optgroup>
+            <optgroup label="── Classic ──">
+              <option value="Roboto">Roboto</option>
+              <option value="Open Sans">Open Sans</option>
+              <option value="Montserrat">Montserrat</option>
+            </optgroup>
           </select>
           <div style=${{marginTop:8,fontFamily:"'"+(S.themeFontBody||"DM Sans")+"',sans-serif",fontSize:13,color:"var(--g600)",lineHeight:1.6}}>Your students, your schedule, your way.</div>
         </div>
+        <div class="fg">
+          <label>Branding Font (Sidebar Logo)</label>
+          <select value=${S.themeFontBrand||"Bebas Neue"} onChange=${e=>u("themeFontBrand",e.target.value)}>
+            <optgroup label="── Bold & Display ──">
+              <option value="Bebas Neue">Bebas Neue</option>
+              <option value="Anton">Anton</option>
+              <option value="Teko">Teko</option>
+              <option value="Russo One">Russo One</option>
+              <option value="Oswald">Oswald</option>
+              <option value="Exo 2">Exo 2</option>
+              <option value="Orbitron">Orbitron</option>
+            </optgroup>
+            <optgroup label="── Elegant ──">
+              <option value="Playfair Display">Playfair Display</option>
+              <option value="Cinzel">Cinzel</option>
+              <option value="Raleway">Raleway</option>
+              <option value="Montserrat">Montserrat</option>
+            </optgroup>
+            <optgroup label="── Clean & Modern ──">
+              <option value="DM Sans">DM Sans</option>
+              <option value="Inter">Inter</option>
+              <option value="Poppins">Poppins</option>
+              <option value="Manrope">Manrope</option>
+            </optgroup>
+          </select>
+          <div style=${{marginTop:8,fontFamily:"'"+(S.themeFontBrand||"Bebas Neue")+"',sans-serif",fontSize:22,letterSpacing:2,color:"var(--g600)"}}>ARABIC ENTHUSIAST</div>
+        </div>
       </div>
-      <button class="btn btn-sm" style=${{marginTop:6}} onClick=${()=>setData({...data,settings:{...S,themeFontHeading:"Bebas Neue",themeFontBody:"DM Sans"}})}>Reset fonts</button>
+      <button class="btn btn-sm" style=${{marginTop:6}} onClick=${()=>setData({...data,settings:{...S,themeFontHeading:"Bebas Neue",themeFontBody:"DM Sans",themeFontBrand:"Bebas Neue"}})}>Reset fonts</button>
     </div>
     <div class="card"><h3>🖼 BACKGROUND IMAGES</h3>
       <p style=${{fontSize:12,color:"var(--g500)",marginBottom:18}}>Upload images for each area. They overlay the color settings above.</p>
@@ -2547,19 +2709,69 @@ function Settings({data, setData}) {
         <div class="fg"><label>Currency Symbol</label><input value=${S.currency||"$"} onInput=${e=>u("currency",e.target.value)} placeholder="$"/></div>
         <div class="fg"><label>Week Starts On</label><select value=${S.weekStartDay||1} onChange=${e=>u("weekStartDay",+e.target.value)}><option value="0">Sunday</option><option value="1">Monday</option><option value="6">Saturday</option></select></div>
         <div class="fg"><label>Your Timezone (for scheduling)</label><select value=${S.tutorTimezone||"Asia/Beirut"} onChange=${e=>u("tutorTimezone",e.target.value)}>
-          <option value="Asia/Beirut">🇱🇧 Lebanon (Beirut)</option>
-          <option value="America/New_York">🇺🇸 Eastern (ET)</option>
-          <option value="America/Chicago">🇺🇸 Central (CT)</option>
-          <option value="America/Denver">🇺🇸 Mountain (MT)</option>
-          <option value="America/Los_Angeles">🇺🇸 Pacific (PT)</option>
-          <option value="America/Toronto">🇨🇦 Toronto (ET)</option>
-          <option value="Europe/London">🇬🇧 London (GMT/BST)</option>
-          <option value="Europe/Paris">🇫🇷 Paris / Berlin (CET)</option>
-          <option value="Asia/Dubai">🇦🇪 Dubai (GST)</option>
-          <option value="Asia/Riyadh">🇸🇦 Saudi Arabia (AST)</option>
-          <option value="Africa/Cairo">🇪🇬 Egypt (EET)</option>
-          <option value="Australia/Sydney">🇦🇺 Sydney (AEST)</option>
-          <option value="Asia/Tokyo">🇯🇵 Tokyo (JST)</option>
+          <optgroup label="🌍 Middle East">
+            <option value="Asia/Beirut">🇱🇧 Lebanon (Beirut)</option>
+            <option value="Asia/Amman">🇯🇴 Jordan (Amman)</option>
+            <option value="Asia/Damascus">🇸🇾 Syria (Damascus)</option>
+            <option value="Asia/Baghdad">🇮🇶 Iraq (Baghdad)</option>
+            <option value="Asia/Riyadh">🇸🇦 Saudi Arabia (AST)</option>
+            <option value="Asia/Kuwait">🇰🇼 Kuwait</option>
+            <option value="Asia/Qatar">🇶🇦 Qatar</option>
+            <option value="Asia/Dubai">🇦🇪 Dubai / UAE (GST)</option>
+            <option value="Africa/Cairo">🇪🇬 Egypt (EET)</option>
+          </optgroup>
+          <optgroup label="🌎 USA">
+            <option value="America/New_York">🇺🇸 Eastern (ET) — New York</option>
+            <option value="America/Chicago">🇺🇸 Central (CT) — Chicago</option>
+            <option value="America/Denver">🇺🇸 Mountain (MT) — Denver</option>
+            <option value="America/Los_Angeles">🇺🇸 Pacific (PT) — Los Angeles</option>
+            <option value="America/Phoenix">🇺🇸 Arizona (MST)</option>
+            <option value="America/Anchorage">🇺🇸 Alaska (AKT)</option>
+            <option value="Pacific/Honolulu">🇺🇸 Hawaii (HST)</option>
+          </optgroup>
+          <optgroup label="🌎 Canada">
+            <option value="America/Toronto">🇨🇦 Toronto (ET)</option>
+            <option value="America/Winnipeg">🇨🇦 Winnipeg (CT)</option>
+            <option value="America/Edmonton">🇨🇦 Calgary (MT)</option>
+            <option value="America/Vancouver">🇨🇦 Vancouver (PT)</option>
+          </optgroup>
+          <optgroup label="🌎 South America">
+            <option value="America/Sao_Paulo">🇧🇷 São Paulo (BRT)</option>
+            <option value="America/Argentina/Buenos_Aires">🇦🇷 Buenos Aires (ART)</option>
+          </optgroup>
+          <optgroup label="🌍 UK & Europe">
+            <option value="Europe/London">🇬🇧 London (GMT/BST)</option>
+            <option value="Europe/Paris">🇫🇷 Paris (CET)</option>
+            <option value="Europe/Berlin">🇩🇪 Berlin (CET)</option>
+            <option value="Europe/Amsterdam">🇳🇱 Amsterdam (CET)</option>
+            <option value="Europe/Rome">🇮🇹 Rome (CET)</option>
+            <option value="Europe/Madrid">🇪🇸 Madrid (CET)</option>
+            <option value="Europe/Stockholm">🇸🇪 Stockholm (CET)</option>
+            <option value="Europe/Istanbul">🇹🇷 Istanbul (TRT)</option>
+            <option value="Europe/Moscow">🇷🇺 Moscow (MSK)</option>
+          </optgroup>
+          <optgroup label="🌍 Africa">
+            <option value="Africa/Johannesburg">🇿🇦 South Africa (SAST)</option>
+            <option value="Africa/Lagos">🇳🇬 Nigeria (WAT)</option>
+            <option value="Africa/Nairobi">🇰🇪 Nairobi (EAT)</option>
+          </optgroup>
+          <optgroup label="🌏 Asia">
+            <option value="Asia/Kolkata">🇮🇳 India (IST)</option>
+            <option value="Asia/Karachi">🇵🇰 Pakistan (PKT)</option>
+            <option value="Asia/Bangkok">🇹🇭 Bangkok (ICT)</option>
+            <option value="Asia/Singapore">🇸🇬 Singapore (SGT)</option>
+            <option value="Asia/Hong_Kong">🇭🇰 Hong Kong (HKT)</option>
+            <option value="Asia/Shanghai">🇨🇳 China (CST)</option>
+            <option value="Asia/Tokyo">🇯🇵 Tokyo (JST)</option>
+            <option value="Asia/Seoul">🇰🇷 Seoul (KST)</option>
+          </optgroup>
+          <optgroup label="🌏 Australia & Pacific">
+            <option value="Australia/Sydney">🇦🇺 Sydney / Melbourne (AEST)</option>
+            <option value="Australia/Brisbane">🇦🇺 Brisbane (AEST, no DST)</option>
+            <option value="Australia/Adelaide">🇦🇺 Adelaide (ACST)</option>
+            <option value="Australia/Perth">🇦🇺 Perth (AWST)</option>
+            <option value="Pacific/Auckland">🇳🇿 New Zealand (NZST)</option>
+          </optgroup>
         </select></div>
       </div>
     </div>
@@ -3049,6 +3261,7 @@ function App() {
   const textMain       = S.themeTextMain||"#000000";
   const fontH          = S.themeFontHeading||"Bebas Neue";
   const fontB          = S.themeFontBody||"DM Sans";
+  const fontBrand      = S.themeFontBrand||"Bebas Neue";
   const bgImage        = S.themeBackgroundImage||"";
   const sidebarImage   = S.themeSidebarImage||"";
   const cardImage      = S.themeCardImage||"";
@@ -3060,7 +3273,7 @@ function App() {
     ".sb{background:"+sidebarBg+"!important"+sbImageCSS+"}" +
     ".sb-it{color:"+sidebarText+"!important}" +
     ".sb-it:hover{color:#fff!important}" +
-    ".sb-hd h1{color:"+accent+"!important}" +
+    ".sb-hd h1{color:"+accent+"!important;font-family:'"+fontBrand+"',sans-serif!important}" +
     ".sb-hd small{color:"+accent+"99!important}" +
     ".sb-it.on{background:"+cardBg+"!important;color:"+sidebarBg+"!important;border-left-color:"+accent+"!important}" +
     ".page{background:"+pageBg+"!important"+bgImageCSS+"}" +
