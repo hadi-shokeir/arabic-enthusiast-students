@@ -251,6 +251,7 @@ const DEFS = {
   sub:"Student Management",
   currency:"$",
   weekStartDay:1,
+  tutorTimezone:"Asia/Beirut",
   msgDay:"Hi {name}, reminder: Arabic lesson tomorrow ({date}) at {time}.",
   msgHour:"Hi {name}, your Arabic lesson starts in 1 hour at {time}.",
   msgGen:"Hi {name}, hope you're well! When would you like your next Arabic lesson?",
@@ -1168,8 +1169,8 @@ function StudentPortal({data, setData, user, onLogout}) {
   const assigned = (data.curriculum||[]).filter(c=>(s.assignedLessons||[]).includes(c.id));
   const doneCount = (s.completedLessons||[]).filter(id=>(s.assignedLessons||[]).includes(id)).length;
 
-  // Timezone helpers
-  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  // Timezone helpers — prefer student's saved timezone, fall back to browser
+  const tz = s.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
   const fmtLocal = (date, time) => {
     if (!date || !time) return {date: fmt(date), time};
     try {
@@ -1390,6 +1391,35 @@ function StudentPortal({data, setData, user, onLogout}) {
 
       <!-- Lesson request -->
       <${StudentLessonRequest} student=${s} data=${data} setData=${setData}/>
+
+      <!-- Timezone setting -->
+      <div class="card" style=${{marginTop:14}}>
+        <h3>🌍 MY TIMEZONE</h3>
+        <p style=${{fontSize:12,color:"var(--g500)",marginBottom:10}}>Set your timezone so lesson times display correctly for you.</p>
+        <select value=${s.timezone||""} onChange=${e=>setData({...data,students:data.students.map(x=>x.id===s.id?{...x,timezone:e.target.value}:x)})} style=${{width:"100%",padding:"9px 11px",border:"2px solid var(--g200)",fontFamily:"var(--fb)",fontSize:13}}>
+          <option value="">— Auto-detect (browser default) —</option>
+          <option value="America/New_York">🇺🇸 Eastern (ET) — New York</option>
+          <option value="America/Chicago">🇺🇸 Central (CT) — Chicago</option>
+          <option value="America/Denver">🇺🇸 Mountain (MT) — Denver</option>
+          <option value="America/Los_Angeles">🇺🇸 Pacific (PT) — Los Angeles</option>
+          <option value="America/Toronto">🇨🇦 Toronto (ET)</option>
+          <option value="America/Vancouver">🇨🇦 Vancouver (PT)</option>
+          <option value="Europe/London">🇬🇧 London (GMT/BST)</option>
+          <option value="Europe/Paris">🇫🇷 Paris / Berlin (CET)</option>
+          <option value="Europe/Stockholm">🇸🇪 Stockholm (CET)</option>
+          <option value="Asia/Beirut">🇱🇧 Lebanon (Beirut)</option>
+          <option value="Asia/Dubai">🇦🇪 Dubai (GST)</option>
+          <option value="Asia/Riyadh">🇸🇦 Saudi Arabia (AST)</option>
+          <option value="Asia/Kuwait">🇰🇼 Kuwait (AST)</option>
+          <option value="Asia/Qatar">🇶🇦 Qatar (AST)</option>
+          <option value="Africa/Cairo">🇪🇬 Egypt (EET)</option>
+          <option value="Australia/Sydney">🇦🇺 Sydney (AEST)</option>
+          <option value="Australia/Melbourne">🇦🇺 Melbourne (AEST)</option>
+          <option value="Asia/Tokyo">🇯🇵 Tokyo (JST)</option>
+          <option value="Asia/Singapore">🇸🇬 Singapore (SGT)</option>
+        </select>
+        ${s.timezone && h`<div style=${{marginTop:8,fontSize:12,color:"var(--ok)",fontWeight:600}}>✓ Saved — lesson times will show in ${s.timezone}</div>`}
+      </div>
 
       <!-- Note to teacher -->
       <${StudentNoteToTeacher} student=${s} data=${data} setData=${setData}/>
@@ -2497,9 +2527,24 @@ function Settings({data, setData}) {
       <div style=${{marginTop:10,fontSize:11,color:"var(--g500)"}}>Tip: the Page Background color above still applies if no image is set.</div>
     </div>
     <div class="card"><h3>REGIONAL</h3>
-      <div class="fr">
-        <div class="fg"><label>Currency Symbol</label><input value=${S.currency||"$"} onInput=${e=>u("currency",e.target.value)} placeholder="$" style=${{maxWidth:80}}/></div>
+      <div class="fr3">
+        <div class="fg"><label>Currency Symbol</label><input value=${S.currency||"$"} onInput=${e=>u("currency",e.target.value)} placeholder="$"/></div>
         <div class="fg"><label>Week Starts On</label><select value=${S.weekStartDay||1} onChange=${e=>u("weekStartDay",+e.target.value)}><option value="0">Sunday</option><option value="1">Monday</option><option value="6">Saturday</option></select></div>
+        <div class="fg"><label>Your Timezone (for scheduling)</label><select value=${S.tutorTimezone||"Asia/Beirut"} onChange=${e=>u("tutorTimezone",e.target.value)}>
+          <option value="Asia/Beirut">🇱🇧 Lebanon (Beirut)</option>
+          <option value="America/New_York">🇺🇸 Eastern (ET)</option>
+          <option value="America/Chicago">🇺🇸 Central (CT)</option>
+          <option value="America/Denver">🇺🇸 Mountain (MT)</option>
+          <option value="America/Los_Angeles">🇺🇸 Pacific (PT)</option>
+          <option value="America/Toronto">🇨🇦 Toronto (ET)</option>
+          <option value="Europe/London">🇬🇧 London (GMT/BST)</option>
+          <option value="Europe/Paris">🇫🇷 Paris / Berlin (CET)</option>
+          <option value="Asia/Dubai">🇦🇪 Dubai (GST)</option>
+          <option value="Asia/Riyadh">🇸🇦 Saudi Arabia (AST)</option>
+          <option value="Africa/Cairo">🇪🇬 Egypt (EET)</option>
+          <option value="Australia/Sydney">🇦🇺 Sydney (AEST)</option>
+          <option value="Asia/Tokyo">🇯🇵 Tokyo (JST)</option>
+        </select></div>
       </div>
     </div>
     <div class="card"><h3>CATEGORIES</h3><p style=${{fontSize:12,color:"var(--g500)",marginBottom:14}}>Custom options for all dropdowns.</p>
