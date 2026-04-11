@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="Arabic Enthusiast">
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/logo.jpeg">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;600;700&family=Montserrat:wght@400;600;700;800&family=Raleway:wght@400;600;700;800&family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Lato:wght@400;700&family=Nunito:wght@400;600;700&family=Noto+Kufi+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/htm/3.1.1/htm.module.js" type="module"></script>
@@ -256,24 +256,11 @@ const DEFS = {
   msgGen:"Hi {name}, hope you're well! When would you like your next Arabic lesson?",
   themeAccent:"#c9922a",
   themeSidebar:"#000000",
-  themeSidebarText:"#cccccc",
   themeBackground:"#fafafa",
-  themeTopbar:"#ffffff",
-  themeTopbarBorder:"#000000",
   themeCardBg:"#ffffff",
-  themeCardBorder:"#000000",
+  themeTopbar:"#ffffff",
   themeStatBg:"#ffffff",
-  themeStatBorder:"#000000",
-  themeTableHeader:"#000000",
-  themeTableHeaderText:"#ffffff",
-  themeCalHeader:"#000000",
-  themeCalHeaderText:"#ffffff",
-  themePrimaryBtn:"#000000",
-  themePrimaryBtnText:"#ffffff",
-  themeTextMain:"#000000",
   themeBackgroundImage:"",
-  themeFontHeading:"Bebas Neue",
-  themeFontBody:"DM Sans",
   tutorAvatar:""
 };
 const DD = {students:[],lessons:[],payments:[],curriculum:[],groups:[],homework:[],lessonRequests:[],settings:{...DEFS},_version:DATA_VERSION};
@@ -2410,113 +2397,17 @@ function Settings({data, setData}) {
       </div>
     </div>
     <div class="card"><h3>🎨 THEME COLORS</h3>
-      <p style=${{fontSize:12,color:"var(--g500)",marginBottom:18}}>Every color in the dashboard is customizable. Click a swatch or type a hex code.</p>
-
-      <div style=${{marginBottom:18}}>
-        <div style=${{fontSize:11,fontWeight:800,textTransform:"uppercase",letterSpacing:2,color:"var(--g400)",marginBottom:10,paddingBottom:6,borderBottom:"1px solid var(--g200)"}}>🏗 Layout</div>
-        <div style=${{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(170px,1fr))",gap:12}}>
-          ${[
-            ["themeSidebar","Sidebar Background","#000000"],
-            ["themeSidebarText","Sidebar Text","#cccccc"],
-            ["themeTopbar","Topbar Background","#ffffff"],
-            ["themeTopbarBorder","Topbar Border","#000000"],
-            ["themeBackground","Page Background","#fafafa"],
-            ["themeTextMain","Main Text & Borders","#000000"],
-            ["themeAccent","✨ Accent Gold","#c9922a"],
-          ].map(([k,label,def])=>h`<div key=${k}>
-            <div style=${{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:5,color:"var(--g600)"}}>${label}</div>
-            <div style=${{display:"flex",alignItems:"center",gap:6}}>
-              <input type="color" value=${S[k]||def} onInput=${e=>u(k,e.target.value)} style=${{width:36,height:32,border:"2px solid var(--g200)",borderRadius:4,cursor:"pointer",padding:1,flexShrink:0}}/>
-              <input value=${S[k]||def} onInput=${e=>u(k,e.target.value)} style=${{flex:1,fontFamily:"monospace",fontSize:11,padding:"5px 7px",border:"1.5px solid var(--g200)"}}/>
-            </div>
-          </div>`)}
-        </div>
+      <p style=${{fontSize:12,color:"var(--g500)",marginBottom:14}}>Customize the look of your dashboard.</p>
+      <div style=${{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:14}}>
+        ${[["themeAccent","✨ Accent / Gold","#c9922a"],["themeSidebar","🖤 Sidebar","#000000"],["themeBackground","🌫 Page Background","#fafafa"],["themeTopbar","🔲 Topbar","#ffffff"],["themeCardBg","🃏 Cards & Panels","#ffffff"],["themeStatBg","📊 Stats & Charts","#ffffff"]].map(([k,label,def])=>h`<div key=${k}>
+          <label style=${{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,display:"block",marginBottom:6}}>${label}</label>
+          <div style=${{display:"flex",alignItems:"center",gap:8}}>
+            <input type="color" value=${S[k]||def} onInput=${e=>u(k,e.target.value)} style=${{width:40,height:36,border:"2px solid var(--g200)",borderRadius:6,cursor:"pointer",padding:2}}/>
+            <input value=${S[k]||def} onInput=${e=>u(k,e.target.value)} style=${{flex:1,fontFamily:"monospace",fontSize:12}}/>
+          </div>
+        </div>`)}
       </div>
-
-      <div style=${{marginBottom:18}}>
-        <div style=${{fontSize:11,fontWeight:800,textTransform:"uppercase",letterSpacing:2,color:"var(--g400)",marginBottom:10,paddingBottom:6,borderBottom:"1px solid var(--g200)"}}>🃏 Cards & Panels</div>
-        <div style=${{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(170px,1fr))",gap:12}}>
-          ${[
-            ["themeCardBg","Card Background","#ffffff"],
-            ["themeCardBorder","Card Border","#000000"],
-            ["themeStatBg","Stat Box Background","#ffffff"],
-            ["themeStatBorder","Stat Box Border","#000000"],
-          ].map(([k,label,def])=>h`<div key=${k}>
-            <div style=${{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:5,color:"var(--g600)"}}>${label}</div>
-            <div style=${{display:"flex",alignItems:"center",gap:6}}>
-              <input type="color" value=${S[k]||def} onInput=${e=>u(k,e.target.value)} style=${{width:36,height:32,border:"2px solid var(--g200)",borderRadius:4,cursor:"pointer",padding:1,flexShrink:0}}/>
-              <input value=${S[k]||def} onInput=${e=>u(k,e.target.value)} style=${{flex:1,fontFamily:"monospace",fontSize:11,padding:"5px 7px",border:"1.5px solid var(--g200)"}}/>
-            </div>
-          </div>`)}
-        </div>
-      </div>
-
-      <div style=${{marginBottom:18}}>
-        <div style=${{fontSize:11,fontWeight:800,textTransform:"uppercase",letterSpacing:2,color:"var(--g400)",marginBottom:10,paddingBottom:6,borderBottom:"1px solid var(--g200)"}}>📋 Tables & Calendar</div>
-        <div style=${{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(170px,1fr))",gap:12}}>
-          ${[
-            ["themeTableHeader","Table Header Background","#000000"],
-            ["themeTableHeaderText","Table Header Text","#ffffff"],
-            ["themeCalHeader","Calendar Header Background","#000000"],
-            ["themeCalHeaderText","Calendar Header Text","#ffffff"],
-          ].map(([k,label,def])=>h`<div key=${k}>
-            <div style=${{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:5,color:"var(--g600)"}}>${label}</div>
-            <div style=${{display:"flex",alignItems:"center",gap:6}}>
-              <input type="color" value=${S[k]||def} onInput=${e=>u(k,e.target.value)} style=${{width:36,height:32,border:"2px solid var(--g200)",borderRadius:4,cursor:"pointer",padding:1,flexShrink:0}}/>
-              <input value=${S[k]||def} onInput=${e=>u(k,e.target.value)} style=${{flex:1,fontFamily:"monospace",fontSize:11,padding:"5px 7px",border:"1.5px solid var(--g200)"}}/>
-            </div>
-          </div>`)}
-        </div>
-      </div>
-
-      <div style=${{marginBottom:18}}>
-        <div style=${{fontSize:11,fontWeight:800,textTransform:"uppercase",letterSpacing:2,color:"var(--g400)",marginBottom:10,paddingBottom:6,borderBottom:"1px solid var(--g200)"}}>🔘 Buttons</div>
-        <div style=${{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(170px,1fr))",gap:12}}>
-          ${[
-            ["themePrimaryBtn","Primary Button Background","#000000"],
-            ["themePrimaryBtnText","Primary Button Text","#ffffff"],
-          ].map(([k,label,def])=>h`<div key=${k}>
-            <div style=${{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:5,color:"var(--g600)"}}>${label}</div>
-            <div style=${{display:"flex",alignItems:"center",gap:6}}>
-              <input type="color" value=${S[k]||def} onInput=${e=>u(k,e.target.value)} style=${{width:36,height:32,border:"2px solid var(--g200)",borderRadius:4,cursor:"pointer",padding:1,flexShrink:0}}/>
-              <input value=${S[k]||def} onInput=${e=>u(k,e.target.value)} style=${{flex:1,fontFamily:"monospace",fontSize:11,padding:"5px 7px",border:"1.5px solid var(--g200)"}}/>
-            </div>
-          </div>`)}
-        </div>
-      </div>
-
-      <div style=${{display:"flex",gap:10,flexWrap:"wrap",alignItems:"center"}}>
-        <button class="btn btn-sm" onClick=${()=>setData({...data, settings:{...S,
-          themeAccent:"#c9922a",themeSidebar:"#000000",themeSidebarText:"#cccccc",
-          themeBackground:"#fafafa",themeTopbar:"#ffffff",themeTopbarBorder:"#000000",
-          themeCardBg:"#ffffff",themeCardBorder:"#000000",themeStatBg:"#ffffff",themeStatBorder:"#000000",
-          themeTableHeader:"#000000",themeTableHeaderText:"#ffffff",
-          themeCalHeader:"#000000",themeCalHeaderText:"#ffffff",
-          themePrimaryBtn:"#000000",themePrimaryBtnText:"#ffffff",themeTextMain:"#000000"
-        }}}>Reset all colors</button>
-        <div style=${{fontSize:11,color:"var(--g400)"}}>Changes apply instantly — no save needed.</div>
-      </div>
-    </div>
-
-    <div class="card"><h3>🔤 FONTS</h3>
-      <p style=${{fontSize:12,color:"var(--g500)",marginBottom:14}}>Choose fonts for headings and body text across the whole dashboard.</p>
-      <div class="fr">
-        <div class="fg">
-          <label>Heading Font</label>
-          <select value=${S.themeFontHeading||"Bebas Neue"} onChange=${e=>u("themeFontHeading",e.target.value)} style=${{fontFamily:S.themeFontHeading||"Bebas Neue",fontSize:16}}>
-            ${["Bebas Neue","Oswald","Montserrat","Raleway","Playfair Display"].map(f=>h`<option key=${f} value=${f} style=${{fontFamily:f}}>${f}</option>`)}
-          </select>
-          <div style=${{marginTop:8,fontFamily:S.themeFontHeading||"Bebas Neue",fontSize:22,letterSpacing:2,color:"var(--g600)"}}>Preview: ARABIC ENTHUSIAST</div>
-        </div>
-        <div class="fg">
-          <label>Body Font</label>
-          <select value=${S.themeFontBody||"DM Sans"} onChange=${e=>u("themeFontBody",e.target.value)} style=${{fontFamily:S.themeFontBody||"DM Sans"}}>
-            ${["DM Sans","Inter","Poppins","Lato","Nunito","Montserrat"].map(f=>h`<option key=${f} value=${f} style=${{fontFamily:f}}>${f}</option>`)}
-          </select>
-          <div style=${{marginTop:8,fontFamily:S.themeFontBody||"DM Sans",fontSize:13,color:"var(--g600)",lineHeight:1.6}}>Preview: Your students, your schedule, your way.</div>
-        </div>
-      </div>
-      <button class="btn btn-sm" style=${{marginTop:8}} onClick=${()=>setData({...data,settings:{...S,themeFontHeading:"Bebas Neue",themeFontBody:"DM Sans"}})}>Reset fonts</button>
+      <button class="btn btn-sm" style=${{marginTop:14}} onClick=${()=>setData({...data, settings:{...S, themeAccent:"#c9922a", themeSidebar:"#000000", themeBackground:"#fafafa", themeCardBg:"#ffffff", themeTopbar:"#ffffff", themeStatBg:"#ffffff"}})}>Reset to defaults</button>
     </div>
     <div class="card"><h3>🖼 BACKGROUND IMAGE</h3>
       <p style=${{fontSize:12,color:"var(--g500)",marginBottom:14}}>Upload an image to use as the page background. It will fill and cover the whole dashboard area.</p>
@@ -3022,49 +2913,15 @@ function App() {
   const activeNav = view === "profile" ? "students" : view;
 
   // Apply theme CSS vars
-  const accent          = S.themeAccent||"#c9922a";
-  const sidebarBg       = S.themeSidebar||"#000000";
-  const sidebarText     = S.themeSidebarText||"#cccccc";
-  const pageBg          = S.themeBackground||"#fafafa";
-  const topbarBg        = S.themeTopbar||"#ffffff";
-  const topbarBorder    = S.themeTopbarBorder||"#000000";
-  const cardBg          = S.themeCardBg||"#ffffff";
-  const cardBorder      = S.themeCardBorder||"#000000";
-  const statBg          = S.themeStatBg||"#ffffff";
-  const statBorder      = S.themeStatBorder||"#000000";
-  const tableHdrBg      = S.themeTableHeader||"#000000";
-  const tableHdrText    = S.themeTableHeaderText||"#ffffff";
-  const calHdrBg        = S.themeCalHeader||"#000000";
-  const calHdrText      = S.themeCalHeaderText||"#ffffff";
-  const primaryBtn      = S.themePrimaryBtn||"#000000";
-  const primaryBtnText  = S.themePrimaryBtnText||"#ffffff";
-  const textMain        = S.themeTextMain||"#000000";
-  const fontH           = S.themeFontHeading||"Bebas Neue";
-  const fontB           = S.themeFontBody||"DM Sans";
-  const bgImage         = S.themeBackgroundImage||"";
-  const bgImageCSS      = bgImage ? ";background-image:url("+bgImage+")!important;background-size:cover!important;background-position:center!important;background-attachment:fixed!important" : "";
-  const themeCSS = [
-    `:root{--bk:${textMain};--fh:'${fontH}',sans-serif;--fb:'${fontB}',sans-serif}`,
-    `.app{color:${textMain};font-family:'${fontB}',sans-serif}`,
-    `.sb{background:${sidebarBg}!important}`,
-    `.sb-it{color:${sidebarText}!important}`,
-    `.sb-it:hover{color:#fff!important}`,
-    `.sb-it.on{background:${cardBg}!important;color:${sidebarBg}!important;border-left-color:${accent}!important}`,
-    `.sb-hd h1{color:${accent}!important}`,
-    `.sb-hd small{color:${accent}88!important}`,
-    `.page{background:${pageBg}!important${bgImageCSS}}`,
-    `.topbar{background:${topbarBg}!important;border-bottom-color:${topbarBorder}!important}`,
-    `.card,.assess-card,.mo,.ni,.ci,.stu-card{background:${cardBg}!important;border-color:${cardBorder}!important}`,
-    `.stat{background:${statBg}!important;border-color:${statBorder}!important}`,
-    `th{background:${tableHdrBg}!important;color:${tableHdrText}!important;border-bottom-color:${tableHdrBg}!important}`,
-    `.cal-h{background:${calHdrBg}!important;color:${calHdrText}!important}`,
-    `.btn-p{background:${primaryBtn}!important;color:${primaryBtnText}!important;border-color:${primaryBtn}!important}`,
-    `.btn-p:hover{filter:brightness(0.85)!important}`,
-    `.tabs,.auth-tabs{border-bottom-color:${cardBorder}!important}`,
-    `.tab.on,.auth-tab.on{color:${textMain}!important;border-bottom-color:${accent}!important}`,
-    `.topbar h2{font-family:'${fontH}',sans-serif!important}`,
-    `.card h3,.mo-hd h3,.assess-card h4,.stat .vl,.ll,.auth-box h1,.prof-info h2{font-family:'${fontH}',sans-serif!important}`,
-  ].join("");
+  const accent = S.themeAccent||"#c9922a";
+  const sidebarBg = S.themeSidebar||"#000000";
+  const pageBg = S.themeBackground||"#fafafa";
+  const cardBg = S.themeCardBg||"#ffffff";
+  const topbarBg = S.themeTopbar||"#ffffff";
+  const statBg = S.themeStatBg||"#ffffff";
+  const bgImage = S.themeBackgroundImage||"";
+  const bgImageCSS = bgImage ? ";background-image:url("+bgImage+")!important;background-size:cover!important;background-position:center!important;background-attachment:fixed!important" : "";
+  const themeCSS = `.sb{background:${sidebarBg}!important}.page{background:${pageBg}!important${bgImageCSS}}.topbar{background:${topbarBg}!important}.card,.assess-card,.mo{background:${cardBg}!important}.stat{background:${statBg}!important}.sb-it.on{background:${cardBg}!important;color:${sidebarBg}!important;border-left-color:${accent}!important}.sb-hd h1{color:${accent}!important}.sb-it.on{color:${sidebarBg}!important}`;
 
   return h`<div class="app">
     <style>${themeCSS}</style>
