@@ -275,6 +275,8 @@ const DEFS = {
   themeFontHeading:"Bebas Neue",
   themeFontBody:"DM Sans",
   themeBackgroundImage:"",
+  themeSidebarImage:"",
+  themeCardImage:"",
   tutorAvatar:""
 };
 const DD = {students:[],lessons:[],payments:[],curriculum:[],groups:[],homework:[],lessonRequests:[],settings:{...DEFS},_version:DATA_VERSION};
@@ -2495,36 +2497,50 @@ function Settings({data, setData}) {
       </div>
       <button class="btn btn-sm" style=${{marginTop:6}} onClick=${()=>setData({...data,settings:{...S,themeFontHeading:"Bebas Neue",themeFontBody:"DM Sans"}})}>Reset fonts</button>
     </div>
-    <div class="card"><h3>🖼 BACKGROUND IMAGE</h3>
-      <p style=${{fontSize:12,color:"var(--g500)",marginBottom:14}}>Upload an image to use as the page background. It will fill and cover the whole dashboard area.</p>
-      ${S.themeBackgroundImage ? h`<div style=${{marginBottom:14}}>
-        <div style=${{position:"relative",display:"inline-block",borderRadius:8,overflow:"hidden",border:"2px solid var(--g200)"}}>
-          <img src=${S.themeBackgroundImage} style=${{display:"block",maxWidth:320,maxHeight:160,objectFit:"cover"}}/>
-          <button onClick=${()=>u("themeBackgroundImage","")} style=${{position:"absolute",top:6,right:6,background:"rgba(0,0,0,0.7)",color:"#fff",border:"none",borderRadius:6,padding:"4px 10px",cursor:"pointer",fontSize:11,fontWeight:700}}>✕ Remove</button>
-        </div>
-        <div style=${{marginTop:8,fontSize:11,color:"var(--g500)"}}>Image is active. Remove it to go back to the solid background color.</div>
-      </div>` : null}
-      <label style=${{cursor:"pointer",display:"inline-flex",alignItems:"center",gap:8,padding:"9px 18px",border:"2px solid var(--bk)",fontFamily:"var(--fb)",fontSize:12,fontWeight:600,textTransform:"uppercase",letterSpacing:".8px",background:"var(--wh)",color:"var(--bk)"}}>
-        🖼 ${S.themeBackgroundImage ? "Replace Image" : "Upload Image"}
-        <input type="file" accept="image/*" style=${{display:"none"}} onInput=${e=>{
-          const f = e.target.files[0];
-          if (!f) return;
-          const canvas = document.createElement("canvas");
-          const img = new Image();
-          const url = URL.createObjectURL(f);
-          img.onload = () => {
-            const maxW = 1920, maxH = 1080;
-            const scale = Math.min(maxW / img.width, maxH / img.height, 1);
-            canvas.width = img.width * scale;
-            canvas.height = img.height * scale;
-            canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
-            u("themeBackgroundImage", canvas.toDataURL("image/jpeg", 0.8));
-            URL.revokeObjectURL(url);
+    <div class="card"><h3>🖼 BACKGROUND IMAGES</h3>
+      <p style=${{fontSize:12,color:"var(--g500)",marginBottom:18}}>Upload images for each area. They overlay the color settings above.</p>
+      <div style=${{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:16}}>
+        ${[
+          ["themeBackgroundImage","🌅 Page Background","1920x1080",1920,1080,0.8],
+          ["themeSidebarImage","🗂 Sidebar","400x900",400,900,0.85],
+          ["themeCardImage","🃏 Cards & Panels","800x600",800,600,0.85],
+        ].map(([key,label,hint,maxW,maxH,quality])=>{
+          const val = S[key]||"";
+          const compress = (file, cb) => {
+            const canvas = document.createElement("canvas");
+            const img = new Image();
+            const url = URL.createObjectURL(file);
+            img.onload = () => {
+              const scale = Math.min(maxW/img.width, maxH/img.height, 1);
+              canvas.width = img.width*scale; canvas.height = img.height*scale;
+              canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);
+              cb(canvas.toDataURL("image/jpeg", quality));
+              URL.revokeObjectURL(url);
+            };
+            img.src = url;
           };
-          img.src = url;
-        }}/>
-      </label>
-      <div style=${{marginTop:10,fontSize:11,color:"var(--g500)"}}>Tip: the Page Background color above still applies if no image is set.</div>
+          return h`<div key=${key} style=${{border:"2px solid var(--g200)",borderRadius:8,overflow:"hidden"}}>
+            <div style=${{padding:"10px 12px",background:"var(--g50)",borderBottom:"1px solid var(--g200)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div>
+                <div style=${{fontWeight:700,fontSize:12}}>${label}</div>
+                <div style=${{fontSize:10,color:"var(--g400)"}}>Recommended: ${hint}</div>
+              </div>
+              ${val && h`<button onClick=${()=>u(key,"")} style=${{background:"rgba(200,0,0,0.08)",border:"1px solid var(--bd)",color:"var(--bd)",borderRadius:5,padding:"3px 8px",cursor:"pointer",fontSize:11,fontWeight:700}}>✕ Remove</button>`}
+            </div>
+            ${val
+              ? h`<img src=${val} style=${{display:"block",width:"100%",height:120,objectFit:"cover"}}/>`
+              : h`<div style=${{height:120,display:"flex",alignItems:"center",justifyContent:"center",background:"#fafafa",color:"var(--g300)",fontSize:28}}>🖼</div>`
+            }
+            <div style=${{padding:"10px 12px"}}>
+              <label style=${{cursor:"pointer",display:"inline-flex",alignItems:"center",gap:6,padding:"6px 12px",border:"2px solid var(--bk)",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:".8px",background:"var(--wh)",color:"var(--bk)"}}>
+                📷 ${val?"Replace":"Upload"}
+                <input type="file" accept="image/*" style=${{display:"none"}} onInput=${e=>{const f=e.target.files[0];if(f) compress(f,data=>u(key,data));}}/>
+              </label>
+            </div>
+          </div>`;
+        })}
+      </div>
+      <div style=${{marginTop:12,fontSize:11,color:"var(--g400)"}}>Images are compressed automatically. Removing an image reverts to the solid color.</div>
     </div>
     <div class="card"><h3>REGIONAL</h3>
       <div class="fr3">
@@ -3034,10 +3050,14 @@ function App() {
   const fontH          = S.themeFontHeading||"Bebas Neue";
   const fontB          = S.themeFontBody||"DM Sans";
   const bgImage        = S.themeBackgroundImage||"";
-  const bgImageCSS = bgImage ? ";background-image:url("+bgImage+")!important;background-size:cover!important;background-position:center!important;background-attachment:fixed!important" : "";
+  const sidebarImage   = S.themeSidebarImage||"";
+  const cardImage      = S.themeCardImage||"";
+  const bgImageCSS     = bgImage ? ";background-image:url("+bgImage+")!important;background-size:cover!important;background-position:center!important;background-attachment:fixed!important" : "";
+  const sbImageCSS     = sidebarImage ? ";background-image:url("+sidebarImage+")!important;background-size:cover!important;background-position:center!important" : "";
+  const cardImageCSS   = cardImage ? ";background-image:url("+cardImage+")!important;background-size:cover!important;background-position:center!important" : "";
   const themeCSS = (
     ".app{color:"+textMain+";font-family:'"+fontB+"',sans-serif}" +
-    ".sb{background:"+sidebarBg+"!important}" +
+    ".sb{background:"+sidebarBg+"!important"+sbImageCSS+"}" +
     ".sb-it{color:"+sidebarText+"!important}" +
     ".sb-it:hover{color:#fff!important}" +
     ".sb-hd h1{color:"+accent+"!important}" +
@@ -3046,7 +3066,7 @@ function App() {
     ".page{background:"+pageBg+"!important"+bgImageCSS+"}" +
     ".topbar{background:"+topbarBg+"!important;border-bottom-color:"+topbarBorder+"!important}" +
     ".topbar h2,.card h3,.mo-hd h3,.assess-card h4,.stat .vl,.ll,.auth-box h1,.prof-info h2{font-family:'"+fontH+"',sans-serif!important}" +
-    ".card,.assess-card,.mo,.stu-card{background:"+cardBg+"!important;border-color:"+cardBorder+"!important}" +
+    ".card,.assess-card,.mo,.stu-card{background:"+cardBg+"!important;border-color:"+cardBorder+"!important"+cardImageCSS+"}" +
     ".stat{background:"+statBg+"!important;border-color:"+statBorder+"!important}" +
     "th{background:"+tblHdrBg+"!important;color:"+tblHdrText+"!important;border-bottom-color:"+tblHdrBg+"!important}" +
     ".cal-h{background:"+calHdrBg+"!important;color:"+calHdrText+"!important}" +
