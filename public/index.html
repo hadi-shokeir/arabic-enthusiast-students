@@ -284,6 +284,9 @@ const DEFS = {
   themeSidebarImage:"",
   themeSidebarImageX:50,
   themeSidebarImageY:50,
+  themeSidebarHeaderImage:"",
+  themeSidebarHeaderImageX:50,
+  themeSidebarHeaderImageY:50,
   themeCardImage:"",
   themeCardImageX:50,
   themeCardImageY:50,
@@ -2716,12 +2719,14 @@ function Settings({data, setData}) {
       <div style=${{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:16}}>
         ${[
           ["themeBackgroundImage","themeBackgroundImageX","themeBackgroundImageY","🌅 Page Background","1920x1080",1920,1080,0.8],
-          ["themeSidebarImage","themeSidebarImageX","themeSidebarImageY","🗂 Sidebar","400x900",400,900,0.85],
+          ["themeSidebarImage","themeSidebarImageX","themeSidebarImageY","🗂 Full Sidebar","400x900",400,900,0.85],
+          ["themeSidebarHeaderImage","themeSidebarHeaderImageX","themeSidebarHeaderImageY","✨ Sidebar Header (Logo Area)","400x300",400,300,0.9],
           ["themeCardImage","themeCardImageX","themeCardImageY","🃏 Cards & Panels","800x600",800,600,0.85],
         ].map(([key,keyX,keyY,label,hint,maxW,maxH,quality])=>{
           const val = S[key]||"";
           const posX = S[keyX] !== undefined ? S[keyX] : 50;
           const posY = S[keyY] !== undefined ? S[keyY] : 50;
+          const isNew = key === "themeSidebarHeaderImage";
           const compress = (file, cb) => {
             const canvas = document.createElement("canvas");
             const img = new Image();
@@ -2735,26 +2740,38 @@ function Settings({data, setData}) {
             };
             img.src = url;
           };
-          return h`<div key=${key} style=${{border:"2px solid var(--g200)",borderRadius:8,overflow:"hidden"}}>
-            <div style=${{padding:"10px 12px",background:"var(--g50)",borderBottom:"1px solid var(--g200)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          return h`<div key=${key} style=${{
+            borderRadius:12,
+            overflow:"hidden",
+            background:"#fff",
+            border:"1px solid rgba(0,0,0,0.1)",
+            borderBottom:"3px solid rgba(0,0,0,0.18)",
+            boxShadow:"0 6px 18px rgba(0,0,0,0.1),0 2px 6px rgba(0,0,0,0.07),inset 0 1px 0 rgba(255,255,255,0.9)",
+            outline: isNew ? "2px dashed var(--ac)" : "none",
+            outlineOffset: isNew ? 3 : 0,
+          }}>
+            <div style=${{padding:"10px 14px",background:"linear-gradient(to bottom,#f8f9fa,#f0f1f3)",borderBottom:"1px solid rgba(0,0,0,0.08)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <div>
-                <div style=${{fontWeight:700,fontSize:12}}>${label}</div>
+                <div style=${{fontWeight:800,fontSize:12,letterSpacing:.5}}>${label}</div>
                 <div style=${{fontSize:10,color:"var(--g400)"}}>Recommended: ${hint}</div>
               </div>
               ${val && h`<button onClick=${()=>u(key,"")} style=${{background:"rgba(200,0,0,0.08)",border:"1px solid var(--bd)",color:"var(--bd)",borderRadius:5,padding:"3px 8px",cursor:"pointer",fontSize:11,fontWeight:700}}>✕ Remove</button>`}
             </div>
             ${val
-              ? h`<img src=${val} style=${{display:"block",width:"100%",height:120,objectFit:"cover",objectPosition:posX+"% "+posY+"%"}}/>`
-              : h`<div style=${{height:120,display:"flex",alignItems:"center",justifyContent:"center",background:"#fafafa",color:"var(--g300)",fontSize:28}}>🖼</div>`
+              ? h`<img src=${val} style=${{display:"block",width:"100%",height:130,objectFit:"cover",objectPosition:posX+"% "+posY+"%"}}/>`
+              : h`<div style=${{height:130,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"linear-gradient(135deg,#f5f6f8 0%,#eaecef 100%)",color:"var(--g300)",gap:8,cursor:"pointer"}}>
+                  <span style=${{fontSize:36}}>🖼</span>
+                  <span style=${{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:"var(--g400)"}}>Drop or upload image</span>
+                </div>`
             }
-            <div style=${{padding:"10px 12px"}}>
-              <label style=${{cursor:"pointer",display:"inline-flex",alignItems:"center",gap:6,padding:"6px 12px",border:"2px solid var(--bk)",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:".8px",background:"var(--wh)",color:"var(--bk)"}}>
+            <div style=${{padding:"12px 14px",background:"linear-gradient(to top,#f0f1f3,#fff)"}}>
+              <label style=${{cursor:"pointer",display:"inline-flex",alignItems:"center",gap:6,padding:"7px 14px",border:"1.5px solid var(--bk)",borderBottom:"3px solid var(--bk)",borderRadius:7,fontSize:11,fontWeight:800,textTransform:"uppercase",letterSpacing:".8px",background:"linear-gradient(to bottom,#fff,#f3f3f3)",color:"var(--bk)",boxShadow:"0 2px 4px rgba(0,0,0,0.08)"}}>
                 📷 ${val?"Replace":"Upload"}
-                <input type="file" accept="image/*" style=${{display:"none"}} onInput=${e=>{const f=e.target.files[0];if(f) compress(f,data=>u(key,data));}}/>
+                <input type="file" accept="image/*" style=${{display:"none"}} onInput=${e=>{const f=e.target.files[0];if(f) compress(f,imgData=>u(key,imgData));}}/>
               </label>
-              ${val && h`<div style=${{marginTop:10}}>
-                <div style=${{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:"var(--g500)",marginBottom:4}}>Crop / Position</div>
-                <div style=${{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
+              ${val && h`<div style=${{marginTop:12}}>
+                <div style=${{fontSize:10,fontWeight:800,textTransform:"uppercase",letterSpacing:1,color:"var(--g500)",marginBottom:6}}>Crop / Position</div>
+                <div style=${{display:"flex",alignItems:"center",gap:6,marginBottom:5}}>
                   <span style=${{fontSize:10,color:"var(--g400)",minWidth:18}}>↔</span>
                   <input type="range" min="0" max="100" value=${posX} onInput=${e=>u(keyX,+e.target.value)} style=${{flex:1,cursor:"pointer"}}/>
                   <span style=${{fontSize:10,minWidth:28,textAlign:"right"}}>${posX}%</span>
@@ -3338,6 +3355,10 @@ function App() {
   const sidebarImage   = S.themeSidebarImage||"";
   const sbImageX       = S.themeSidebarImageX !== undefined ? S.themeSidebarImageX : 50;
   const sbImageY       = S.themeSidebarImageY !== undefined ? S.themeSidebarImageY : 50;
+  const sbHdImage      = S.themeSidebarHeaderImage||"";
+  const sbHdImageX     = S.themeSidebarHeaderImageX !== undefined ? S.themeSidebarHeaderImageX : 50;
+  const sbHdImageY     = S.themeSidebarHeaderImageY !== undefined ? S.themeSidebarHeaderImageY : 50;
+  const sbHdImageCSS   = sbHdImage ? "background-image:url("+sbHdImage+")!important;background-size:cover!important;background-position:"+sbHdImageX+"% "+sbHdImageY+"%!important" : "";
   const cardImage      = S.themeCardImage||"";
   const cardImageX     = S.themeCardImageX !== undefined ? S.themeCardImageX : 50;
   const cardImageY     = S.themeCardImageY !== undefined ? S.themeCardImageY : 50;
@@ -3349,6 +3370,7 @@ function App() {
     ".sb{background:"+sidebarBg+"!important"+sbImageCSS+"}" +
     ".sb-it{color:"+sidebarText+"!important}" +
     ".sb-it:hover{color:#fff!important}" +
+    ".sb-hd{"+sbHdImageCSS+"}" +
     ".sb-hd h1{color:"+accent+"!important;font-family:'"+fontBrand+"',sans-serif!important;font-size:"+fontSizeBrand+"px!important}" +
     ".sb-hd small{color:"+accent+"99!important}" +
     ".sb-it.on{background:"+cardBg+"!important;color:"+sidebarBg+"!important;border-left-color:"+accent+"!important}" +
