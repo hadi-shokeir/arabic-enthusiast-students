@@ -89,6 +89,16 @@ Lessons completed: ${context.lessonsTaken}`;
         userMessage = context.message;
         break;
 
+      case 'student_quiz':
+        model = 'claude-haiku-4-5-20251001';
+        systemPrompt = `You are an Arabic language teacher creating a quiz for a student. Generate exactly 5 multiple-choice questions appropriate to their level. Each question should test vocabulary, grammar, phrases, or reading comprehension relevant to what they have studied. Respond with ONLY a valid JSON array — no explanation, no markdown, just the JSON. Format: [{"q":"question text","options":["A","B","C","D"],"answer":0,"tip":"brief explanation of the correct answer"}]`;
+        userMessage = `Student: ${context.name}
+Level: ${context.level} | Type: ${context.type}
+Skills (1-5): Reading ${context.skillReading}, Writing ${context.skillWriting}, Listening ${context.skillListening}, Speaking ${context.skillSpeaking}
+Completed topics: ${context.topics || 'General Arabic'}
+Goals: ${context.goals || 'general improvement'}`;
+        break;
+
       default:
         return res.status(400).json({ error: 'Unknown type: ' + type });
     }

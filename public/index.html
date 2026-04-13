@@ -279,6 +279,18 @@ tr.ck{cursor:pointer}tr.ck:hover td{background:var(--g100)}
   /* Availability time inputs */
   .avail-range-row input[type="time"]{font-size:16px !important}
 }
+/* Student portal tab nav */
+.sp-tab-nav{display:flex;background:#fff;border-bottom:2px solid #e8e8e8;overflow-x:auto;scrollbar-width:none;position:sticky;top:0;z-index:9}
+.sp-tab-nav::-webkit-scrollbar{display:none}
+.sp-tab{display:flex;align-items:center;gap:6px;padding:12px 18px;font-size:12px;font-weight:700;color:#888;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:all .15s;letter-spacing:.5px;text-transform:uppercase;flex-shrink:0;background:none;border-top:none;border-left:none;border-right:none;font-family:var(--fb)}
+.sp-tab:hover{color:#333;background:#f9f9f9}
+.sp-tab.on{color:#111;border-bottom-color:#111}
+/* Quiz option buttons */
+.qz-opt{padding:10px 14px;border:2px solid #e0e0e0;border-radius:8px;background:#fff;font-family:var(--fb);font-size:13px;cursor:pointer;text-align:left;transition:all .15s;width:100%}
+.qz-opt:hover{border-color:#999;background:#fafafa}
+.qz-opt.qz-correct{border-color:#4caf50;background:#e8f5e9;color:#2e7d32}
+.qz-opt.qz-wrong{border-color:#f44336;background:#fce4ec;color:#c62828}
+.qz-opt.qz-missed{border-color:#ff9800;background:#fff8e1}
 </style>
 </head>
 <body>
@@ -1503,10 +1515,223 @@ function StudentNoteToTeacher({student, data, setData}) {
 }
 
 // ════════════════════════════════════════
+// STUDENT PORTAL — CURRICULUM TAB
+// ════════════════════════════════════════
+function StudentCurriculumTab({student: s, data, setData}) {
+  const assigned = (data.curriculum||[]).filter(c=>(s.assignedLessons||[]).includes(c.id));
+  const done = s.completedLessons||[];
+  const total = assigned.length;
+  const doneCount = done.filter(id=>(s.assignedLessons||[]).includes(id)).length;
+  const pct = total>0?Math.round((doneCount/total)*100):0;
+  const toggle = (id) => {
+    const updated = done.includes(id)?done.filter(x=>x!==id):[...done,id];
+    setData({...data,students:data.students.map(x=>x.id===s.id?{...x,completedLessons:updated}:x)});
+  };
+  if (assigned.length===0) return h`<div style=${{padding:32,textAlign:"center",color:"var(--g400)"}}>No curriculum topics assigned yet. Hadi will add them soon!</div>`;
+  return h`<div style=${{maxWidth:700,margin:"0 auto"}}>
+    <div class="card" style=${{marginBottom:16}}>
+      <div style=${{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+        <div style=${{fontWeight:700,fontSize:14}}>📚 My Curriculum Progress</div>
+        <div style=${{fontSize:13,fontWeight:700,color:"#7e57c2"}}>${doneCount}/${total} topics (${pct}%)</div>
+      </div>
+      <div style=${{height:10,background:"#f0f0f0",borderRadius:8,overflow:"hidden"}}>
+        <div style=${{height:"100%",width:pct+"%",background:"#7e57c2",borderRadius:8,transition:"width 0.6s ease"}}></div>
+      </div>
+    </div>
+    ${assigned.map((c,i)=>{
+      const isDone = done.includes(c.id);
+      return h`<div key=${c.id} style=${{background:"#fff",border:"1px solid #eee",borderRadius:12,padding:"14px 16px",marginBottom:10,boxShadow:"0 1px 4px rgba(0,0,0,0.05)",opacity:isDone?0.7:1,display:"flex",alignItems:"flex-start",gap:12}}>
+        <button onClick=${()=>toggle(c.id)} style=${{width:24,height:24,borderRadius:6,border:"2px solid "+(isDone?"#7e57c2":"#ccc"),background:isDone?"#7e57c2":"#fff",color:"#fff",fontSize:14,cursor:"pointer",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"var(--fb)",padding:0}}>${isDone?"✓":""}</button>
+        <div style=${{flex:1}}>
+          <div style=${{fontWeight:700,fontSize:14,textDecoration:isDone?"line-through":"none",color:isDone?"#aaa":"#111"}}>${i+1}. ${c.title||c.name||"Lesson "+(i+1)}</div>
+          ${c.description&&h`<div style=${{fontSize:12,color:"var(--g500)",marginTop:4,lineHeight:1.6}}>${c.description}</div>`}
+          ${c.category&&h`<span style=${{display:"inline-block",marginTop:6,padding:"2px 8px",background:"#f0ebff",color:"#7e57c2",borderRadius:20,fontSize:10,fontWeight:700}}>${c.category}</span>`}
+        </div>
+      </div>`;
+    })}
+  </div>`;
+}
+
+// ════════════════════════════════════════
+// STUDENT PORTAL — LIBRARY TAB
+// ════════════════════════════════════════
+function StudentLibraryTab({data}) {
+  const pdfs = (data.curriculum||[]).filter(c=>c.fileData&&c.fileName&&(c.fileName.toLowerCase().endsWith(".pdf")||c.fileData.startsWith("data:application/pdf")));
+  if (pdfs.length===0) return h`<div style=${{padding:32,textAlign:"center",color:"var(--g400)"}}>No PDFs available yet. Hadi will upload resources here.</div>`;
+  return h`<div style=${{maxWidth:700,margin:"0 auto"}}>
+    <div style=${{marginBottom:16,fontSize:13,color:"var(--g500)"}}>📎 Download your study materials below.</div>
+    <div style=${{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:12}}>
+      ${pdfs.map(c=>h`<a key=${c.id} href=${c.fileData} download=${c.fileName||"resource.pdf"} style=${{display:"flex",flexDirection:"column",alignItems:"center",gap:10,background:"#fff",border:"2px solid #eee",borderRadius:12,padding:"20px 16px",textDecoration:"none",boxShadow:"0 1px 4px rgba(0,0,0,0.06)",transition:"border-color .15s",cursor:"pointer"}}>
+        <div style=${{fontSize:36}}>📄</div>
+        <div style=${{fontWeight:700,fontSize:13,color:"#111",textAlign:"center",wordBreak:"break-word"}}>${c.title||c.name||c.fileName}</div>
+        ${c.category&&h`<span style=${{padding:"2px 8px",background:"#f0ebff",color:"#7e57c2",borderRadius:20,fontSize:10,fontWeight:700}}>${c.category}</span>`}
+        <div style=${{fontSize:11,color:"#1976d2",fontWeight:700,marginTop:4}}>⬇ Download</div>
+      </a>`)}
+    </div>
+  </div>`;
+}
+
+// ════════════════════════════════════════
+// STUDENT PORTAL — QUIZ TAB
+// ════════════════════════════════════════
+function StudentQuizTab({student: s, data}) {
+  const [loading, setLoading] = useState(false);
+  const [questions, setQuestions] = useState(null);
+  const [answers, setAnswers] = useState({});
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
+  const topics = (data.curriculum||[]).filter(c=>(s.assignedLessons||[]).includes(c.id)).map(c=>c.title||c.name).join(", ");
+
+  const generate = async () => {
+    setLoading(true); setQuestions(null); setAnswers({}); setSubmitted(false); setError("");
+    try {
+      const d = await apiPost("/api/ai", {type:"student_quiz", context:{
+        name:s.name, level:s.level||"beginner", type:s.type||"Classical Arabic",
+        skillReading:s.skillReading||3, skillWriting:s.skillWriting||3,
+        skillListening:s.skillListening||3, skillSpeaking:s.skillSpeaking||3,
+        topics: topics||"General Arabic", goals:s.goals||""
+      }});
+      if (d.result) {
+        const raw = d.result.replace(/```json|```/g,"").trim();
+        const parsed = JSON.parse(raw);
+        setQuestions(parsed);
+      } else { setError("Could not generate quiz."); }
+    } catch(e) { setError("Error: "+e.message); }
+    setLoading(false);
+  };
+
+  const score = questions ? questions.filter((q,i)=>answers[i]===q.answer).length : 0;
+
+  return h`<div style=${{maxWidth:680,margin:"0 auto"}}>
+    <div class="card" style=${{marginBottom:16}}>
+      <h3 style=${{marginBottom:4}}>🧠 AI QUIZ</h3>
+      <p style=${{fontSize:13,color:"var(--g500)",marginBottom:14,lineHeight:1.6}}>Generate a 5-question quiz personalised to your level and topics.</p>
+      <button class="btn btn-p" onClick=${generate} disabled=${loading}>${loading?"Generating quiz...":"Generate New Quiz"}</button>
+      ${error&&h`<div style=${{marginTop:10,color:"var(--bd)",fontSize:13}}>${error}</div>`}
+    </div>
+    ${questions&&h`<div>
+      ${questions.map((q,i)=>h`<div key=${i} style=${{background:"#fff",border:"1px solid #eee",borderRadius:12,padding:"18px 16px",marginBottom:12,boxShadow:"0 1px 4px rgba(0,0,0,0.05)"}}>
+        <div style=${{fontWeight:700,fontSize:14,marginBottom:12,lineHeight:1.5}}>${i+1}. ${q.q}</div>
+        <div style=${{display:"flex",flexDirection:"column",gap:8}}>
+          ${q.options.map((opt,j)=>{
+            let cls = "qz-opt";
+            if (submitted) {
+              if (j===q.answer) cls+=" qz-correct";
+              else if (answers[i]===j) cls+=" qz-wrong";
+            } else if (answers[i]===j) cls+=" qz-correct";
+            return h`<button key=${j} class=${cls} onClick=${()=>{if(!submitted)setAnswers({...answers,[i]:j})}} disabled=${submitted}>${opt}</button>`;
+          })}
+        </div>
+        ${submitted&&h`<div style=${{marginTop:10,padding:"8px 12px",background:"#f5f5f5",borderRadius:8,fontSize:12,color:"#555",lineHeight:1.6}}>💡 ${q.tip}</div>`}
+      </div>`)}
+      ${!submitted&&Object.keys(answers).length===questions.length&&h`<button class="btn btn-p" style=${{width:"100%",marginTop:4}} onClick=${()=>setSubmitted(true)}>Submit Quiz</button>`}
+      ${submitted&&h`<div style=${{background:"#fff",border:"2px solid #111",borderRadius:12,padding:"20px",textAlign:"center",marginTop:4}}>
+        <div style=${{fontSize:32,marginBottom:8}}>${score>=4?"🏆":score>=3?"👍":"📚"}</div>
+        <div style=${{fontFamily:"var(--fh)",fontSize:28,letterSpacing:2}}>${score}/5</div>
+        <div style=${{fontSize:13,color:"var(--g500)",marginTop:6}}>${score===5?"Perfect score! Excellent work!":score>=3?"Good job — keep practising!":"Review and try again — you'll get there!"}</div>
+        <button class="btn" style=${{marginTop:14}} onClick=${generate}>Try Another Quiz</button>
+      </div>`}
+    </div>`}
+  </div>`;
+}
+
+// ════════════════════════════════════════
+// STUDENT PORTAL — SETTINGS TAB
+// ════════════════════════════════════════
+function StudentSettingsTab({student: s, data, setData}) {
+  const upd = (k,v) => setData({...data,students:data.students.map(x=>x.id===s.id?{...x,[k]:v}:x)});
+  const THEMES = [
+    {label:"Classic Black",val:"#111111"},
+    {label:"Deep Blue",val:"#1565c0"},
+    {label:"Forest Green",val:"#2e7d32"},
+    {label:"Rich Purple",val:"#6a1b9a"},
+    {label:"Burgundy",val:"#880e4f"},
+    {label:"Teal",val:"#00695c"},
+    {label:"Slate",val:"#37474f"},
+    {label:"Orange",val:"#e65100"},
+    {label:"Gold",val:"#c9922a"},
+  ];
+  return h`<div style=${{maxWidth:540,margin:"0 auto"}}>
+    <div class="card" style=${{marginBottom:16}}>
+      <h3>👤 ACCOUNT INFO</h3>
+      <div style=${{fontSize:13,color:"var(--g600)",lineHeight:2}}>
+        <div><b>Name:</b> ${s.name}</div>
+        <div><b>Email:</b> ${s.email||"—"}</div>
+        <div><b>Level:</b> ${s.level||"—"}</div>
+        <div><b>Type:</b> ${s.type||"—"}</div>
+      </div>
+    </div>
+    <div class="card" style=${{marginBottom:16}}>
+      <h3>🌍 MY TIMEZONE</h3>
+      <p style=${{fontSize:12,color:"var(--g500)",marginBottom:10}}>Set your timezone so lesson times display correctly for you.</p>
+      <select value=${s.timezone||""} onChange=${e=>upd("timezone",e.target.value)} style=${{width:"100%",padding:"9px 11px",border:"2px solid var(--g200)",fontFamily:"var(--fb)",fontSize:13}}>
+        <option value="">— Auto-detect (browser default) —</option>
+        <optgroup label="🌎 USA">
+          <option value="America/New_York">🇺🇸 Eastern (ET) — New York / Miami</option>
+          <option value="America/Chicago">🇺🇸 Central (CT) — Chicago / Dallas</option>
+          <option value="America/Denver">🇺🇸 Mountain (MT) — Denver / Salt Lake</option>
+          <option value="America/Los_Angeles">🇺🇸 Pacific (PT) — LA / San Francisco</option>
+          <option value="America/Phoenix">🇺🇸 Arizona (MST, no DST)</option>
+          <option value="America/Anchorage">🇺🇸 Alaska (AKT)</option>
+          <option value="Pacific/Honolulu">🇺🇸 Hawaii (HST)</option>
+        </optgroup>
+        <optgroup label="🌍 UK & Europe">
+          <option value="Europe/London">🇬🇧 London (GMT/BST)</option>
+          <option value="Europe/Paris">🇫🇷 Paris (CET)</option>
+          <option value="Europe/Berlin">🇩🇪 Berlin (CET)</option>
+          <option value="Europe/Amsterdam">🇳🇱 Amsterdam (CET)</option>
+          <option value="Europe/Rome">🇮🇹 Rome (CET)</option>
+          <option value="Europe/Madrid">🇪🇸 Madrid (CET)</option>
+          <option value="Europe/Moscow">🇷🇺 Moscow (MSK)</option>
+        </optgroup>
+        <optgroup label="🌍 Middle East & Africa">
+          <option value="Asia/Beirut">🇱🇧 Lebanon (Beirut)</option>
+          <option value="Asia/Amman">🇯🇴 Jordan (Amman)</option>
+          <option value="Asia/Damascus">🇸🇾 Syria (Damascus)</option>
+          <option value="Asia/Baghdad">🇮🇶 Iraq (Baghdad)</option>
+          <option value="Asia/Riyadh">🇸🇦 Saudi Arabia (AST)</option>
+          <option value="Asia/Kuwait">🇰🇼 Kuwait</option>
+          <option value="Asia/Qatar">🇶🇦 Qatar</option>
+          <option value="Asia/Dubai">🇦🇪 Dubai / UAE (GST)</option>
+          <option value="Africa/Cairo">🇪🇬 Egypt (EET)</option>
+          <option value="Africa/Johannesburg">🇿🇦 South Africa (SAST)</option>
+          <option value="Africa/Lagos">🇳🇬 Nigeria (WAT)</option>
+        </optgroup>
+        <optgroup label="🌏 Asia & Pacific">
+          <option value="Asia/Kolkata">🇮🇳 India (IST)</option>
+          <option value="Asia/Karachi">🇵🇰 Pakistan (PKT)</option>
+          <option value="Asia/Singapore">🇸🇬 Singapore (SGT)</option>
+          <option value="Asia/Tokyo">🇯🇵 Tokyo (JST)</option>
+          <option value="Australia/Sydney">🇦🇺 Sydney (AEST)</option>
+          <option value="Pacific/Auckland">🇳🇿 New Zealand (NZST)</option>
+        </optgroup>
+      </select>
+      ${s.timezone&&h`<div style=${{marginTop:8,fontSize:12,color:"var(--ok)",fontWeight:600}}>✓ Saved — lesson times will show in ${s.timezone}</div>`}
+    </div>
+    <div class="card">
+      <h3>🎨 MY THEME</h3>
+      <p style=${{fontSize:12,color:"var(--g500)",marginBottom:12}}>Choose the accent colour for your portal.</p>
+      <div style=${{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>
+        ${THEMES.map(t=>h`<button key=${t.val} onClick=${()=>upd("studentTheme",t.val)} style=${{
+          padding:"10px 8px",borderRadius:8,border:"2px solid "+(s.studentTheme===t.val?"#111":"#e0e0e0"),
+          background:s.studentTheme===t.val?"#f5f5f5":"#fff",cursor:"pointer",
+          fontFamily:"var(--fb)",fontSize:11,fontWeight:700,
+          display:"flex",alignItems:"center",gap:6
+        }}>
+          <div style=${{width:14,height:14,borderRadius:50,background:t.val,flexShrink:0}}></div>
+          ${t.label}
+        </button>`)}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ════════════════════════════════════════
 // STUDENT PORTAL (read-only view for students)
 // ════════════════════════════════════════
 function StudentPortal({data, setData, user, onLogout}) {
   const CUR = data.settings.currency || "$";
+  const [spTab, setSpTab] = useState("home");
   // Match student by email or phone
   const s = data.students.find(st =>
     (user.email && st.email && st.email.toLowerCase() === user.email.toLowerCase()) ||
@@ -1572,56 +1797,58 @@ function StudentPortal({data, setData, user, onLogout}) {
       borderBottom:"2px solid #ccc"
     }}>
 
-      <!-- LEFT: Persian-tiled brand plaque (independent raised element) -->
+      <!-- LEFT: brand plaque -->
       <div class="sp-hd-brand" style=${{
         display:"flex",alignItems:"center",gap:12,
         padding:"10px 16px",borderRadius:12,flexShrink:0,
-        background:"#111",
-        boxShadow:"0 4px 16px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.08),inset 0 -2px 0 rgba(0,0,0,0.4)",
-        border:"1px solid rgba(201,146,42,0.4)"
+        background:"#fff",
+        boxShadow:"0 2px 8px rgba(0,0,0,0.12)",
+        border:"2px solid #111"
       }}>
-        <!-- Logo with gold ring -->
+        <!-- Logo with black border -->
         <div style=${{
-          borderRadius:10,flexShrink:0,padding:6,
-          border:"2px solid #c9922a",
-          boxShadow:"0 0 10px rgba(201,146,42,0.5),0 2px 6px rgba(0,0,0,0.6)",
+          borderRadius:8,flexShrink:0,
+          border:"2px solid #111",
+          overflow:"hidden",width:44,height:44,
           display:"flex",alignItems:"center",justifyContent:"center"
         }}>
-          <img src="/logo.jpeg" style=${{width:48,height:48,objectFit:"contain",display:"block",borderRadius:10}}/>
+          <img src="/logo.jpeg" style=${{width:44,height:44,objectFit:"cover",display:"block"}}/>
         </div>
         <!-- Brand text -->
         <div>
           <div class="sp-brand-text" style=${{
-            fontSize:20,fontWeight:900,fontFamily:"var(--fh)",letterSpacing:3,
-            color:"#c9922a",
-            textShadow:"0 1px 0 #000,0 0 12px rgba(201,146,42,0.6),0 2px 4px rgba(0,0,0,0.8)"
+            fontSize:18,fontWeight:900,fontFamily:"var(--fh)",letterSpacing:2,color:"#111"
           }}>ARABIC ENTHUSIAST</div>
           <div class="sp-brand-sub" style=${{
-            fontSize:10,letterSpacing:"2px",marginTop:2,fontWeight:600,
-            color:"rgba(201,146,42,0.65)",
-            textShadow:"0 1px 2px rgba(0,0,0,0.8)"
+            fontSize:10,letterSpacing:"2px",marginTop:1,fontWeight:600,color:"#555"
           }}>with Hadi</div>
         </div>
       </div>
 
-      <!-- CENTRE: greeting on 3D raised card -->
+      <!-- CENTRE: greeting -->
       <div class="sp-hd-greeting" style=${{
         flex:1,display:"flex",alignItems:"center",justifyContent:"center",
         background:"linear-gradient(180deg,#ffffff 0%,#f5f5f5 100%)",
         borderRadius:12,padding:"10px 20px",
-        boxShadow:"inset 0 2px 6px rgba(0,0,0,0.08),inset 0 -1px 0 rgba(255,255,255,0.9)",
+        boxShadow:"inset 0 2px 6px rgba(0,0,0,0.06)",
         border:"1px solid #ddd"
       }}>
         <div style=${{textAlign:"center"}}>
-          <div class="sp-greet-main" style=${{fontSize:22,fontWeight:900,fontFamily:"var(--fh)",letterSpacing:1.5,color:"#1a1a1a",textShadow:"0 1px 0 rgba(255,255,255,0.8),0 2px 4px rgba(0,0,0,0.1)"}}>${greeting}, ${firstName}! ${streakEmoji}</div>
+          <div class="sp-greet-main" style=${{fontSize:22,fontWeight:900,fontFamily:"var(--fh)",letterSpacing:1.5,color:"#1a1a1a"}}>${greeting}, ${firstName}! ${streakEmoji}</div>
           <div class="sp-greet-sub" style=${{fontSize:12,color:"#888",marginTop:3,fontWeight:600,letterSpacing:"0.5px"}}>
             ${att.streak >= 2 ? "🔥 "+att.streak+"-lesson streak — keep going!" : s.lessonsTaken === 0 ? "Your Arabic journey starts here" : "Ready for your next lesson?"}
           </div>
         </div>
       </div>
 
-      <!-- RIGHT: log out -->
-      <div style=${{display:"flex",alignItems:"center",flexShrink:0}}>
+      <!-- RIGHT: settings + log out -->
+      <div style=${{display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
+        <button title="Settings" onClick=${()=>setSpTab("settings")} style=${{
+          background:spTab==="settings"?"#111":"linear-gradient(180deg,#f0f0f0,#d8d8d8)",
+          border:"1px solid #bbb",color:spTab==="settings"?"#fff":"#444",
+          borderRadius:8,padding:"8px 12px",cursor:"pointer",fontSize:16,
+          boxShadow:"0 2px 4px rgba(0,0,0,0.15)"
+        }}>⚙</button>
         <button style=${{
           background:"linear-gradient(180deg,#f0f0f0,#d8d8d8)",
           border:"1px solid #bbb",color:"#444",borderRadius:8,
@@ -1632,9 +1859,19 @@ function StudentPortal({data, setData, user, onLogout}) {
       </div>
     </div>
 
+    <!-- TAB NAV -->
+    <div class="sp-tab-nav">
+      ${[["home","🏠 Home"],["curriculum","📚 Curriculum"],["library","📎 Library"],["quiz","🧠 Quiz"]].map(([id,label])=>h`
+        <button key=${id} class=${"sp-tab"+(spTab===id?" on":"")} onClick=${()=>setSpTab(id)}>${label}</button>
+      `)}
+    </div>
+
     <div class="sp-content" style=${{padding:"14px 12px",maxWidth:1400,margin:"0 auto"}}>
-    <div class="portal-grid">
-    <div>
+    ${spTab==="curriculum"&&h`<${StudentCurriculumTab} student=${s} data=${data} setData=${setData}/>`}
+    ${spTab==="library"&&h`<${StudentLibraryTab} data=${data}/>`}
+    ${spTab==="quiz"&&h`<${StudentQuizTab} student=${s} data=${data}/>`}
+    ${spTab==="settings"&&h`<${StudentSettingsTab} student=${s} data=${data} setData=${setData}/>`}
+    ${spTab==="home"&&h`<div class="portal-grid"><div>
 
       <!-- Stats row -->
       <div class="sp-stats" style=${{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:16}}>
@@ -1772,84 +2009,6 @@ function StudentPortal({data, setData, user, onLogout}) {
       <!-- Lesson request -->
       <${StudentLessonRequest} student=${s} data=${data} setData=${setData}/>
 
-      <!-- Timezone setting -->
-      <div class="card" style=${{marginTop:14}}>
-        <h3>🌍 MY TIMEZONE</h3>
-        <p style=${{fontSize:12,color:"var(--g500)",marginBottom:10}}>Set your timezone so lesson times display correctly for you.</p>
-        <select value=${s.timezone||""} onChange=${e=>setData({...data,students:data.students.map(x=>x.id===s.id?{...x,timezone:e.target.value}:x)})} style=${{width:"100%",padding:"9px 11px",border:"2px solid var(--g200)",fontFamily:"var(--fb)",fontSize:13}}>
-          <option value="">— Auto-detect (browser default) —</option>
-          <optgroup label="🌎 USA">
-            <option value="America/New_York">🇺🇸 Eastern (ET) — New York / Miami</option>
-            <option value="America/Chicago">🇺🇸 Central (CT) — Chicago / Dallas</option>
-            <option value="America/Denver">🇺🇸 Mountain (MT) — Denver / Salt Lake</option>
-            <option value="America/Los_Angeles">🇺🇸 Pacific (PT) — LA / San Francisco</option>
-            <option value="America/Phoenix">🇺🇸 Arizona (MST, no DST)</option>
-            <option value="America/Anchorage">🇺🇸 Alaska (AKT)</option>
-            <option value="Pacific/Honolulu">🇺🇸 Hawaii (HST)</option>
-          </optgroup>
-          <optgroup label="🌎 Canada">
-            <option value="America/Toronto">🇨🇦 Toronto / Ottawa (ET)</option>
-            <option value="America/Winnipeg">🇨🇦 Winnipeg (CT)</option>
-            <option value="America/Edmonton">🇨🇦 Calgary / Edmonton (MT)</option>
-            <option value="America/Vancouver">🇨🇦 Vancouver (PT)</option>
-            <option value="America/Halifax">🇨🇦 Halifax (AT)</option>
-          </optgroup>
-          <optgroup label="🌎 South America">
-            <option value="America/Sao_Paulo">🇧🇷 São Paulo (BRT)</option>
-            <option value="America/Argentina/Buenos_Aires">🇦🇷 Buenos Aires (ART)</option>
-            <option value="America/Bogota">🇨🇴 Bogotá (COT)</option>
-            <option value="America/Lima">🇵🇪 Lima (PET)</option>
-          </optgroup>
-          <optgroup label="🌍 UK & Europe">
-            <option value="Europe/London">🇬🇧 London (GMT/BST)</option>
-            <option value="Europe/Paris">🇫🇷 Paris (CET)</option>
-            <option value="Europe/Berlin">🇩🇪 Berlin (CET)</option>
-            <option value="Europe/Amsterdam">🇳🇱 Amsterdam (CET)</option>
-            <option value="Europe/Rome">🇮🇹 Rome (CET)</option>
-            <option value="Europe/Madrid">🇪🇸 Madrid (CET)</option>
-            <option value="Europe/Stockholm">🇸🇪 Stockholm (CET)</option>
-            <option value="Europe/Zurich">🇨🇭 Zurich (CET)</option>
-            <option value="Europe/Athens">🇬🇷 Athens (EET)</option>
-            <option value="Europe/Istanbul">🇹🇷 Istanbul (TRT)</option>
-            <option value="Europe/Moscow">🇷🇺 Moscow (MSK)</option>
-          </optgroup>
-          <optgroup label="🌍 Middle East & Africa">
-            <option value="Asia/Beirut">🇱🇧 Lebanon (Beirut)</option>
-            <option value="Asia/Amman">🇯🇴 Jordan (Amman)</option>
-            <option value="Asia/Damascus">🇸🇾 Syria (Damascus)</option>
-            <option value="Asia/Baghdad">🇮🇶 Iraq (Baghdad)</option>
-            <option value="Asia/Riyadh">🇸🇦 Saudi Arabia (AST)</option>
-            <option value="Asia/Kuwait">🇰🇼 Kuwait</option>
-            <option value="Asia/Qatar">🇶🇦 Qatar</option>
-            <option value="Asia/Dubai">🇦🇪 Dubai / UAE (GST)</option>
-            <option value="Africa/Cairo">🇪🇬 Egypt (EET)</option>
-            <option value="Africa/Johannesburg">🇿🇦 South Africa (SAST)</option>
-            <option value="Africa/Lagos">🇳🇬 Nigeria (WAT)</option>
-            <option value="Africa/Nairobi">🇰🇪 Nairobi (EAT)</option>
-          </optgroup>
-          <optgroup label="🌏 Asia">
-            <option value="Asia/Kolkata">🇮🇳 India (IST)</option>
-            <option value="Asia/Karachi">🇵🇰 Pakistan (PKT)</option>
-            <option value="Asia/Dhaka">🇧🇩 Bangladesh (BST)</option>
-            <option value="Asia/Bangkok">🇹🇭 Bangkok (ICT)</option>
-            <option value="Asia/Singapore">🇸🇬 Singapore (SGT)</option>
-            <option value="Asia/Hong_Kong">🇭🇰 Hong Kong (HKT)</option>
-            <option value="Asia/Shanghai">🇨🇳 China (CST)</option>
-            <option value="Asia/Tokyo">🇯🇵 Tokyo (JST)</option>
-            <option value="Asia/Seoul">🇰🇷 Seoul (KST)</option>
-          </optgroup>
-          <optgroup label="🌏 Australia & Pacific">
-            <option value="Australia/Sydney">🇦🇺 Sydney / Melbourne (AEST)</option>
-            <option value="Australia/Brisbane">🇦🇺 Brisbane (AEST, no DST)</option>
-            <option value="Australia/Adelaide">🇦🇺 Adelaide (ACST)</option>
-            <option value="Australia/Perth">🇦🇺 Perth (AWST)</option>
-            <option value="Australia/Darwin">🇦🇺 Darwin (ACST)</option>
-            <option value="Pacific/Auckland">🇳🇿 New Zealand (NZST)</option>
-          </optgroup>
-        </select>
-        ${s.timezone && h`<div style=${{marginTop:8,fontSize:12,color:"var(--ok)",fontWeight:600}}>✓ Saved — lesson times will show in ${s.timezone}</div>`}
-      </div>
-
       <!-- Note to teacher -->
       <${StudentNoteToTeacher} student=${s} data=${data} setData=${setData}/>
 
@@ -1893,7 +2052,7 @@ function StudentPortal({data, setData, user, onLogout}) {
       })()}
       <${StudentAIPanel} student=${s} data=${data}/>
     </div>
-    </div>
+    </div>`}
     </div>
   </div>`;
 }
