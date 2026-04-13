@@ -4204,14 +4204,35 @@ function RequestsInbox({auth, data, setData, onProfile}) {
   const load = async () => { const d = await call({action:"list"}); setUsers(d.users||[]); };
   useEffect(() => { load(); }, []);
 
-  const approve = async (email, name) => {
-    await call({action:"approve", email});
-    const exists = (data.students||[]).find(s=>s.email===email);
+  const approve = async (email, name, gender) => {
+    setErr("");
+    try {
+      const r = await call({action:"approve", email});
+      if (r.error) { setErr("Could not approve: " + r.error); return; }
+    } catch(e) { setErr("Network error: " + e.message); return; }
+
+    // Build the new student profile
+    const exists = (data.students||[]).find(s => s.email && s.email.toLowerCase() === email.toLowerCase());
+    let newData = data;
     if (!exists) {
-      const newStudent = {...mkStudent(data.settings), name:name||email, email, enrollmentStatus:"pending"};
-      setData({...data, students:[...data.students, newStudent]});
+      const newStudent = {
+        ...mkStudent(data.settings),
+        name: name || email,
+        email: email.toLowerCase(),
+        gender: gender || "",
+        enrollmentStatus: "pending"
+      };
+      newData = {...data, students:[...(data.students||[]), newStudent]};
+      setData(newData);
     }
-    setMsg("Approved!"); load();
+
+    // Immediately back up so the student profile is available on any device right away
+    try {
+      await apiPost("/api/data", {token: auth.token, action:"backup", data: newData});
+    } catch(e) { /* backup failed — local state still updated */ }
+
+    setMsg("✓ Approved! Student profile created and saved.");
+    load();
   };
   const reject = async email => { await call({action:"reject", email}); setMsg("Rejected."); load(); };
   const create = async () => {
@@ -4280,7 +4301,7 @@ function RequestsInbox({auth, data, setData, onProfile}) {
             ${u.message&&h`<div style=${{fontSize:12,color:"var(--g600)",marginTop:5,fontStyle:"italic",background:"#fffde7",padding:"6px 10px",borderRadius:6,lineHeight:1.5}}>"${u.message}"</div>`}
           </div>
           <div style=${{display:"flex",gap:6,flexShrink:0,flexDirection:"column",alignItems:"flex-end"}}>
-            <button class="btn btn-p btn-sm" onClick=${()=>approve(u.email,u.name)}>✓ Approve</button>
+            <button class="btn btn-p btn-sm" onClick=${()=>approve(u.email,u.name,u.gender)}>✓ Approve</button>
             <button class="btn btn-sm" style=${{color:"var(--bd)",borderColor:"var(--bd)"}} onClick=${()=>reject(u.email)}>✗ Reject</button>
             ${u.phone&&h`<a href=${"https://wa.me/"+u.phone.replace(/[^0-9+]/g,"")} target="_blank" class="btn btn-sm btn-wa" style=${{marginTop:2}}>WhatsApp</a>`}
           </div>
@@ -4343,7 +4364,7 @@ function RequestsInbox({auth, data, setData, onProfile}) {
             ${u.message&&h`<div style=${{marginTop:6,fontSize:13,color:"var(--g600)",fontStyle:"italic",lineHeight:1.5}}>"${u.message}"</div>`}
           </div>
           <div style=${{display:"flex",gap:6,flexShrink:0,flexDirection:"column",alignItems:"flex-end"}}>
-            <button class="btn btn-p btn-sm" onClick=${()=>approve(u.email,u.name)}>✓ Approve</button>
+            <button class="btn btn-p btn-sm" onClick=${()=>approve(u.email,u.name,u.gender)}>✓ Approve</button>
             <button class="btn btn-sm" style=${{color:"var(--bd)",borderColor:"var(--bd)"}} onClick=${()=>reject(u.email)}>✗ Reject</button>
             ${u.phone&&h`<a href=${"https://wa.me/"+u.phone.replace(/[^0-9+]/g,"")} target="_blank" class="btn btn-sm btn-wa">WhatsApp</a>`}
           </div>
