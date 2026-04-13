@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="Arabic Enthusiast">
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/logo.jpeg">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;600;700&family=Montserrat:wght@400;600;700;800&family=Raleway:wght@400;600;700;800&family=Playfair+Display:wght@400;600;700&family=Anton&family=Teko:wght@400;500;600;700&family=Russo+One&family=Black+Han+Sans&family=Exo+2:wght@400;600;700;800&family=Orbitron:wght@400;600;700&family=Cinzel:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Lato:wght@400;700&family=Nunito:wght@400;600;700&family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600;700&family=Source+Sans+3:wght@400;600;700&family=Manrope:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;600;700&family=Noto+Kufi+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;600;700&family=Montserrat:wght@400;600;700;800&family=Raleway:wght@400;600;700;800&family=Playfair+Display:wght@400;600;700&family=Anton&family=Teko:wght@400;500;600;700&family=Russo+One&family=Black+Han+Sans&family=Exo+2:wght@400;600;700;800&family=Orbitron:wght@400;600;700&family=Cinzel:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Lato:wght@400;700&family=Nunito:wght@400;600;700&family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600;700&family=Source+Sans+3:wght@400;600;700&family=Manrope:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;600;700&family=Noto+Kufi+Arabic:wght@400;600;700&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/htm/3.1.1/htm.module.js" type="module"></script>
@@ -286,11 +286,13 @@ tr.ck{cursor:pointer}tr.ck:hover td{background:var(--g100)}
 .sp-tab:hover{color:#333;background:#f9f9f9}
 .sp-tab.on{color:#111;border-bottom-color:#111}
 /* Quiz option buttons */
-.qz-opt{padding:10px 14px;border:2px solid #e0e0e0;border-radius:8px;background:#fff;font-family:var(--fb);font-size:13px;cursor:pointer;text-align:left;transition:all .15s;width:100%}
+.qz-opt{padding:12px 16px;border:2px solid #e0e0e0;border-radius:8px;background:#fff;font-family:var(--fb);font-size:14px;font-weight:700;cursor:pointer;text-align:left;transition:all .15s;width:100%;line-height:1.5}
 .qz-opt:hover{border-color:#999;background:#fafafa}
 .qz-opt.qz-correct{border-color:#4caf50;background:#e8f5e9;color:#2e7d32}
 .qz-opt.qz-wrong{border-color:#f44336;background:#fce4ec;color:#c62828}
 .qz-opt.qz-missed{border-color:#ff9800;background:#fff8e1}
+.qz-ar{font-family:'Amiri',serif;direction:rtl;font-size:22px;font-weight:700;text-align:center;line-height:1.8;color:#111}
+.qz-opt-ar{font-family:'Amiri',serif;direction:rtl;font-size:20px;font-weight:700;text-align:right}
 </style>
 </head>
 <body>
@@ -1602,6 +1604,8 @@ function StudentQuizTab({student: s, data}) {
 
   const score = questions ? questions.filter((q,i)=>answers[i]===q.answer).length : 0;
 
+  const isArabic = str => /[\u0600-\u06FF]/.test(str||"");
+
   return h`<div style=${{maxWidth:680,margin:"0 auto"}}>
     <div class="card" style=${{marginBottom:16}}>
       <h3 style=${{marginBottom:4}}>🧠 AI QUIZ</h3>
@@ -1610,26 +1614,55 @@ function StudentQuizTab({student: s, data}) {
       ${error&&h`<div style=${{marginTop:10,color:"var(--bd)",fontSize:13}}>${error}</div>`}
     </div>
     ${questions&&h`<div>
-      ${questions.map((q,i)=>h`<div key=${i} style=${{background:"#fff",border:"1px solid #eee",borderRadius:12,padding:"18px 16px",marginBottom:12,boxShadow:"0 1px 4px rgba(0,0,0,0.05)"}}>
-        <div style=${{fontWeight:700,fontSize:14,marginBottom:12,lineHeight:1.5}}>${i+1}. ${q.q}</div>
-        <div style=${{display:"flex",flexDirection:"column",gap:8}}>
+      ${questions.map((q,i)=>h`<div key=${i} style=${{background:"#fff",border:"1px solid #eee",borderRadius:12,padding:"20px 18px",marginBottom:14,boxShadow:"0 1px 4px rgba(0,0,0,0.06)"}}>
+
+        <!-- Question number + English text -->
+        <div style=${{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:"#888",marginBottom:6}}>${"Question "+(i+1)+" of "+questions.length}</div>
+        <div style=${{fontWeight:700,fontSize:15,marginBottom:q.ar?"10px":"16px",lineHeight:1.6,color:"#111"}}>${q.q}</div>
+
+        <!-- Arabic focal item (Amiri, with diacritics, centred) -->
+        ${q.ar&&h`<div style=${{
+          background:"linear-gradient(135deg,#fafafa,#f5f0e8)",
+          border:"1px solid #e8dcc8",borderRadius:10,
+          padding:"14px 20px",marginBottom:16,textAlign:"center"
+        }}>
+          <div class="qz-ar">${q.ar}</div>
+        </div>`}
+
+        <!-- Options -->
+        <div style=${{display:"flex",flexDirection:"column",gap:10}}>
           ${q.options.map((opt,j)=>{
             let cls = "qz-opt";
             if (submitted) {
               if (j===q.answer) cls+=" qz-correct";
               else if (answers[i]===j) cls+=" qz-wrong";
             } else if (answers[i]===j) cls+=" qz-correct";
-            return h`<button key=${j} class=${cls} onClick=${()=>{if(!submitted)setAnswers({...answers,[i]:j})}} disabled=${submitted}>${opt}</button>`;
+            const arOpt = isArabic(opt);
+            return h`<button key=${j} class=${cls+(arOpt?" qz-opt-ar":"")} onClick=${()=>{if(!submitted)setAnswers({...answers,[i]:j})}} disabled=${submitted}>
+              <span style=${{display:"inline-flex",alignItems:"center",gap:10,width:"100%",justifyContent:arOpt?"flex-end":"flex-start"}}>
+                <span style=${{width:22,height:22,borderRadius:50,border:"2px solid currentColor",display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:900,flexShrink:0,fontFamily:"var(--fb)"}}>
+                  ${["A","B","C","D"][j]}
+                </span>
+                <span style=${{flex:1,textAlign:arOpt?"right":"left",fontSize:arOpt?"20px":"14px"}}>${opt}</span>
+              </span>
+            </button>`;
           })}
         </div>
-        ${submitted&&h`<div style=${{marginTop:10,padding:"8px 12px",background:"#f5f5f5",borderRadius:8,fontSize:12,color:"#555",lineHeight:1.6}}>💡 ${q.tip}</div>`}
+
+        <!-- Tip after submit -->
+        ${submitted&&h`<div style=${{marginTop:14,padding:"10px 14px",background:"#f0f7ff",border:"1px solid #bbdefb",borderRadius:8,fontSize:13,color:"#1565c0",lineHeight:1.7}}>
+          💡 ${q.tip}
+        </div>`}
       </div>`)}
-      ${!submitted&&Object.keys(answers).length===questions.length&&h`<button class="btn btn-p" style=${{width:"100%",marginTop:4}} onClick=${()=>setSubmitted(true)}>Submit Quiz</button>`}
-      ${submitted&&h`<div style=${{background:"#fff",border:"2px solid #111",borderRadius:12,padding:"20px",textAlign:"center",marginTop:4}}>
-        <div style=${{fontSize:32,marginBottom:8}}>${score>=4?"🏆":score>=3?"👍":"📚"}</div>
-        <div style=${{fontFamily:"var(--fh)",fontSize:28,letterSpacing:2}}>${score}/5</div>
-        <div style=${{fontSize:13,color:"var(--g500)",marginTop:6}}>${score===5?"Perfect score! Excellent work!":score>=3?"Good job — keep practising!":"Review and try again — you'll get there!"}</div>
-        <button class="btn" style=${{marginTop:14}} onClick=${generate}>Try Another Quiz</button>
+
+      ${!submitted&&Object.keys(answers).length===questions.length&&h`<button class="btn btn-p" style=${{width:"100%",marginTop:4,padding:"14px"}} onClick=${()=>setSubmitted(true)}>Submit Quiz ✓</button>`}
+      ${!submitted&&Object.keys(answers).length<(questions?questions.length:0)&&h`<div style=${{textAlign:"center",fontSize:12,color:"#aaa",marginTop:8}}>${Object.keys(answers).length}/${questions.length} answered</div>`}
+
+      ${submitted&&h`<div style=${{background:"#fff",border:"2px solid #111",borderRadius:12,padding:"24px 20px",textAlign:"center",marginTop:4}}>
+        <div style=${{fontSize:40,marginBottom:10}}>${score>=4?"🏆":score>=3?"👍":"📚"}</div>
+        <div style=${{fontFamily:"var(--fh)",fontSize:36,letterSpacing:2}}>${score}/5</div>
+        <div style=${{fontSize:14,color:"var(--g500)",marginTop:8}}>${score===5?"Perfect score! Excellent work!":score>=3?"Good job — keep practising!":"Review the tips above and try again!"}</div>
+        <button class="btn" style=${{marginTop:16}} onClick=${generate}>Try Another Quiz</button>
       </div>`}
     </div>`}
   </div>`;

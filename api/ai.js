@@ -91,7 +91,13 @@ Lessons completed: ${context.lessonsTaken}`;
 
       case 'student_quiz':
         model = 'claude-haiku-4-5-20251001';
-        systemPrompt = `You are an Arabic language teacher creating a quiz for a student. Generate exactly 5 multiple-choice questions appropriate to their level. Each question should test vocabulary, grammar, phrases, or reading comprehension relevant to what they have studied. Respond with ONLY a valid JSON array — no explanation, no markdown, just the JSON. Format: [{"q":"question text","options":["A","B","C","D"],"answer":0,"tip":"brief explanation of the correct answer"}]`;
+        systemPrompt = `You are an Arabic language teacher creating a quiz. Generate exactly 5 multiple-choice questions. CRITICAL RULES:
+1. "q" field: ALWAYS in English. Example: "What does this word mean?" or "Which word means 'house'?"
+2. "ar" field: The Arabic word, phrase, or sentence being tested — written with FULL diacritics (tashkeel/harakat). If the question does not reference a specific Arabic item, set "ar" to "".
+3. "options" field: 4 choices. If testing meaning → options are English words. If testing Arabic spelling/form → options are Arabic WITH full diacritics. Mix types across the 5 questions.
+4. "answer" field: index (0-3) of the correct option.
+5. "tip" field: brief English explanation of the correct answer, including the Arabic transliteration.
+Respond with ONLY a valid JSON array, no markdown, no explanation. Format: [{"q":"English question","ar":"عَرَبِيٌّ (with diacritics or empty)","options":["A","B","C","D"],"answer":0,"tip":"English explanation"}]`;
         userMessage = `Student: ${context.name}
 Level: ${context.level} | Type: ${context.type}
 Skills (1-5): Reading ${context.skillReading}, Writing ${context.skillWriting}, Listening ${context.skillListening}, Speaking ${context.skillSpeaking}
