@@ -558,7 +558,7 @@ async function loadData() {
 }
 function getStorageEstimate() { return (navigator.storage?.estimate) ? navigator.storage.estimate() : Promise.resolve({usage:0,quota:0}); }
 
-const mkStudent = S => ({id:uid(),name:"",email:"",phone:"",whatsapp:"",timezone:"",avatar:"",type:(S?.types||DEFS.types)[0],level:(S?.levels||DEFS.levels)[0],paymentPlan:(S?.payPlans||DEFS.payPlans)[0],lessonRate:0,bundleSize:10,lessonsTotal:0,lessonsTaken:0,freeTotal:0,freeTaken:0,totalPaid:0,startDate:today(),notes:[],assignedLessons:[],completedLessons:[],active:true,enrollmentStatus:"",studentNote:"",skillReading:3,skillWriting:3,skillListening:3,skillSpeaking:3,skillDialectListening:3,skillDialectSpeaking:3,teacherSummary:"",teacherStrengths:"",teacherImprove:"",teacherPrivateNotes:"",goals:"",nextSteps:"",homeworkNotes:"",skillHistory:[],focusItems:[],weeklyTasks:[]});
+const mkStudent = S => ({id:uid(),name:"",email:"",phone:"",whatsapp:"",timezone:"",avatar:"",gender:"",nickname:"",nicknameEmoji:"",type:(S?.types||DEFS.types)[0],level:(S?.levels||DEFS.levels)[0],paymentPlan:(S?.payPlans||DEFS.payPlans)[0],lessonRate:0,bundleSize:10,lessonsTotal:0,lessonsTaken:0,freeTotal:0,freeTaken:0,totalPaid:0,startDate:today(),notes:[],assignedLessons:[],completedLessons:[],active:true,enrollmentStatus:"",studentNote:"",skillReading:3,skillWriting:3,skillListening:3,skillSpeaking:3,skillDialectListening:3,skillDialectSpeaking:3,teacherSummary:"",teacherStrengths:"",teacherImprove:"",teacherPrivateNotes:"",goals:"",nextSteps:"",homeworkNotes:"",skillHistory:[],focusItems:[],weeklyTasks:[]});
 const mkLesson = S => ({id:uid(),studentId:"",groupId:"",date:today(),time:"10:00",duration:60,type:(S?.types||DEFS.types)[0],status:"Scheduled",notes:""});
 const mkPayment = () => ({id:uid(),studentId:"",amount:0,date:today(),method:"Cash",notes:"",lessonsAdded:0,status:"Pending"});
 const mkCurriculum = S => ({id:uid(),title:"",category:(S?.types||DEFS.types)[0],level:(S?.levels||DEFS.levels)[0],description:"",fileName:"",fileData:""});
@@ -1271,6 +1271,7 @@ function AuthScreen({onAuth}) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [learnType, setLearnType] = useState("Levantine");
+  const [gender, setGender] = useState("female");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -1301,7 +1302,7 @@ function AuthScreen({onAuth}) {
     if (!name || !phone || !email || !password) return setError("Name, phone, email and password are all required");
     if (password.length < 6) return setError("Password must be at least 6 characters");
     setLoading(true); reset();
-    const d = await apiPost("/api/auth", {action:"request", name, phone, email, password, learnType, message});
+    const d = await apiPost("/api/auth", {action:"request", name, phone, email, password, learnType, gender, message});
     setLoading(false);
     if (d.error) return setError(d.error);
     setSuccess("Request sent! Hadi will review your request and get back to you soon.");
@@ -1338,6 +1339,14 @@ function AuthScreen({onAuth}) {
 
       ${mode==="request" && h`<div>
         <div class="fg"><label>Your Full Name *</label><input value=${name} onInput=${e=>setName(e.target.value)} placeholder="e.g. Sarah Johnson"/></div>
+        <div class="fg"><label>Gender *</label>
+          <div style=${{display:"flex",gap:16,marginTop:4}}>
+            ${[["female","👩 Female"],["male","👨 Male"]].map(([v,l])=>h`<label key=${v} style=${{display:"flex",alignItems:"center",gap:8,cursor:"pointer",fontSize:14,fontWeight:gender===v?700:400}}>
+              <input type="radio" name="gender" value=${v} checked=${gender===v} onChange=${()=>setGender(v)} style=${{accentColor:"#111",width:16,height:16}}/>
+              ${l}
+            </label>`)}
+          </div>
+        </div>
         <div class="fg"><label>Phone / WhatsApp (with country code) *</label><input value=${phone} onInput=${e=>setPhone(e.target.value)} placeholder="e.g. +1 555 123 4567"/></div>
         <div class="fg"><label>Email *</label><input type="email" value=${email} onInput=${e=>setEmail(e.target.value)} placeholder="your@email.com"/></div>
         <div class="fg"><label>Choose a Password *</label><input type="password" value=${password} onInput=${e=>setPassword(e.target.value)} placeholder="Min 6 characters"/></div>
@@ -2060,6 +2069,38 @@ function StudentSettingsTab({student: s, data, setData}) {
 }
 
 // ════════════════════════════════════════
+// ARABIC FACTS — high-quality linguistic knowledge
+// ════════════════════════════════════════
+const ARABIC_FACTS = [
+  {icon:"🔢",title:"The number-gender paradox",fact:"In Arabic, numbers 3–10 take the OPPOSITE gender of what they're counting. Three girls (ثَلَاثُ بَنَاتٍ) uses the masculine form of 'three'. Three boys (ثَلَاثَةُ بَنِينَ) uses the feminine form. This rule — called مُخَالَفَةُ الْعَدَدِ لِلْمَعْدُودِ — is unique to Arabic and remains one of the most counterintuitive grammar rules in any human language."},
+  {icon:"🌳",title:"One root — endless words",fact:"The root ع-ل-م (knowledge) generates: عِلْمٌ (knowledge), عَالِمٌ (scholar), مَعْلُومٌ (known), عَلَّمَ (to teach), تَعَلَّمَ (to learn), مُعَلِّمٌ (teacher), عَلَامَةٌ (sign), مَعْلَمٌ (landmark), اِسْتَعْلَمَ (to inquire). One 3-letter root encodes an entire intellectual domain across 9+ words — a level of structural efficiency unmatched by European languages."},
+  {icon:"🔡",title:"Arabic gave the world algebra, algorithm, and zero",fact:"The word 'algebra' comes from الْجَبْر (al-jabr) from al-Khwarizmi's 820 CE book. 'Algorithm' is the Latinised version of al-Khwarizmi's own name. 'Zero' comes from صِفْرٌ (ṣifr). 'Alcohol' from الْكُحُولُ, 'chemistry' from كِيمِيَاءُ, 'cotton' from الْقُطْنُ, 'sugar' from السُّكَّرُ. Arabic didn't just preserve knowledge — it created the vocabulary modern science still runs on."},
+  {icon:"📖",title:"Arabic is read without vowels",fact:"The Arabic script is an abjad — it writes consonants only. Vowel marks (التَّشْكِيلُ) are optional diacritics rarely printed in books, newspapers, or websites. Fluent Arabic readers are constantly inferring vowels from grammatical context — effectively reading a hidden layer of information. A sentence with no vowels can have multiple valid readings, all grammatically correct but with different meanings."},
+  {icon:"⚖️",title:"The verb stays singular even with a plural subject",fact:"In Classical Arabic, when a verb PRECEDES its subject, the verb is always singular — even if the subject is plural. ذَهَبَ الرِّجَالُ means 'the men went' but ذَهَبَ is singular. This rule (الْفِعْلُ الْمُفْرَدُ مَعَ الْجَمْعِ) confuses even advanced students because it directly contradicts the subject-verb agreement logic of every European language."},
+  {icon:"🔤",title:"The dots were added later",fact:"Classical Arabic was originally written without vowel marks AND without the dots that distinguish letters like ب، ت، ث (which all share the same base shape). The dots (الإِعْجَامُ) and vowel marks (الشَّكْلُ) were added centuries after the Quran's revelation to help non-native speakers. The Quran was originally transmitted and understood without them — entirely through oral tradition."},
+  {icon:"🧮",title:"Arabic hid dates in poetry for 1,000 years",fact:"The Abjad system (أَبْجَد) assigns numbers to letters: ا=1, ب=2, ج=3, د=4... Classical poets used this to conceal dates inside verse — the sum of specific letters in a line equals the year of an event. This practice, called تَارِيخٌ (chronogram), was used across Islamic civilisation for a millennium to encode historical records in plain sight."},
+  {icon:"🪞",title:"The broken plural is an entirely new word",fact:"English plurals are predictable: book→books, cat→cats. Arabic broken plurals (جَمْعُ التَّكْسِيرِ) are not. كِتَابٌ→كُتُبٌ, رَجُلٌ→رِجَالٌ, بَيْتٌ→بُيُوتٌ, عَيْنٌ→أَعْيُنٌ. There is no rule that predicts which pattern a noun will follow — each plural is effectively a separate lexical item that must be memorised. Arabic has more than 30 recognised broken plural patterns."},
+  {icon:"🌐",title:"Two Arabics — mutually incomprehensible",fact:"Arabic is in a state of diglossia so extreme that Modern Standard Arabic (الْفُصْحَى) and regional dialects (العَامِّيَّة) are, in complex conversation, mutually incomprehensible across regions. A Moroccan and a Yemeni speaking their dialects may understand less than 30% of each other — yet both are called 'Arabic'. No other major world language has this level of internal linguistic divergence while maintaining a single unified classical standard."},
+  {icon:"🔣",title:"The hamza is not a letter",fact:"ء (hamza) is not counted among the 28 letters of the Arabic alphabet — it is a phoneme that can sit on ا، و، ي, or stand alone, depending on the surrounding vowels. Rules governing hamza placement are so complex that native Arabic speakers — including academics — frequently disagree on the 'correct' spelling of words in Modern Standard Arabic."},
+  {icon:"💡",title:"Arabic verbs have four grammatical moods",fact:"Unlike English (which uses auxiliary verbs: 'he goes' / 'that he go'), Arabic encodes mood directly in the verb ending. يَذْهَبُ (indicative: he goes), يَذْهَبَ (subjunctive: that he go), يَذْهَبْ (jussive: let him go). The fourth is imperative: اِذْهَبْ (go!). Four distinct grammatical realities — each expressed by changing just the final vowel or dropping it entirely."},
+  {icon:"🧬",title:"إِعْرَابٌ — the word that explains itself",fact:"The Arabic grammatical case system is called إِعْرَابٌ (i'rāb), from the root ع-ر-ب meaning 'to clarify' or 'to express'. The same root gives us عَرَبٌ (Arabs), عَرَبِيٌّ (Arabic language), and أَعْرَبَ (to express clearly). In Classical Arabic, every word ending was pronounced and carried grammatical meaning. Modern spoken Arabic has largely dropped these endings — meaning most Arabs today speak a grammatically compressed version of their own classical language."},
+  {icon:"🔁",title:"The dual is obligatory — and often redundant",fact:"Arabic is one of few languages that grammatically REQUIRES you to use a dual form (مُثَنَّى) when referring to exactly two of anything. The suffix ـَانِ / ـَيْنِ is non-optional. But when you say 'two books' (كِتَابَانِ اثْنَانِ), you are being technically redundant — the dual suffix already means 'two', making the number word اثْنَانِ grammatically unnecessary. Classical grammarians called this التَّوْكِيدُ — deliberate, honoured redundancy."},
+  {icon:"🎭",title:"The word for 'heart' means 'mind' in the Quran",fact:"The Quran uses قَلْبٌ (heart) over 130 times to refer to the seat of understanding, reasoning, and consciousness — not the organ of emotion. In ancient Semitic thought, the heart was the brain. This is why Arabic expressions like 'memorising by heart' (حَفِظَ عَنْ ظَهْرِ قَلْبٍ) literally mean 'from the back of the heart.' The entire Quranic model of human cognition is housed in a word modern medicine assigns to a muscle."},
+  {icon:"🔠",title:"One letter — five shapes",fact:"Arabic letters change shape depending on their position in the word: isolated, initial, medial, and final. The letter ع for example appears as ع، عـ، ـعـ، ـع depending on where it sits. This means learning Arabic requires mastering up to 4 forms of each of the 28 letters — plus the hamza variations. Yet native readers process these shape-shifts as invisibly as English speakers process upper and lowercase letters."},
+];
+
+// Female colour palettes — rotate daily
+const FEMALE_PALETTES = [
+  {hdr:"linear-gradient(135deg,#fce4ec 0%,#f8bbd0 100%)",border:"#e91e63",tab:"#e91e63",flower:"🌸"},
+  {hdr:"linear-gradient(135deg,#f3e5f5 0%,#e1bee7 100%)",border:"#9c27b0",tab:"#9c27b0",flower:"🌷"},
+  {hdr:"linear-gradient(135deg,#fff3e0 0%,#fce4ec 100%)",border:"#f06292",tab:"#f06292",flower:"🌺"},
+  {hdr:"linear-gradient(135deg,#e8eaf6 0%,#f3e5f5 100%)",border:"#7c4dff",tab:"#7c4dff",flower:"💐"},
+  {hdr:"linear-gradient(135deg,#e8f5e9 0%,#f3e5f5 100%)",border:"#ba68c8",tab:"#ba68c8",flower:"🌼"},
+  {hdr:"linear-gradient(135deg,#fce4ec 0%,#fff9c4 100%)",border:"#f48fb1",tab:"#f48fb1",flower:"🌹"},
+  {hdr:"linear-gradient(135deg,#e1f5fe 0%,#fce4ec 100%)",border:"#f06292",tab:"#f06292",flower:"🌻"},
+];
+
+// ════════════════════════════════════════
 // STUDENT PORTAL (read-only view for students)
 // ════════════════════════════════════════
 function StudentPortal({data, setData, user, onLogout}) {
@@ -2115,19 +2156,31 @@ function StudentPortal({data, setData, user, onLogout}) {
   // Streak badge
   const streakEmoji = att.streak >= 10 ? "🔥🔥" : att.streak >= 5 ? "🔥" : att.streak >= 2 ? "⚡" : "";
 
+  // Female palette — rotate daily
+  const isFemale = s.gender === "female";
+  const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(),0,0))/86400000);
+  const pal = isFemale ? FEMALE_PALETTES[dayOfYear % FEMALE_PALETTES.length] : null;
+  const flower = pal ? pal.flower : "";
+
+  // Nickname display
+  const nicknameDisplay = s.nickname ? ` ${s.nicknameEmoji||""} ${s.nickname}` : "";
+
+  // Daily Arabic fact
+  const todayFact = ARABIC_FACTS[dayOfYear % ARABIC_FACTS.length];
+
   // Overdue homework
   const now = new Date();
   const isOverdue = hw => hw.status === "assigned" && hw.dueDate && new Date(hw.dueDate) < now;
 
   return h`<div class="student-root" style=${{fontFamily:"var(--fb)",minHeight:"100vh",overflowY:"auto",height:"auto",background:"#f2f2f2"}}>
 
-    <!-- TOP HEADER BAR (3D) -->
+    <!-- TOP HEADER BAR -->
     <div class="sp-hd" style=${{
-      background:"linear-gradient(180deg,#f4f4f4 0%,#e8e8e8 100%)",
+      background: pal ? pal.hdr : "linear-gradient(180deg,#f4f4f4 0%,#e8e8e8 100%)",
       padding:"10px 16px",display:"flex",alignItems:"stretch",gap:12,
       position:"sticky",top:0,zIndex:10,
       boxShadow:"0 6px 20px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.9)",
-      borderBottom:"2px solid #ccc"
+      borderBottom: pal ? "2px solid "+pal.border : "2px solid #ccc"
     }}>
 
       <!-- LEFT: brand plaque -->
@@ -2167,7 +2220,7 @@ function StudentPortal({data, setData, user, onLogout}) {
         border:"1px solid #ddd"
       }}>
         <div style=${{textAlign:"center"}}>
-          <div class="sp-greet-main" style=${{fontSize:22,fontWeight:900,fontFamily:"var(--fh)",letterSpacing:1.5,color:"#1a1a1a"}}>${greeting}, ${firstName}! ${streakEmoji}</div>
+          <div class="sp-greet-main" style=${{fontSize:22,fontWeight:900,fontFamily:"var(--fh)",letterSpacing:1.5,color:"#1a1a1a"}}>${greeting}, ${firstName}${flower?" "+flower:""}${nicknameDisplay}! ${streakEmoji}</div>
           <div class="sp-greet-sub" style=${{fontSize:12,color:"#888",marginTop:3,fontWeight:600,letterSpacing:"0.5px"}}>
             ${att.streak >= 2 ? "🔥 "+att.streak+"-lesson streak — keep going!" : s.lessonsTaken === 0 ? "Your Arabic journey starts here" : "Ready for your next lesson?"}
           </div>
@@ -2205,6 +2258,23 @@ function StudentPortal({data, setData, user, onLogout}) {
     ${spTab==="quiz"&&h`<${StudentQuizTab} student=${s} data=${data}/>`}
     ${spTab==="settings"&&h`<${StudentSettingsTab} student=${s} data=${data} setData=${setData}/>`}
     ${spTab==="home"&&h`<div class="portal-grid"><div>
+
+      <!-- Daily Arabic Fact -->
+      <div style=${{
+        background: pal ? "linear-gradient(135deg,"+pal.hdr.match(/#[a-f0-9]{6}/gi)?.[0]+"22,"+pal.hdr.match(/#[a-f0-9]{6}/gi)?.[1]+"33)" : "linear-gradient(135deg,#1a1a2e,#16213e)",
+        border: pal ? "2px solid "+pal.border+"55" : "none",
+        borderRadius:14,padding:"18px 20px",marginBottom:16,
+        boxShadow:"0 2px 12px rgba(0,0,0,0.12)"
+      }}>
+        <div style=${{display:"flex",gap:10,alignItems:"flex-start"}}>
+          <div style=${{fontSize:28,flexShrink:0,lineHeight:1}}>${todayFact.icon}</div>
+          <div>
+            <div style=${{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:1.5,color:pal?pal.border:"#c9922a",marginBottom:4}}>💎 Did You Know? — Linguistic Fact of the Day</div>
+            <div style=${{fontSize:13,fontWeight:800,color:pal?"#333":"#fff",marginBottom:6,fontFamily:"var(--fh)",letterSpacing:.5}}>${todayFact.title}</div>
+            <div style=${{fontSize:13,lineHeight:1.75,color:pal?"#444":"rgba(255,255,255,0.85)"}}>${todayFact.fact}</div>
+          </div>
+        </div>
+      </div>
 
       <!-- Stats row -->
       <div class="sp-stats" style=${{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:16}}>
@@ -2590,6 +2660,23 @@ function StudentProfile({data, setData, profileId}) {
         <h4>🎯 Goals & Next Steps</h4>
         <div class="fg"><label>Student Goals</label><textarea value=${s.goals||""} onInput=${e=>upd("goals",e.target.value)} placeholder="What does this student want to achieve?"/></div>
         <div class="fg"><label>Next Steps</label><textarea value=${s.nextSteps||""} onInput=${e=>upd("nextSteps",e.target.value)} placeholder="What are we working on next?"/></div>
+      </div>
+
+      <div class="assess-card">
+        <h4>✨ Identity & Nickname</h4>
+        <div class="fg"><label>Gender</label>
+          <div style=${{display:"flex",gap:16,marginTop:4}}>
+            ${[["female","👩 Female"],["male","👨 Male"],["","— Not set"]].map(([v,l])=>h`<label key=${v} style=${{display:"flex",alignItems:"center",gap:6,cursor:"pointer",fontSize:13,fontWeight:(s.gender||"")===v?700:400}}>
+              <input type="radio" name=${"gender-"+s.id} value=${v} checked=${(s.gender||"")===v} onChange=${()=>upd("gender",v)} style=${{accentColor:"#111"}}/>
+              ${l}
+            </label>`)}
+          </div>
+        </div>
+        <div class="fr">
+          <div class="fg"><label>Nickname (Arabic word / title for the student)</label><input value=${s.nickname||""} onInput=${e=>upd("nickname",e.target.value)} placeholder="e.g. Ustura أسطورة, Faris, Amira..."/></div>
+          <div class="fg" style=${{maxWidth:100}}><label>Emoji</label><input value=${s.nicknameEmoji||""} onInput=${e=>upd("nicknameEmoji",e.target.value)} placeholder="e.g. ⭐"/></div>
+        </div>
+        ${(s.nickname)&&h`<div style=${{fontSize:12,color:"var(--g500)",marginTop:-4}}>Preview: <b>${s.name.split(" ")[0]} ${s.nicknameEmoji||""} ${s.nickname}</b></div>`}
       </div>
 
       <div class="assess-card">
@@ -3826,14 +3913,14 @@ function UserManagement({auth, data, setData}) {
   const pending = users.filter(u=>u.status==="pending");
   const approved = users.filter(u=>u.status==="approved");
 
-  const approve = async (email, name) => {
+  const approve = async (email, name, gender) => {
     await call({action:"approve", email});
     // Auto-create student profile if one doesn't exist yet
     if (data && setData) {
       const exists = (data.students||[]).find(s => s.email === email);
       if (!exists) {
         const S = data.settings;
-        const newStudent = {...mkStudent(S), name: name||email, email, enrollmentStatus:"pending"};
+        const newStudent = {...mkStudent(S), name: name||email, email, gender: gender||"", enrollmentStatus:"pending"};
         setData({...data, students:[...data.students, newStudent]});
       }
     }
@@ -3887,11 +3974,12 @@ function UserManagement({auth, data, setData}) {
           <div>
             <div style=${{fontWeight:700,fontSize:15}}>${u.name}</div>
             <div style=${{fontSize:12,color:"var(--g500)",marginTop:2}}>${u.email}</div>
-            <div style=${{fontSize:11,color:"var(--g400)",marginTop:2}}>Requested: ${fmt2(u.createdAt)}</div>
+            <div style=${{fontSize:11,color:"var(--g400)",marginTop:2}}>Requested: ${fmt2(u.createdAt)}${u.gender?" · "+(u.gender==="female"?"👩 Female":"👨 Male"):""}</div>
+            ${u.learnType&&h`<div style=${{fontSize:11,color:"#1976d2",marginTop:2}}>Wants to learn: ${u.learnType}</div>`}
             ${u.message&&h`<div style=${{marginTop:8,padding:"8px 10px",background:"var(--g50)",fontSize:12,lineHeight:1.6,borderLeft:"2px solid var(--g300)"}}>"${u.message}"</div>`}
           </div>
           <div style=${{display:"flex",gap:6,flexShrink:0}}>
-            <button class="btn btn-p btn-sm" onClick=${()=>approve(u.email, u.name)}>✓ Approve</button>
+            <button class="btn btn-p btn-sm" onClick=${()=>approve(u.email, u.name, u.gender)}>✓ Approve</button>
             <button class="btn btn-sm" style=${{color:"var(--bd)",borderColor:"var(--bd)"}} onClick=${()=>reject(u.email)}>✗ Reject</button>
           </div>
         </div>

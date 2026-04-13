@@ -88,7 +88,7 @@ export default async function handler(req, res) {
 
     // ── REQUEST ACCESS (student signup) ────────────────────
     if (action === 'request') {
-      const { name, email, password, message } = req.body;
+      const { name, email, password, message, gender } = req.body;
       if (!name || !email || !password) return res.status(400).json({ error: 'Name, email and password are required' });
       const users = await getUsers();
       if (users.find(u => u.email === email.toLowerCase().trim())) {
@@ -103,6 +103,7 @@ export default async function handler(req, res) {
         passwordSalt: salt,
         role: 'student',
         status: 'pending',
+        gender: gender || '',
         message: (message || '').trim(),
         createdAt: new Date().toISOString()
       });
