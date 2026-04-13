@@ -105,6 +105,32 @@ Completed topics: ${context.topics || 'General Arabic'}
 Goals: ${context.goals || 'general improvement'}`;
         break;
 
+      case 'flashcard_generate':
+        model = 'claude-haiku-4-5-20251001';
+        systemPrompt = `You are an Arabic language teacher creating flashcards. Generate exactly 12 flashcards for the given topic. Each card must have: "en" (English word or phrase), "ar" (Arabic with FULL diacritics/tashkeel), "translit" (romanised transliteration). Match the student's dialect and level. Respond with ONLY a valid JSON array, no markdown: [{"en":"...","ar":"...","translit":"..."}]`;
+        userMessage = `Topic: ${context.topic}\nLevel: ${context.level} | Dialect: ${context.type}`;
+        break;
+
+      case 'flashcard_translate':
+        model = 'claude-haiku-4-5-20251001';
+        systemPrompt = `You are an Arabic language teacher. Translate the given English word into Arabic. Respond with ONLY a valid JSON object, no markdown: {"en":"original word","ar":"Arabic with FULL diacritics","translit":"romanised transliteration","note":"brief usage note if helpful, otherwise empty string"}`;
+        userMessage = `Word: "${context.word}"\nStudent level: ${context.level} | Dialect: ${context.type}`;
+        break;
+
+      case 'conjugation':
+        model = 'claude-sonnet-4-6';
+        systemPrompt = `You are an expert Arabic linguist and grammarian. The user will give you an Arabic word or its English meaning. Identify whether it is a verb (فعل) or noun (اسم) and generate its full conjugation or declension table with FULL diacritics (tashkeel) on every Arabic word.
+
+CRITICAL: Respond with ONLY a valid JSON object, no markdown, no explanation. Use this exact format:
+
+For VERBS:
+{"word":"fully-vowelled Arabic","type":"verb","root":"ف - ع - ل","pattern":"فَعَلَ","meaning":"English meaning","usage":"very common|common|uncommon|rare","note":"brief note on usage, verb type (sound/hollow/defective/doubled), or context","table":[{"pronoun_ar":"أَنَا","pronoun_en":"I","past":"...","present":"...","imperative":"—"},{"pronoun_ar":"أَنْتَ","pronoun_en":"you (m.sg.)","past":"...","present":"...","imperative":"..."},{"pronoun_ar":"أَنْتِ","pronoun_en":"you (f.sg.)","past":"...","present":"...","imperative":"..."},{"pronoun_ar":"هُوَ","pronoun_en":"he","past":"...","present":"...","imperative":"—"},{"pronoun_ar":"هِيَ","pronoun_en":"she","past":"...","present":"...","imperative":"—"},{"pronoun_ar":"نَحْنُ","pronoun_en":"we","past":"...","present":"...","imperative":"—"},{"pronoun_ar":"أَنْتُمْ","pronoun_en":"you (m.pl.)","past":"...","present":"...","imperative":"..."},{"pronoun_ar":"هُمْ","pronoun_en":"they (m.)","past":"...","present":"...","imperative":"—"}]}
+
+For NOUNS:
+{"word":"fully-vowelled Arabic","type":"noun","root":"ف - ع - ل","pattern":"فِعَالٌ","gender":"مُذَكَّر (masculine)|مُؤَنَّث (feminine)","meaning":"English meaning","usage":"very common|common|uncommon|rare","note":"brief note including plural type (sound plural / broken plural and its pattern)","table":[{"form_ar":"مُفْرَد","form_en":"Singular","indef":"...","def":"..."},{"form_ar":"مُثَنَّى (رَفْع)","form_en":"Dual (nom.)","indef":"...","def":"..."},{"form_ar":"مُثَنَّى (نَصْب/جَرّ)","form_en":"Dual (acc./gen.)","indef":"...","def":"..."},{"form_ar":"جَمْع","form_en":"Plural","indef":"...","def":"..."}]}`;
+        userMessage = `Word: "${context.word}"\nStudent level: ${context.level} | Arabic type: ${context.type}`;
+        break;
+
       default:
         return res.status(400).json({ error: 'Unknown type: ' + type });
     }

@@ -293,6 +293,29 @@ tr.ck{cursor:pointer}tr.ck:hover td{background:var(--g100)}
 .qz-opt.qz-missed{border-color:#ff9800;background:#fff8e1}
 .qz-ar{font-family:'Amiri',serif;direction:rtl;font-size:22px;font-weight:700;text-align:center;line-height:1.8;color:#111}
 .qz-opt-ar{font-family:'Amiri',serif;direction:rtl;font-size:20px;font-weight:700;text-align:right}
+/* Library sub-tabs */
+.lib-tab-nav{display:flex;border-bottom:2px solid #eee;margin-bottom:20px;gap:4px}
+.lib-tab{padding:10px 18px;font-size:12px;font-weight:700;color:#888;cursor:pointer;border-bottom:3px solid transparent;letter-spacing:.5px;text-transform:uppercase;background:none;border-top:none;border-left:none;border-right:none;font-family:var(--fb);transition:all .15s;white-space:nowrap}
+.lib-tab:hover{color:#333}
+.lib-tab.on{color:#111;border-bottom-color:#111}
+/* Flashcard flip */
+.fc-scene{perspective:900px;cursor:pointer;user-select:none}
+.fc-card{width:100%;height:180px;position:relative;transform-style:preserve-3d;transition:transform 0.5s}
+.fc-card.flipped{transform:rotateY(180deg)}
+.fc-face{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;padding:20px;box-sizing:border-box}
+.fc-front{background:#fff;border:2px solid #e0e0e0;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+.fc-back{background:#111;color:#fff;transform:rotateY(180deg);box-shadow:0 4px 16px rgba(0,0,0,0.3)}
+.fc-deck{background:#fff;border:2px solid #eee;border-radius:14px;padding:18px 16px;cursor:pointer;transition:all .15s;position:relative}
+.fc-deck:hover{border-color:#111;transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.1)}
+/* Conjugation table */
+.conj-tbl{width:100%;border-collapse:collapse}
+.conj-tbl th{background:#111;color:#fff;padding:10px 12px;font-family:var(--fb);font-size:11px;text-transform:uppercase;letter-spacing:1px;font-weight:700;text-align:center}
+.conj-tbl td{padding:10px 12px;border-bottom:1px solid #eee;text-align:center;vertical-align:middle}
+.conj-tbl tr:nth-child(even) td{background:#fafafa}
+.conj-tbl .ar{font-family:'Amiri',serif;font-size:19px;direction:rtl;font-weight:700;line-height:1.6}
+.conj-tbl .en{font-size:11px;color:#777;font-family:var(--fb);font-weight:600}
+.conj-tbl .pron{font-family:'Amiri',serif;font-size:17px;direction:rtl;font-weight:700}
+@media(max-width:600px){.conj-tbl .en{display:none}.lib-tab{padding:8px 10px;font-size:10px}}
 </style>
 </head>
 <body>
@@ -1557,19 +1580,296 @@ function StudentCurriculumTab({student: s, data, setData}) {
 // ════════════════════════════════════════
 // STUDENT PORTAL — LIBRARY TAB
 // ════════════════════════════════════════
-function StudentLibraryTab({data}) {
-  const pdfs = (data.curriculum||[]).filter(c=>c.fileData&&c.fileName&&(c.fileName.toLowerCase().endsWith(".pdf")||c.fileData.startsWith("data:application/pdf")));
-  if (pdfs.length===0) return h`<div style=${{padding:32,textAlign:"center",color:"var(--g400)"}}>No PDFs available yet. Hadi will upload resources here.</div>`;
+// ════════════════════════════════════════
+// LIBRARY — FLASHCARDS
+// ════════════════════════════════════════
+function LibraryFlashcards({student: s, data, setData}) {
+  const [view, setView] = useState("decks"); // "decks" | "study"
+  const [activeDeckId, setActiveDeckId] = useState(null);
+  const [cardIdx, setCardIdx] = useState(0);
+  const [flipped, setFlipped] = useState(false);
+  const [newTopic, setNewTopic] = useState("");
+  const [newWord, setNewWord] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState("");
+
+  const decks = s.flashcardDecks || [];
+  const activeDeck = decks.find(d=>d.id===activeDeckId);
+  const cards = activeDeck ? (activeDeck.cards||[]) : [];
+  const card = cards[cardIdx] || null;
+
+  const updDecks = (d) => setData({...data, students: data.students.map(x=>x.id===s.id?{...x,flashcardDecks:d}:x)});
+
+  const openDeck = (id) => { setActiveDeckId(id); setCardIdx(0); setFlipped(false); setView("study"); };
+
+  const generateDeck = async (topic) => {
+    if (!topic.trim()) return;
+    setLoading(true); setErr("");
+    try {
+      const d = await apiPost("/api/ai", {type:"flashcard_generate", context:{topic:topic.trim(), level:s.level||"beginner", type:s.type||"Classical Arabic"}});
+      if (d.result) {
+        const cards = JSON.parse(d.result.replace(/```json[\s\S]*?```|```/g,"").trim());
+        updDecks([...decks, {id:uid(), name:topic.trim(), cards, createdAt:new Date().toISOString()}]);
+        setNewTopic("");
+      } else { setErr("Could not generate. Try again."); }
+    } catch(e) { setErr(e.message); }
+    setLoading(false);
+  };
+
+  const translateWord = async () => {
+    if (!newWord.trim()||!activeDeckId) return;
+    setLoading(true); setErr("");
+    try {
+      const d = await apiPost("/api/ai", {type:"flashcard_translate", context:{word:newWord.trim(), level:s.level||"beginner", type:s.type||"Classical Arabic"}});
+      if (d.result) {
+        const card = JSON.parse(d.result.replace(/```json[\s\S]*?```|```/g,"").trim());
+        card.id = uid(); card.known = false;
+        updDecks(decks.map(dk=>dk.id===activeDeckId?{...dk,cards:[...(dk.cards||[]),card]}:dk));
+        setNewWord("");
+      } else { setErr("Could not translate. Try again."); }
+    } catch(e) { setErr(e.message); }
+    setLoading(false);
+  };
+
+  const markKnown = (known) => {
+    updDecks(decks.map(dk=>dk.id===activeDeckId?{...dk,cards:dk.cards.map((c,i)=>i===cardIdx?{...c,known}:c)}:dk));
+    if (cardIdx < cards.length-1) { setCardIdx(cardIdx+1); setFlipped(false); }
+  };
+
+  const deleteDeck = (id) => {
+    if (!confirm("Delete this deck?")) return;
+    updDecks(decks.filter(d=>d.id!==id));
+    if (activeDeckId===id) { setView("decks"); setActiveDeckId(null); }
+  };
+
+  const STARTERS = ["Numbers (الأرقام)","Greetings (التحيات)","Family (العائلة)","Food & Drink (الطعام)","Colors (الألوان)","Common Verbs (أفعال شائعة)","Travel (السفر)","Days & Time (الوقت)","The Body (الجسم)","Weather (الطقس)"];
+
+  if (view==="study" && activeDeck) {
+    const known = cards.filter(c=>c.known).length;
+    return h`<div style=${{maxWidth:580,margin:"0 auto"}}>
+      <div style=${{display:"flex",alignItems:"center",gap:10,marginBottom:18}}>
+        <button class="btn btn-sm" onClick=${()=>{setView("decks");setFlipped(false);}}>← Back</button>
+        <div style=${{flex:1,fontWeight:800,fontSize:16,fontFamily:"var(--fh)",letterSpacing:1}}>${activeDeck.name.toUpperCase()}</div>
+        <div style=${{fontSize:12,color:"var(--g400)"}}>${cardIdx+1}/${cards.length}</div>
+      </div>
+
+      ${cards.length===0?h`<div style=${{textAlign:"center",padding:32,color:"var(--g400)"}}>No cards yet. Add a word below.</div>`:h`<div>
+        <!-- Progress bar -->
+        <div style=${{height:4,background:"#f0f0f0",borderRadius:4,overflow:"hidden",marginBottom:16}}>
+          <div style=${{height:"100%",width:((cardIdx+1)/cards.length*100)+"%",background:"#111",borderRadius:4,transition:"width 0.3s"}}></div>
+        </div>
+        <!-- Flashcard -->
+        <div class="fc-scene" onClick=${()=>setFlipped(!flipped)} style=${{marginBottom:16}}>
+          <div class=${"fc-card"+(flipped?" flipped":"")}>
+            <div class="fc-face fc-front">
+              <div style=${{fontSize:13,color:"#aaa",fontWeight:600,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>English</div>
+              <div style=${{fontSize:22,fontWeight:800,color:"#111",textAlign:"center",lineHeight:1.4}}>${card.en}</div>
+              <div style=${{fontSize:11,color:"#bbb",marginTop:8}}>Tap to reveal Arabic</div>
+            </div>
+            <div class="fc-face fc-back">
+              <div style=${{fontSize:13,color:"rgba(255,255,255,0.5)",fontWeight:600,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>Arabic</div>
+              <div style=${{fontFamily:"'Amiri',serif",fontSize:34,fontWeight:700,textAlign:"center",direction:"rtl",lineHeight:1.6}}>${card.ar}</div>
+              ${card.translit?h`<div style=${{fontSize:13,color:"rgba(255,255,255,0.65)",marginTop:4,fontStyle:"italic"}}>${card.translit}</div>`:null}
+            </div>
+          </div>
+        </div>
+        <!-- Know it? buttons (only when flipped) -->
+        ${flipped?h`<div style=${{display:"flex",gap:10,marginBottom:16}}>
+          <button class="btn" style=${{flex:1,background:"#fce4ec",border:"2px solid #f44336",color:"#c62828"}} onClick=${()=>{setFlipped(false);if(cardIdx<cards.length-1)setCardIdx(cardIdx+1);}}>✕ Still learning</button>
+          <button class="btn" style=${{flex:1,background:"#e8f5e9",border:"2px solid #4caf50",color:"#2e7d32"}} onClick=${()=>markKnown(true)}>✓ I know it!</button>
+        </div>`:h`<div style=${{display:"flex",gap:10,marginBottom:16}}>
+          <button class="btn btn-sm" disabled=${cardIdx===0} onClick=${()=>{setCardIdx(cardIdx-1);setFlipped(false);}}>← Prev</button>
+          <div style=${{flex:1,textAlign:"center",fontSize:12,color:"#aaa",alignSelf:"center"}}>Tap card to flip</div>
+          <button class="btn btn-sm" disabled=${cardIdx===cards.length-1} onClick=${()=>{setCardIdx(cardIdx+1);setFlipped(false);}}>Next →</button>
+        </div>`}
+        <!-- Known count -->
+        <div style=${{textAlign:"center",fontSize:12,color:"var(--g400)",marginBottom:16}}>✅ ${known}/${cards.length} known</div>
+        ${known===cards.length&&cards.length>0?h`<div style=${{background:"#e8f5e9",border:"2px solid #4caf50",borderRadius:10,padding:"12px 16px",textAlign:"center",fontWeight:700,color:"#2e7d32",marginBottom:16}}>🎉 You know all the cards in this deck!</div>`:null}
+      </div>`}
+
+      <!-- Add word -->
+      <div class="card" style=${{marginTop:8}}>
+        <div style=${{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:"var(--g500)",marginBottom:8}}>➕ Add a word to this deck</div>
+        <div style=${{display:"flex",gap:8}}>
+          <input style=${{flex:1,padding:"9px 11px",border:"2px solid var(--g200)",fontFamily:"var(--fb)",fontSize:13,outline:"none",borderRadius:6}} placeholder="Type an English word..." value=${newWord} onInput=${e=>setNewWord(e.target.value)} onKeyDown=${e=>{if(e.key==="Enter")translateWord();}}/>
+          <button class="btn btn-p btn-sm" onClick=${translateWord} disabled=${loading||!newWord.trim()}>${loading?"...":"Add"}</button>
+        </div>
+        ${err?h`<div style=${{marginTop:6,fontSize:12,color:"var(--bd)"}}>${err}</div>`:null}
+      </div>
+    </div>`;
+  }
+
+  // Decks view
   return h`<div style=${{maxWidth:700,margin:"0 auto"}}>
-    <div style=${{marginBottom:16,fontSize:13,color:"var(--g500)"}}>📎 Download your study materials below.</div>
-    <div style=${{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:12}}>
-      ${pdfs.map(c=>h`<a key=${c.id} href=${c.fileData} download=${c.fileName||"resource.pdf"} style=${{display:"flex",flexDirection:"column",alignItems:"center",gap:10,background:"#fff",border:"2px solid #eee",borderRadius:12,padding:"20px 16px",textDecoration:"none",boxShadow:"0 1px 4px rgba(0,0,0,0.06)",transition:"border-color .15s",cursor:"pointer"}}>
-        <div style=${{fontSize:36}}>📄</div>
-        <div style=${{fontWeight:700,fontSize:13,color:"#111",textAlign:"center",wordBreak:"break-word"}}>${c.title||c.name||c.fileName}</div>
-        ${c.category&&h`<span style=${{padding:"2px 8px",background:"#f0ebff",color:"#7e57c2",borderRadius:20,fontSize:10,fontWeight:700}}>${c.category}</span>`}
-        <div style=${{fontSize:11,color:"#1976d2",fontWeight:700,marginTop:4}}>⬇ Download</div>
-      </a>`)}
+    <!-- Create new deck -->
+    <div class="card" style=${{marginBottom:20}}>
+      <div style=${{fontWeight:700,fontSize:14,marginBottom:4}}>🃏 Create a Flashcard Deck</div>
+      <div style=${{fontSize:12,color:"var(--g500)",marginBottom:12}}>Pick a topic below or type your own, then let the AI generate the cards for you.</div>
+      <!-- Starter topics -->
+      <div style=${{display:"flex",flexWrap:"wrap",gap:6,marginBottom:12}}>
+        ${STARTERS.map(t=>h`<button key=${t} class="chip" onClick=${()=>generateDeck(t)} disabled=${loading} style=${{fontSize:11,padding:"4px 10px"}}>${t}</button>`)}
+      </div>
+      <div style=${{display:"flex",gap:8}}>
+        <input style=${{flex:1,padding:"9px 11px",border:"2px solid var(--g200)",fontFamily:"var(--fb)",fontSize:13,outline:"none",borderRadius:6}} placeholder="Or type a custom topic, e.g. 'Airport vocabulary'" value=${newTopic} onInput=${e=>setNewTopic(e.target.value)} onKeyDown=${e=>{if(e.key==="Enter")generateDeck(newTopic);}}/>
+        <button class="btn btn-p btn-sm" onClick=${()=>generateDeck(newTopic)} disabled=${loading||!newTopic.trim()}>${loading?"Generating...":"Create"}</button>
+      </div>
+      ${err?h`<div style=${{marginTop:6,fontSize:12,color:"var(--bd)"}}>${err}</div>`:null}
     </div>
+
+    <!-- Existing decks -->
+    ${decks.length===0?h`<div style=${{textAlign:"center",padding:"24px 0",color:"var(--g400)",fontSize:13}}>No decks yet — pick a topic above to get started!</div>`:h`<div style=${{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:12}}>
+      ${decks.map(dk=>{
+        const total = (dk.cards||[]).length;
+        const known = (dk.cards||[]).filter(c=>c.known).length;
+        const pct = total>0?Math.round(known/total*100):0;
+        return h`<div key=${dk.id} class="fc-deck" onClick=${()=>openDeck(dk.id)}>
+          <div style=${{position:"absolute",top:10,right:10}} onClick=${e=>{e.stopPropagation();deleteDeck(dk.id);}}>
+            <button style=${{background:"none",border:"none",cursor:"pointer",color:"#ccc",fontSize:14,padding:2}} title="Delete deck">✕</button>
+          </div>
+          <div style=${{fontSize:28,marginBottom:8}}>🃏</div>
+          <div style=${{fontWeight:800,fontSize:14,fontFamily:"var(--fh)",letterSpacing:1,marginBottom:6}}>${dk.name.toUpperCase()}</div>
+          <div style=${{fontSize:12,color:"var(--g500)",marginBottom:8}}>${total} card${total!==1?"s":""}</div>
+          <div style=${{height:4,background:"#f0f0f0",borderRadius:4,overflow:"hidden"}}>
+            <div style=${{height:"100%",width:pct+"%",background:"#4caf50",borderRadius:4}}></div>
+          </div>
+          <div style=${{fontSize:11,color:"var(--g400)",marginTop:4}}>${known}/${total} known</div>
+        </div>`;
+      })}
+    </div>`}
+  </div>`;
+}
+
+// ════════════════════════════════════════
+// LIBRARY — CONJUGATION (تصريف)
+// ════════════════════════════════════════
+function LibraryConjugation({student: s}) {
+  const [word, setWord] = useState("");
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState("");
+
+  const generate = async () => {
+    if (!word.trim()) return;
+    setLoading(true); setResult(null); setErr("");
+    try {
+      const d = await apiPost("/api/ai", {type:"conjugation", context:{word:word.trim(), level:s.level||"beginner", type:s.type||"Classical Arabic"}});
+      if (d.result) {
+        const parsed = JSON.parse(d.result.replace(/```json[\s\S]*?```|```/g,"").trim());
+        setResult(parsed);
+      } else { setErr("Could not generate. Try again."); }
+    } catch(e) { setErr("Error: "+e.message); }
+    setLoading(false);
+  };
+
+  const USAGE_COLOR = {
+    "very common":"#2e7d32","common":"#1565c0","uncommon":"#e65100","rare":"#b71c1c"
+  };
+  const usageColor = result ? (USAGE_COLOR[result.usage]||"#555") : "#555";
+
+  return h`<div style=${{maxWidth:780,margin:"0 auto"}}>
+    <!-- Input -->
+    <div class="card" style=${{marginBottom:20}}>
+      <div style=${{fontWeight:700,fontSize:15,marginBottom:4}}>📖 تصريف — Conjugation & Declension</div>
+      <div style=${{fontSize:12,color:"var(--g500)",marginBottom:14,lineHeight:1.7}}>Enter any Arabic word (with or without diacritics) or its English meaning. The AI will identify if it's a verb or noun and generate its full conjugation/declension table with diacritics.</div>
+      <div style=${{display:"flex",gap:8}}>
+        <input style=${{flex:1,padding:"11px 14px",border:"2px solid var(--g200)",fontFamily:"'Amiri',serif",fontSize:18,outline:"none",borderRadius:6,direction:"rtl",textAlign:"right"}} placeholder="اكتب كلمة... أو type in English" value=${word} onInput=${e=>setWord(e.target.value)} onKeyDown=${e=>{if(e.key==="Enter")generate();}}/>
+        <button class="btn btn-p" onClick=${generate} disabled=${loading||!word.trim()} style=${{whiteSpace:"nowrap"}}>${loading?"Generating...":"Generate ↗"}</button>
+      </div>
+      ${err?h`<div style=${{marginTop:8,color:"var(--bd)",fontSize:13}}>${err}</div>`:null}
+      <!-- Example words -->
+      <div style=${{display:"flex",flexWrap:"wrap",gap:6,marginTop:12}}>
+        ${["كَتَبَ","ذَهَبَ","أَكَلَ","كِتَابٌ","بَيْتٌ","مَدْرَسَةٌ","write","go","house"].map(w=>h`<button key=${w} class="chip" style=${{fontFamily:/[\u0600-\u06FF]/.test(w)?"'Amiri',serif":"var(--fb)",fontSize:/[\u0600-\u06FF]/.test(w)?16:11,direction:/[\u0600-\u06FF]/.test(w)?"rtl":"ltr"}} onClick=${()=>{setWord(w);}}>${w}</button>`)}
+      </div>
+    </div>
+
+    ${result&&h`<div>
+      <!-- Word header -->
+      <div style=${{background:"#111",color:"#fff",borderRadius:14,padding:"20px 24px",marginBottom:16,display:"flex",flexWrap:"wrap",alignItems:"center",gap:16}}>
+        <div style=${{fontFamily:"'Amiri',serif",fontSize:44,fontWeight:700,direction:"rtl",lineHeight:1.3}}>${result.word}</div>
+        <div style=${{flex:1,minWidth:200}}>
+          <div style=${{fontSize:13,color:"rgba(255,255,255,0.5)",marginBottom:4,textTransform:"uppercase",letterSpacing:1,fontFamily:"var(--fb)"}}>${result.type==="verb"?"Verb — فِعْل":"Noun — اِسْم"}</div>
+          <div style=${{fontSize:18,fontWeight:700,color:"#fff",marginBottom:4}}>${result.meaning}</div>
+          ${result.root?h`<div style=${{fontSize:13,color:"rgba(255,255,255,0.6)"}}>Root: <span style=${{fontFamily:"'Amiri',serif",fontSize:16,direction:"rtl"}}>${result.root}</span></div>`:null}
+          ${result.pattern?h`<div style=${{fontSize:13,color:"rgba(255,255,255,0.6)"}}>Pattern: <span style=${{fontFamily:"'Amiri',serif",fontSize:16,direction:"rtl"}}>${result.pattern}</span></div>`:null}
+        </div>
+        <div>
+          <div style=${{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:"rgba(255,255,255,0.4)",marginBottom:4}}>Usage</div>
+          <span style=${{background:usageColor,color:"#fff",padding:"4px 12px",borderRadius:20,fontSize:12,fontWeight:700,textTransform:"capitalize"}}>${result.usage||"—"}</span>
+        </div>
+      </div>
+
+      ${result.note?h`<div style=${{background:"#f0f7ff",border:"1px solid #bbdefb",borderRadius:10,padding:"12px 16px",marginBottom:16,fontSize:13,color:"#1565c0",lineHeight:1.7}}>💡 ${result.note}</div>`:null}
+
+      <!-- Verb conjugation table -->
+      ${result.type==="verb"&&result.table?h`<div style=${{overflowX:"auto",marginBottom:16}}>
+        <table class="conj-tbl">
+          <thead><tr>
+            <th>ضمير<br/><span class="en" style=${{color:"rgba(255,255,255,0.6)"}}>Pronoun</span></th>
+            <th>ماضي<br/><span class="en" style=${{color:"rgba(255,255,255,0.6)"}}>Past</span></th>
+            <th>مضارع<br/><span class="en" style=${{color:"rgba(255,255,255,0.6)"}}>Present</span></th>
+            <th>أمر<br/><span class="en" style=${{color:"rgba(255,255,255,0.6)"}}>Imperative</span></th>
+          </tr></thead>
+          <tbody>
+            ${result.table.map((row,i)=>h`<tr key=${i}>
+              <td><div class="pron">${row.pronoun_ar}</div><div class="en">${row.pronoun_en}</div></td>
+              <td class="ar">${row.past||"—"}</td>
+              <td class="ar">${row.present||"—"}</td>
+              <td class="ar">${row.imperative||"—"}</td>
+            </tr>`)}
+          </tbody>
+        </table>
+      </div>`:null}
+
+      <!-- Noun declension table -->
+      ${result.type==="noun"&&result.table?h`<div style=${{overflowX:"auto",marginBottom:16}}>
+        ${result.gender?h`<div style=${{marginBottom:10,fontSize:13,color:"var(--g600)"}}>Gender: <b>${result.gender}</b></div>`:null}
+        <table class="conj-tbl">
+          <thead><tr>
+            <th>الصيغة<br/><span class="en" style=${{color:"rgba(255,255,255,0.6)"}}>Form</span></th>
+            <th>نَكِرَة<br/><span class="en" style=${{color:"rgba(255,255,255,0.6)"}}>Indefinite</span></th>
+            <th>مَعْرِفَة<br/><span class="en" style=${{color:"rgba(255,255,255,0.6)"}}>Definite</span></th>
+          </tr></thead>
+          <tbody>
+            ${result.table.map((row,i)=>h`<tr key=${i}>
+              <td><div class="pron">${row.form_ar}</div><div class="en">${row.form_en}</div></td>
+              <td class="ar">${row.indef||"—"}</td>
+              <td class="ar">${row.def||"—"}</td>
+            </tr>`)}
+          </tbody>
+        </table>
+      </div>`:null}
+    </div>`}
+  </div>`;
+}
+
+// ════════════════════════════════════════
+// LIBRARY TAB — PDF downloads, Flashcards, Conjugation
+// ════════════════════════════════════════
+function StudentLibraryTab({student: s, data, setData}) {
+  const [libTab, setLibTab] = useState("flashcards");
+  const pdfs = (data.curriculum||[]).filter(c=>c.fileData&&c.fileName&&(c.fileName.toLowerCase().endsWith(".pdf")||c.fileData.startsWith("data:application/pdf")));
+
+  return h`<div style=${{maxWidth:800,margin:"0 auto"}}>
+    <div class="lib-tab-nav">
+      ${[["flashcards","🃏 Flashcards"],["conjugation","📖 تصريف"],["pdfs","📎 PDFs"]].map(([id,label])=>h`
+        <button key=${id} class=${"lib-tab"+(libTab===id?" on":"")} onClick=${()=>setLibTab(id)}>${label}</button>
+      `)}
+    </div>
+    ${libTab==="flashcards"&&h`<${LibraryFlashcards} student=${s} data=${data} setData=${setData}/>`}
+    ${libTab==="conjugation"&&h`<${LibraryConjugation} student=${s}/>`}
+    ${libTab==="pdfs"&&h`<div>
+      ${pdfs.length===0?h`<div style=${{padding:32,textAlign:"center",color:"var(--g400)"}}>No PDFs yet — Hadi will upload resources here.</div>`:h`<div>
+        <div style=${{marginBottom:16,fontSize:13,color:"var(--g500)"}}>📎 Download your study materials below.</div>
+        <div style=${{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:12}}>
+          ${pdfs.map(c=>h`<a key=${c.id} href=${c.fileData} download=${c.fileName||"resource.pdf"} style=${{display:"flex",flexDirection:"column",alignItems:"center",gap:10,background:"#fff",border:"2px solid #eee",borderRadius:12,padding:"20px 16px",textDecoration:"none",boxShadow:"0 1px 4px rgba(0,0,0,0.06)",cursor:"pointer"}}>
+            <div style=${{fontSize:36}}>📄</div>
+            <div style=${{fontWeight:700,fontSize:13,color:"#111",textAlign:"center",wordBreak:"break-word"}}>${c.title||c.name||c.fileName}</div>
+            ${c.category?h`<span style=${{padding:"2px 8px",background:"#f0ebff",color:"#7e57c2",borderRadius:20,fontSize:10,fontWeight:700}}>${c.category}</span>`:null}
+            <div style=${{fontSize:11,color:"#1976d2",fontWeight:700}}>⬇ Download</div>
+          </a>`)}
+        </div>
+      </div>`}
+    </div>`}
   </div>`;
 }
 
@@ -1901,7 +2201,7 @@ function StudentPortal({data, setData, user, onLogout}) {
 
     <div class="sp-content" style=${{padding:"14px 12px",maxWidth:1400,margin:"0 auto"}}>
     ${spTab==="curriculum"&&h`<${StudentCurriculumTab} student=${s} data=${data} setData=${setData}/>`}
-    ${spTab==="library"&&h`<${StudentLibraryTab} data=${data}/>`}
+    ${spTab==="library"&&h`<${StudentLibraryTab} student=${s} data=${data} setData=${setData}/>`}
     ${spTab==="quiz"&&h`<${StudentQuizTab} student=${s} data=${data}/>`}
     ${spTab==="settings"&&h`<${StudentSettingsTab} student=${s} data=${data} setData=${setData}/>`}
     ${spTab==="home"&&h`<div class="portal-grid"><div>
