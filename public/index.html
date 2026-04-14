@@ -3243,8 +3243,8 @@ function Students({data, setData, onProfile}) {
         const totalPaid = sPay.reduce((a,p)=>a+(p.amount||0),0);
         const hasToday = data.lessons.some(l => l.studentId===s.id && l.date===today() && l.status==="Scheduled");
         const att = attendanceStats(s.id, data.lessons);
-        const needsSetup = !s.whatsapp || !s.timezone || !s.email;
-        return h`<div key=${s.id} class=${"stu-card"+(noL?" alert":"")+(s.active?"":" inactive")} style=${{boxShadow:needsSetup?"inset 4px 0 0 #ff9800":""}}>
+        const needsSetup = s.enrollmentStatus === "pending";
+        return h`<div key=${s.id} class=${"stu-card"+(noL?" alert":"")+(s.active?"":" inactive")} style=${{boxShadow:needsSetup?"inset 5px 0 0 #ff9800, 0 1px 4px rgba(0,0,0,0.06)":""}}>
           <div class="sc-top">
             <div onClick=${()=>onProfile(s.id)} style=${{cursor:"pointer",flex:1,display:"flex",alignItems:"center",gap:10}}>
               ${s.avatar ? h`<img src=${s.avatar} style=${{width:40,height:40,borderRadius:8,objectFit:"cover",flexShrink:0,border:"1.5px solid var(--g200)"}}/>` : h`<div style=${{width:40,height:40,borderRadius:8,background:"var(--g100)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:18}}>👤</div>`}
@@ -3293,10 +3293,10 @@ function Students({data, setData, onProfile}) {
         const att = attendanceStats(s.id, data.lessons);
         const sPay = data.payments.filter(p=>p.studentId===s.id);
         const totalPaid = sPay.reduce((a,p)=>a+(p.amount||0),0);
-        const needsSetup = !s.whatsapp || !s.timezone || !s.email;
-        return h`<tr key=${s.id} class=${"ck"+(s.active?"":" ri")} onClick=${()=>onProfile(s.id)} style=${{boxShadow:needsSetup?"inset 4px 0 0 #ff9800":""}}>
-          <td class="nc">${i+1}</td>
-          <td style=${{fontWeight:600}}>${s.name}${needsSetup?h`<span style=${{marginLeft:6,fontSize:9,fontWeight:700,color:"#ff9800",textTransform:"uppercase",letterSpacing:.5,verticalAlign:"middle"}}>⚠ setup</span>`:null}</td>
+        const needsSetup = s.enrollmentStatus === "pending";
+        return h`<tr key=${s.id} class=${"ck"+(s.active?"":" ri")} onClick=${()=>onProfile(s.id)}>
+          <td class="nc" style=${{borderLeft:needsSetup?"4px solid #ff9800":"4px solid transparent",paddingLeft:needsSetup?6:8}}>${i+1}</td>
+          <td style=${{fontWeight:600}}>${s.name}${needsSetup?h`<span style=${{marginLeft:6,fontSize:9,fontWeight:700,color:"#ff9800",background:"#fff3e0",padding:"2px 5px",borderRadius:4,verticalAlign:"middle"}}>⚠ SETUP</span>`:null}</td>
           <td><span class="tg">${s.type}</span></td>
           <td>${s.lessonsTaken}</td>
           <td><span class=${"ll "+(left<=0?"low":left<=2?"ok":"good")}>${left}</span></td>
@@ -4298,6 +4298,26 @@ function RequestsInbox({auth, data, setData, onProfile}) {
     if (!createForm.name||!createForm.email||!createForm.password) return setErr("Fill all fields");
     const d = await call({action:"create",...createForm});
     if (d.error) return setErr(d.error);
+
+    // If creating a student, also add their profile to data.students
+    if ((createForm.role||"student") === "student") {
+      const exists = (data.students||[]).find(s => s.email && s.email.toLowerCase() === createForm.email.toLowerCase());
+      if (!exists) {
+        const newStudent = {
+          ...mkStudent(data.settings),
+          name: createForm.name,
+          email: createForm.email.toLowerCase(),
+          active: true,
+          enrollmentStatus: "pending"
+        };
+        const newData = {...data, students:[...(data.students||[]), newStudent]};
+        setData(newData);
+        try { await apiPost("/api/data", {token: auth.token, action:"backup", data: newData}); } catch(e) {}
+        setCreateForm({name:"",email:"",password:"",role:"student"}); load();
+        if (onProfile) onProfile(newStudent.id);
+        return;
+      }
+    }
     setMsg("Account created for "+createForm.email);
     setCreateForm({name:"",email:"",password:"",role:"student"}); load();
   };
