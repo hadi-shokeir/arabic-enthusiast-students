@@ -22,6 +22,8 @@
 html,body{height:100%}#root{height:100%;overflow:hidden}.student-root ~ * {overflow:auto}
 body:has(.student-root){overflow:auto}
 #root:has(.student-root){overflow:auto;height:auto}
+body:has(.auth-wrap){overflow:auto}
+#root:has(.auth-wrap){overflow:auto;height:auto}
 /* RTL support for Arabic content */
 [dir="rtl"]{font-family:var(--fa),var(--fb)}
 .ar-text{font-family:var(--fa),var(--fb);direction:rtl;text-align:right}
