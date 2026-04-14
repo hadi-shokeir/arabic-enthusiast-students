@@ -1363,7 +1363,7 @@ function AuthScreen({onAuth}) {
         <div class="fg"><label>Choose a Password *</label><input type="password" value=${password} onInput=${e=>setPassword(e.target.value)} placeholder="Min 6 characters"/></div>
         <div class="fg"><label>What would you like to learn? *</label>
           <select value=${learnType} onChange=${e=>setLearnType(e.target.value)}>
-            <option value="Levantine">🗣 Levantine Arabic (Lebanese / Syrian dialect)</option>
+            <option value="Levantine">🗣 Levantine Arabic (Lebanese dialect)</option>
             <option value="Classical">📜 Classical / Modern Standard Arabic (MSA)</option>
             <option value="Quranic">🕌 Quranic Arabic</option>
             <option value="General Dialect">💬 General Arabic Dialect</option>
@@ -4224,7 +4224,7 @@ function RequestsInbox({auth, data, setData, onProfile}) {
         email: email.toLowerCase(),
         gender: gender || "",
         active: true,
-        enrollmentStatus: "active"
+        enrollmentStatus: "pending"
       };
       newStudentId = newStudent.id;
       newData = {...data, students:[...(data.students||[]), newStudent]};
@@ -4532,7 +4532,7 @@ function App() {
   const submittedHw = data ? (data.homework||[]).filter(hw=>hw.status==="submitted").length : 0;
   const pendingLessonReqs = data ? (data.lessonRequests||[]).filter(r=>r.status==="pending").length : 0;
   const studentNoteCount = data ? data.students.filter(s=>s.studentNote&&s.studentNote.trim()).length : 0;
-  const newStudents = data ? data.students.filter(s=>s.active && s.lessonsTaken===0 && !s.lessonsTotal).length : 0;
+  const newStudents = data ? data.students.filter(s=>s.active && (s.enrollmentStatus==="pending" || (s.lessonsTaken===0 && !s.lessonsTotal))).length : 0;
   const totalRequestsBadge = pendingUsers + pendingLessonReqs + studentNoteCount;
   const badges = {
     students: newStudents,
