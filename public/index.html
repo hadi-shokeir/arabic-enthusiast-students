@@ -3141,7 +3141,8 @@ function Students({data, setData, onProfile}) {
           : "Top-up — "+lessonDiff+" lesson"+(lessonDiff>1?"s":"")+" added";
         newPayments = [...data.payments, {id:uid(),studentId:form.id,amount,date:today(),method:"Cash",notes:note,lessonsAdded:lessonDiff,status:payStatus}];
       }
-      setData({...data, students: data.students.map(s=>s.id===form.id?{...form}:s), payments: newPayments});
+      const saved = {...form, enrollmentStatus: form.enrollmentStatus==="pending" ? "active" : form.enrollmentStatus};
+      setData({...data, students: data.students.map(s=>s.id===form.id?saved:s), payments: newPayments});
     } else {
       const amount = form.lessonsTotal * form.lessonRate;
       const newPayment = {id:uid(),studentId:form.id,amount,date:today(),method:"Cash",notes:"Initial enrollment — "+form.lessonsTotal+" lessons",lessonsAdded:form.lessonsTotal,status:payStatus};
@@ -3194,7 +3195,8 @@ function Students({data, setData, onProfile}) {
         const totalPaid = sPay.reduce((a,p)=>a+(p.amount||0),0);
         const hasToday = data.lessons.some(l => l.studentId===s.id && l.date===today() && l.status==="Scheduled");
         const att = attendanceStats(s.id, data.lessons);
-        return h`<div key=${s.id} class=${"stu-card"+(noL?" alert":"")+(s.active?"":" inactive")}>
+        const needsSetup = s.enrollmentStatus === "pending";
+        return h`<div key=${s.id} class=${"stu-card"+(noL?" alert":"")+(s.active?"":" inactive")} style=${{borderLeft:needsSetup?"4px solid #ff9800":""}}>
           <div class="sc-top">
             <div onClick=${()=>onProfile(s.id)} style=${{cursor:"pointer",flex:1,display:"flex",alignItems:"center",gap:10}}>
               ${s.avatar ? h`<img src=${s.avatar} style=${{width:40,height:40,borderRadius:8,objectFit:"cover",flexShrink:0,border:"1.5px solid var(--g200)"}}/>` : h`<div style=${{width:40,height:40,borderRadius:8,background:"var(--g100)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:18}}>👤</div>`}
@@ -3243,9 +3245,10 @@ function Students({data, setData, onProfile}) {
         const att = attendanceStats(s.id, data.lessons);
         const sPay = data.payments.filter(p=>p.studentId===s.id);
         const totalPaid = sPay.reduce((a,p)=>a+(p.amount||0),0);
-        return h`<tr key=${s.id} class=${"ck"+(s.active?"":" ri")} onClick=${()=>onProfile(s.id)}>
+        const needsSetup = s.enrollmentStatus === "pending";
+        return h`<tr key=${s.id} class=${"ck"+(s.active?"":" ri")} onClick=${()=>onProfile(s.id)} style=${{borderLeft:needsSetup?"4px solid #ff9800":""}}>
           <td class="nc">${i+1}</td>
-          <td style=${{fontWeight:600}}>${s.name}</td>
+          <td style=${{fontWeight:600}}>${s.name}${needsSetup?h`<span style=${{marginLeft:6,fontSize:9,fontWeight:700,color:"#ff9800",textTransform:"uppercase",letterSpacing:.5,verticalAlign:"middle"}}>● needs setup</span>`:null}</td>
           <td><span class="tg">${s.type}</span></td>
           <td>${s.lessonsTaken}</td>
           <td><span class=${"ll "+(left<=0?"low":left<=2?"ok":"good")}>${left}</span></td>
@@ -4532,10 +4535,9 @@ function App() {
   const submittedHw = data ? (data.homework||[]).filter(hw=>hw.status==="submitted").length : 0;
   const pendingLessonReqs = data ? (data.lessonRequests||[]).filter(r=>r.status==="pending").length : 0;
   const studentNoteCount = data ? data.students.filter(s=>s.studentNote&&s.studentNote.trim()).length : 0;
-  const newStudents = data ? data.students.filter(s=>s.active && (s.enrollmentStatus==="pending" || (s.lessonsTaken===0 && !s.lessonsTotal))).length : 0;
   const totalRequestsBadge = pendingUsers + pendingLessonReqs + studentNoteCount;
   const badges = {
-    students: newStudents,
+    students: 0,
     homework: submittedHw,
     requests: totalRequestsBadge,
     messages: studentNoteCount,
