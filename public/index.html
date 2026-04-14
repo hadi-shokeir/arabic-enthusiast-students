@@ -4214,25 +4214,29 @@ function RequestsInbox({auth, data, setData, onProfile}) {
     // Build the new student profile
     const exists = (data.students||[]).find(s => s.email && s.email.toLowerCase() === email.toLowerCase());
     let newData = data;
+    let newStudentId = exists ? exists.id : null;
     if (!exists) {
       const newStudent = {
         ...mkStudent(data.settings),
         name: name || email,
         email: email.toLowerCase(),
         gender: gender || "",
-        enrollmentStatus: "pending"
+        active: true,
+        enrollmentStatus: "active"
       };
+      newStudentId = newStudent.id;
       newData = {...data, students:[...(data.students||[]), newStudent]};
       setData(newData);
     }
 
-    // Immediately back up so the student profile is available on any device right away
+    // Immediately back up to the cloud so the profile is available on any device
     try {
       await apiPost("/api/data", {token: auth.token, action:"backup", data: newData});
     } catch(e) { /* backup failed — local state still updated */ }
 
-    setMsg("✓ Approved! Student profile created and saved.");
     load();
+    // Navigate straight to the new student's profile so tutor can fill in details
+    if (newStudentId && onProfile) onProfile(newStudentId);
   };
   const reject = async email => { await call({action:"reject", email}); setMsg("Rejected."); load(); };
   const create = async () => {
