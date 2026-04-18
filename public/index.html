@@ -3357,7 +3357,7 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
 
     <!-- TAB NAV -->
     <div class="sp-tab-nav" style=${{borderBottomColor:accent}}>
-      ${[["home","🏠 Home",0],["schedule","📅 Book",0],["curriculum","📚 Curriculum",0],["library","📎 Library",0],["quiz","🧠 Quiz",prefBadge>0?1:0],["preferences","✨ My Journey",prefBadge]].map(([id,label,badge])=>{
+      ${[["home","🏠 Home",0],["schedule","📅 Book",0],["curriculum","📚 Curriculum",0],["library","📎 Library",0],["quiz","🧠 Quiz",prefBadge>0?1:0],["practice","✍️ Practice",0],["preferences","✨ My Journey",prefBadge]].map(([id,label,badge])=>{
         const active = spTab===id;
         return h`<button key=${id} class=${"sp-tab"+(active?" on":"")}
           style=${{color:active?accent:"",borderBottomColor:active?accent:""}}
@@ -3372,6 +3372,7 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
     ${spTab==="curriculum"&&h`<${StudentCurriculumTab} student=${s} data=${data} setData=${setData}/>`}
     ${spTab==="library"&&h`<${StudentLibraryTab} student=${s} data=${data} setData=${setData}/>`}
     ${spTab==="quiz"&&h`<${StudentQuizTab} student=${s} data=${data}/>`}
+    ${spTab==="practice"&&h`<${SentenceLabTab} student=${s} data=${data}/>`}
     ${spTab==="settings"&&h`<${StudentSettingsTab} student=${s} data=${data} setData=${setData} auth=${auth}/>`}
     ${spTab==="preferences"&&h`<${StudentPreferencesTab} student=${s} data=${data} setData=${setData}/>`}
     ${spTab==="home"&&h`<div class="portal-grid"><div>
@@ -3691,6 +3692,301 @@ function HwFeedbackBox({hw, data, setData}) {
   const [val, setVal] = useState(hw.teacherComment||"");
   const save = () => setData({...data, homework:data.homework.map(x=>x.id===hw.id?{...x,teacherComment:val}:x)});
   return h`<textarea style=${{width:"100%",padding:"8px 10px",border:"2px solid var(--g200)",fontFamily:"var(--fa),var(--fb)",fontSize:13,resize:"vertical",minHeight:70,boxSizing:"border-box"}} placeholder="Write your feedback..." value=${val} onInput=${e=>setVal(e.target.value)} onBlur=${save}/>`;
+}
+
+// ════════════════════════════════════════
+// SENTENCE LAB TAB
+// ════════════════════════════════════════
+const SLAB_DIFF_NAMES = ['beginner','intermediate','advanced'];
+const SLAB_DIFF_LABELS = {
+  beginner:     {ar:'مبتدئ', en:'Beginner'},
+  intermediate: {ar:'متوسط', en:'Intermediate'},
+  advanced:     {ar:'متقدم', en:'Advanced'}
+};
+
+function SentenceLabTab({student: s}) {
+  const accent = s.studentTheme || '#4a90d9';
+  const [mode,       setMode]       = useState('msa');
+  const [sType,      setSType]      = useState('simple');
+  const [diff,       setDiff]       = useState(0);
+  const [topic,      setTopic]      = useState('');
+  const [engine,     setEngine]     = useState('browser');
+  const [elKey,      setElKey]      = useState('');
+  const [loading,    setLoading]    = useState(false);
+  const [current,    setCurrent]    = useState(null);
+  const [error,      setError]      = useState('');
+  const [ttsError,   setTtsError]   = useState('');
+  const [saved,      setSaved]      = useState([]);
+  const [savedOpen,  setSavedOpen]  = useState(false);
+  const [speaking,   setSpeaking]   = useState(false);
+  const [saveFlagged,setSaveFlagged]= useState(false);
+
+  const sliderBg = `linear-gradient(to right,${accent} 0%,${accent} ${(diff/2)*100}%,#e0ddd6 ${(diff/2)*100}%)`;
+
+  const generate = async () => {
+    setError(''); setTtsError(''); setLoading(true);
+    try {
+      const d = await fetch('/api/generate-sentence', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          mode,
+          sentenceType: sType,
+          difficulty: SLAB_DIFF_NAMES[diff],
+          topic: topic.trim()
+        })
+      }).then(r=>r.json());
+      if (d.error) throw new Error(d.error);
+      setCurrent({...d.result, mode, modeLabel: mode==='msa'?'Classical Arabic / MSA':'Lebanese Dialect'});
+      setSaveFlagged(false);
+    } catch(e) { setError(e.message||'Generation failed. Please try again.'); }
+    setLoading(false);
+  };
+
+  const speak = () => {
+    if (!current || speaking) return;
+    setTtsError('');
+    if (engine === 'elevenlabs') {
+      if (!elKey.trim()) { setTtsError('Enter your ElevenLabs API key above to use HD voice.'); return; }
+      playEL(current.sentence, elKey.trim());
+    } else {
+      playBrowser(current.sentence, mode);
+    }
+  };
+
+  const playBrowser = (text, m) => {
+    if (!window.speechSynthesis) { setTtsError('Speech synthesis not supported in this browser.'); return; }
+    const voices = window.speechSynthesis.getVoices();
+    const arVoice = voices.find(v=>v.lang&&v.lang.startsWith('ar'));
+    if (voices.length>0 && !arVoice) { setTtsError('⚠️ No Arabic voice found on this device.'); return; }
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.lang = m==='lebanese'?'ar-LB':'ar'; utt.rate = 0.85;
+    if (arVoice) utt.voice = arVoice;
+    setSpeaking(true);
+    utt.onend = utt.onerror = () => setSpeaking(false);
+    window.speechSynthesis.speak(utt);
+  };
+
+  const playEL = async (text, key) => {
+    setSpeaking(true);
+    try {
+      const r = await fetch('https://api.elevenlabs.io/v1/text-to-speech/zgqefOFMTBOjmpoFZuPn', {
+        method:'POST',
+        headers:{'xi-api-key':key,'Content-Type':'application/json','Accept':'audio/mpeg'},
+        body:JSON.stringify({text, model_id:'eleven_multilingual_v2', voice_settings:{stability:0.5,similarity_boost:0.75}})
+      });
+      if (!r.ok) {
+        if (r.status===401) throw new Error('Invalid ElevenLabs API key.');
+        if (r.status===429) throw new Error('ElevenLabs quota reached. Switch to Browser voice.');
+        throw new Error('Audio failed. Try again.');
+      }
+      const buf = await r.arrayBuffer();
+      const url = URL.createObjectURL(new Blob([buf],{type:'audio/mpeg'}));
+      const audio = new Audio(url);
+      audio.onended = () => { setSpeaking(false); URL.revokeObjectURL(url); };
+      audio.onerror = () => { setSpeaking(false); setTtsError('Playback error. Try again.'); };
+      audio.play();
+    } catch(e) {
+      setSpeaking(false);
+      if (!e.message.includes('key')&&!e.message.includes('quota')) {
+        setTtsError(e.message+' — Falling back to browser voice.');
+        playBrowser(text, mode);
+      } else setTtsError(e.message);
+    }
+  };
+
+  const saveCurrent = () => {
+    if (!current||saveFlagged) return;
+    setSaved(prev=>[{...current,id:Date.now()},...prev]);
+    setSaveFlagged(true);
+    setSavedOpen(true);
+  };
+
+  const cardStyle = {background:'#fff',border:'1px solid #eee',borderRadius:14,padding:'18px 20px',marginBottom:14};
+  const labelStyle = {fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:'0.8px',color:'#bbb',marginBottom:8};
+  const blockStyle = {marginBottom:16,paddingBottom:16,borderBottom:'1px solid #f5f3ee'};
+
+  return h`<div style=${{maxWidth:640,margin:'0 auto',padding:'4px 0 40px'}}>
+
+    <!-- Mode tabs -->
+    <div style=${{display:'flex',background:'#f0ece3',borderRadius:12,padding:4,marginBottom:14,gap:4}}>
+      ${[['msa','العربية الفصحى','Classical Arabic / MSA'],['lebanese','اللهجة اللبنانية','Lebanese Dialect']].map(([id,ar,en])=>h`
+        <button key=${id} onClick=${()=>setMode(id)} style=${{
+          flex:1,padding:'10px 8px',border:'none',borderRadius:9,cursor:'pointer',
+          background:mode===id?'#fff':'transparent',
+          boxShadow:mode===id?'0 1px 5px rgba(0,0,0,0.09)':'none',
+          transition:'all 0.2s',lineHeight:1.3
+        }}>
+          <span style=${{fontFamily:"'Noto Naskh Arabic',serif",fontSize:14,fontWeight:600,color:mode===id?'#1a1a1a':'#aaa',display:'block',direction:'rtl'}}>${ar}</span>
+          <span style=${{fontSize:10,color:mode===id?'#888':'#ccc',display:'block',marginTop:2}}>${en}</span>
+        </button>`)}
+    </div>
+
+    <!-- TTS engine bar -->
+    <div style=${{...cardStyle,padding:'14px 18px',marginBottom:14}}>
+      <div style=${{display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
+        <span style=${{fontSize:12,fontWeight:600,color:'#888',whiteSpace:'nowrap'}}>Voice Engine</span>
+        <div style=${{display:'flex',background:'#f0ece3',borderRadius:9,padding:3,gap:3}}>
+          ${[['browser','🔊 Browser (Free)'],['elevenlabs','⚡ ElevenLabs (HD)']].map(([id,lbl])=>h`
+            <button key=${id} onClick=${()=>setEngine(id)} style=${{
+              padding:'6px 13px',border:'none',borderRadius:7,cursor:'pointer',
+              fontSize:12,fontWeight:engine===id?600:500,fontFamily:'inherit',
+              background:engine===id?'#fff':'transparent',color:engine===id?'#1a1a1a':'#aaa',
+              boxShadow:engine===id?'0 1px 4px rgba(0,0,0,0.1)':'none',transition:'all 0.2s',whiteSpace:'nowrap'
+            }}>${lbl}</button>`)}
+        </div>
+      </div>
+      ${engine==='elevenlabs'&&h`<div style=${{marginTop:12}}>
+        <input type="password" placeholder="ElevenLabs API Key..." value=${elKey} onInput=${e=>setElKey(e.target.value)}
+          style=${{width:'100%',border:'1.5px solid #e0ddd6',borderRadius:9,padding:'8px 12px',fontSize:13,fontFamily:'inherit',background:'#fafaf7',outline:'none'}}/>
+        <div style=${{fontSize:10,color:'#ccc',marginTop:5}}>🔒 Your key is used locally and never stored or sent anywhere except ElevenLabs.</div>
+      </div>`}
+    </div>
+
+    <!-- Controls -->
+    <div style=${{...cardStyle}}>
+
+      <!-- Sentence type -->
+      <div style=${{marginBottom:18}}>
+        <div style=${labelStyle}><span style=${{fontFamily:"'Noto Naskh Arabic',serif",fontSize:13,color:'#777',fontWeight:600,textTransform:'none',letterSpacing:0}}>نوع الجملة</span>  Sentence Type</div>
+        <div style=${{display:'flex',gap:10}}>
+          ${[['simple','جملة بسيطة','Simple'],['complex','جملة مركبة','Complex']].map(([id,ar,en])=>h`
+            <button key=${id} onClick=${()=>setSType(id)} style=${{
+              flex:1,padding:'10px 8px',border:'1.5px solid '+(sType===id?accent:'#e0ddd6'),
+              borderRadius:11,cursor:'pointer',background:sType===id?accent+'11':'transparent',
+              transition:'all 0.2s',lineHeight:1.4
+            }}>
+              <span style=${{fontFamily:"'Noto Naskh Arabic',serif",fontSize:15,color:sType===id?accent:'#555',display:'block',direction:'rtl'}}>${ar}</span>
+              <span style=${{fontSize:11,color:sType===id?accent:'#aaa',display:'block',marginTop:2}}>${en}</span>
+            </button>`)}
+        </div>
+      </div>
+
+      <!-- Difficulty slider -->
+      <div style=${{marginBottom:18}}>
+        <div style=${labelStyle}><span style=${{fontFamily:"'Noto Naskh Arabic',serif",fontSize:13,color:'#777',fontWeight:600,textTransform:'none',letterSpacing:0}}>المستوى</span>  Difficulty</div>
+        <div style=${{position:'relative',paddingBottom:24}}>
+          <input type="range" min="0" max="2" step="1" value=${diff}
+            onInput=${e=>setDiff(+e.target.value)}
+            style=${{width:'100%',WebkitAppearance:'none',height:5,borderRadius:4,outline:'none',cursor:'pointer',background:sliderBg}}/>
+          <div style=${{display:'flex',justifyContent:'space-between',position:'absolute',bottom:0,left:0,right:0}}>
+            ${SLAB_DIFF_NAMES.map((n,i)=>h`<div key=${n} style=${{
+              flex:1,textAlign:i===0?'left':i===2?'right':'center',
+              fontSize:10,fontWeight:diff===i?700:400,
+              color:diff===i?accent:'#ccc',transition:'color 0.2s'
+            }}>
+              <span style=${{fontFamily:"'Noto Naskh Arabic',serif",fontSize:12,display:'block',direction:'rtl'}}>${SLAB_DIFF_LABELS[n].ar}</span>
+              ${SLAB_DIFF_LABELS[n].en}
+            </div>`)}
+          </div>
+        </div>
+      </div>
+
+      <!-- Topic -->
+      <div>
+        <div style=${labelStyle}><span style=${{fontFamily:"'Noto Naskh Arabic',serif",fontSize:13,color:'#777',fontWeight:600,textTransform:'none',letterSpacing:0}}>الموضوع</span>  Topic <span style=${{fontWeight:300,color:'#ddd',textTransform:'none',letterSpacing:0}}>(optional)</span></div>
+        <input type="text" value=${topic} onInput=${e=>setTopic(e.target.value)}
+          placeholder="e.g. travel, food, family, daily life…" maxlength="60"
+          style=${{width:'100%',border:'1.5px solid #e0ddd6',borderRadius:10,padding:'10px 14px',fontSize:14,fontFamily:'inherit',background:'#fafaf7',color:'#333',outline:'none'}}/>
+      </div>
+    </div>
+
+    <!-- Generate button -->
+    <button onClick=${generate} disabled=${loading} style=${{
+      width:'100%',padding:15,background:loading?'#bbb':accent,color:'#fff',border:'none',
+      borderRadius:13,fontSize:15,fontWeight:700,fontFamily:'inherit',cursor:loading?'not-allowed':'pointer',
+      display:'flex',alignItems:'center',justifyContent:'center',gap:10,marginBottom:14,
+      transition:'all 0.2s',boxShadow:loading?'none':`0 4px 14px ${accent}44`
+    }}>
+      ${loading
+        ? h`<div style=${{display:'inline-flex',gap:5,alignItems:'center'}}>
+            ${[0,1,2].map(i=>h`<span key=${i} style=${{
+              width:7,height:7,background:'rgba(255,255,255,0.9)',borderRadius:'50%',display:'inline-block',
+              animation:'slabBop 1.2s infinite ease-in-out',animationDelay:i*0.2+'s'
+            }}></span>`)}
+          </div>`
+        : h`<span><span style=${{fontFamily:"'Noto Naskh Arabic',serif",fontSize:16}}>توليد جملة</span> · Generate</span>`}
+    </button>
+    <style>${'@keyframes slabBop{0%,80%,100%{transform:scale(0.55);opacity:.4}40%{transform:scale(1);opacity:1}}'}</style>
+
+    <!-- Error -->
+    ${error&&h`<div style=${{background:'#fff5f5',border:'1px solid #ffd0d0',borderRadius:12,padding:'12px 16px',color:'#c62828',fontSize:13,marginBottom:14}}>${error}</div>`}
+
+    <!-- Result card -->
+    ${current&&h`<div style=${{...cardStyle}}>
+      <!-- Arabic sentence -->
+      <div style=${blockStyle}>
+        <div style=${labelStyle}>🔤 Arabic Sentence</div>
+        <div style=${{display:'flex',alignItems:'flex-start',gap:12,justifyContent:'space-between'}}>
+          <div style=${{flex:1,fontFamily:"'Noto Naskh Arabic',serif",fontSize:'1.55rem',lineHeight:2,color:'#1a1a1a',direction:'rtl',textAlign:'right'}}>${current.sentence}</div>
+          <button onClick=${speak} disabled=${speaking} title="Play audio" style=${{
+            flexShrink:0,width:42,height:42,borderRadius:'50%',border:'1.5px solid #e0ddd6',
+            background:'#fafaf7',cursor:speaking?'not-allowed':'pointer',
+            display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,
+            marginTop:12,opacity:speaking?.5:1,transition:'all 0.2s'
+          }}>${speaking?'⏳':'🔊'}</button>
+        </div>
+        ${ttsError&&h`<div style=${{fontSize:12,color:'#e53935',marginTop:6}}>${ttsError}</div>`}
+      </div>
+      <!-- Transliteration -->
+      <div style=${blockStyle}>
+        <div style=${labelStyle}>🔡 Transliteration</div>
+        <div style=${{fontSize:'1rem',color:'#666',fontStyle:'italic',lineHeight:1.8}}>${current.transliteration}</div>
+      </div>
+      <!-- Translation -->
+      <div style=${blockStyle}>
+        <div style=${labelStyle}>🌐 Translation</div>
+        <div style=${{fontSize:'1rem',color:'#333',lineHeight:1.8}}>${current.translation}</div>
+      </div>
+      <!-- Grammar note -->
+      <div style=${{marginBottom:0}}>
+        <div style=${labelStyle}>📝 Grammar Note</div>
+        <div style=${{fontSize:'0.9rem',color:'#666',lineHeight:1.85}}>${current.grammar_note}</div>
+      </div>
+      <!-- Footer -->
+      <div style=${{display:'flex',alignItems:'center',justifyContent:'space-between',marginTop:18,paddingTop:14,borderTop:'1px solid #f5f3ee'}}>
+        <span style=${{fontSize:11,fontWeight:700,color:accent,background:accent+'11',border:'1px solid '+accent+'33',borderRadius:20,padding:'4px 11px'}}>${current.modeLabel}</span>
+        <button onClick=${saveCurrent} style=${{
+          display:'flex',alignItems:'center',gap:6,padding:'7px 15px',
+          border:'1.5px solid '+(saveFlagged?'#4caf50':'#e0ddd6'),
+          borderRadius:20,background:saveFlagged?'#f0fff4':'transparent',
+          cursor:saveFlagged?'default':'pointer',fontSize:13,fontWeight:500,
+          color:saveFlagged?'#2e7d32':'#777',fontFamily:'inherit',transition:'all 0.2s'
+        }}>${saveFlagged?'✓ Saved':'🔖 Save'}</button>
+      </div>
+    </div>`}
+
+    <!-- Saved panel -->
+    ${saved.length>0&&h`<div style=${{...cardStyle,padding:0,overflow:'hidden'}}>
+      <div onClick=${()=>setSavedOpen(!savedOpen)} style=${{
+        display:'flex',alignItems:'center',justifyContent:'space-between',
+        padding:'14px 18px',cursor:'pointer'
+      }}>
+        <div style=${{display:'flex',alignItems:'center',gap:8,fontSize:14,fontWeight:600,color:'#333'}}>
+          🔖 Saved
+          <span style=${{background:accent,color:'#fff',borderRadius:20,padding:'2px 9px',fontSize:11,fontWeight:700}}>${saved.length}</span>
+        </div>
+        <div style=${{display:'flex',alignItems:'center',gap:10}}>
+          <button onClick=${e=>{e.stopPropagation();if(confirm('Clear all saved sentences?'))setSaved([]);}} style=${{fontSize:12,color:'#e53935',background:'none',border:'none',cursor:'pointer',fontFamily:'inherit',padding:'4px 8px',borderRadius:6}}>Clear All</button>
+          <span style=${{fontSize:11,color:'#ccc',transition:'transform 0.3s',display:'inline-block',transform:savedOpen?'rotate(180deg)':'rotate(0deg)'}}>▼</span>
+        </div>
+      </div>
+      ${savedOpen&&h`<div>
+        ${saved.map((item,i)=>h`<div key=${item.id} style=${{borderTop:'1px solid #f5f3ee',padding:'14px 18px'}}>
+          <div style=${{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
+            <span style=${{fontSize:11,color:accent,fontWeight:700}}>${item.modeLabel}</span>
+            <div style=${{display:'flex',gap:7}}>
+              <button onClick=${()=>navigator.clipboard?.writeText(item.sentence)} style=${{fontSize:12,padding:'4px 11px',borderRadius:7,cursor:'pointer',background:'#f0ece3',border:'1px solid #e0ddd6',color:'#555',fontFamily:'inherit'}}>Copy Arabic</button>
+              <button onClick=${()=>setSaved(prev=>prev.filter(x=>x.id!==item.id))} style=${{fontSize:12,padding:'4px 11px',borderRadius:7,cursor:'pointer',background:'#fff5f5',border:'1px solid #ffd0d0',color:'#e53935',fontFamily:'inherit'}}>Remove</button>
+            </div>
+          </div>
+          <div style=${{fontFamily:"'Noto Naskh Arabic',serif",fontSize:'1.15rem',lineHeight:1.95,direction:'rtl',textAlign:'right',color:'#1a1a1a',marginBottom:4}}>${item.sentence}</div>
+          <div style=${{fontSize:13,color:'#999'}}>${item.translation}</div>
+        </div>`)}
+      </div>`}
+    </div>`}
+  </div>`;
 }
 
 function StudentProfile({data, setData, profileId, auth}) {
