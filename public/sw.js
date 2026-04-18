@@ -1,4 +1,4 @@
-const CACHE = 'arabic-enthusiast-v2';
+const CACHE = 'arabic-enthusiast-v5';
 
 self.addEventListener('install', e => {
   e.waitUntil(
@@ -33,7 +33,8 @@ self.addEventListener('fetch', e => {
 
 // Push notifications
 self.addEventListener('push', e => {
-  const data = e.data ? e.data.json() : {};
+  let data = {};
+  try { data = e.data ? e.data.json() : {}; } catch { data = { title: 'Arabic Enthusiast', body: e.data ? e.data.text() : '' }; }
   e.waitUntil(
     self.registration.showNotification(data.title || 'Arabic Enthusiast', {
       body: data.body || '',
@@ -41,8 +42,7 @@ self.addEventListener('push', e => {
       badge: '/logo.jpeg',
       tag: data.tag || 'arabic-notif',
       data: { url: data.url || '/' },
-      vibrate: [200, 100, 200],
-      requireInteraction: true
+      vibrate: [200, 100, 200]
     })
   );
 });
@@ -54,7 +54,7 @@ self.addEventListener('notificationclick', e => {
       for (const c of list) {
         if (c.url.includes(self.location.origin)) return c.focus();
       }
-      return clients.openWindow(e.notification.data.url || '/');
+      return clients.openWindow(e.notification.data?.url || '/');
     })
   );
 });
