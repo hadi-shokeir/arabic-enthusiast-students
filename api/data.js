@@ -38,6 +38,60 @@ export default async function handler(req, res) {
       return res.json({ data: JSON.parse(raw) });
     }
 
+    // Students can write their own changes back to cloud.
+    // We do a server-side merge so Student A never overwrites Student B's data.
+    if (action === 'studentWrite') {
+      const { data } = req.body;
+      if (!data) return res.status(400).json({ error: 'No data' });
+
+      // Read current server state and merge
+      const currentRaw = await kv(['GET', 'student_data']);
+      const current = currentRaw ? JSON.parse(currentRaw) : {};
+      const studentEmail = session.email;
+
+      // Merge strategy: only update this student's own record + their homework/lessons
+      const merged = {
+        ...current,
+        students: (current.students || []).map(s => {
+          if (s.email && s.email.toLowerCase() === studentEmail.toLowerCase()) {
+            // Find the student's updated record in what they sent
+            const mine = (data.students || []).find(x => x.email && x.email.toLowerCase() === studentEmail.toLowerCase());
+            return mine ? mine : s;
+          }
+          return s; // other students: keep server version
+        }),
+        homework: (() => {
+          const myStudent = (current.students || []).find(s => s.email && s.email.toLowerCase() === studentEmail.toLowerCase());
+          const myId = myStudent?.id;
+          // Update existing homework items for this student
+          const merged = (current.homework || []).map(hw => {
+            if (myId && hw.studentId === myId) {
+              const updated = (data.homework || []).find(x => x.id === hw.id);
+              return updated ? updated : hw;
+            }
+            return hw;
+          });
+          // Append any NEW homework items this student submitted (not yet on server)
+          const existingIds = new Set((current.homework || []).map(h => h.id));
+          const newItems = (data.homework || []).filter(hw => myId && hw.studentId === myId && !existingIds.has(hw.id));
+          return [...merged, ...newItems];
+        })(),
+        lessons: (current.lessons || []).map(l => {
+          // Only allow status updates to this student's own lessons (e.g. cancellation)
+          const myStudent = (current.students || []).find(s => s.email && s.email.toLowerCase() === studentEmail.toLowerCase());
+          if (myStudent && l.studentId === myStudent.id) {
+            const updated = (data.lessons || []).find(x => x.id === l.id);
+            return updated ? updated : l;
+          }
+          return l;
+        }),
+      };
+
+      await kv(['SET', 'student_data', JSON.stringify(merged)]);
+      await kv(['SET', 'student_data_saved_at', new Date().toISOString()]);
+      return res.json({ ok: true });
+    }
+
     if (session.role !== 'tutor') return res.status(403).json({ error: 'Unauthorized' });
 
     if (action === 'backup') {

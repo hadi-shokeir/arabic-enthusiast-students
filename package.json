@@ -3,11 +3,13 @@
   "version": "2.0.0",
   "description": "Arabic Tutor Student Management System with auth, RTL support, and student portal",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "npx serve public -l 3000",
     "start": "npx serve public"
   },
   "dependencies": {
-    "web-push": "^3.6.7"
+    "web-push": "^3.6.7",
+    "bcryptjs": "^2.4.3"
   }
 }

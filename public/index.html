@@ -317,13 +317,10 @@ tr.ck{cursor:pointer}tr.ck:hover td{background:var(--g100)}
 .lib-tab{padding:10px 18px;font-size:12px;font-weight:700;color:#888;cursor:pointer;border-bottom:3px solid transparent;letter-spacing:.5px;text-transform:uppercase;background:none;border-top:none;border-left:none;border-right:none;font-family:var(--fb);transition:all .15s;white-space:nowrap}
 .lib-tab:hover{color:#333}
 .lib-tab.on{color:#111;border-bottom-color:#111}
-/* Flashcard flip */
-.fc-scene{perspective:900px;cursor:pointer;user-select:none}
-.fc-card{width:100%;height:180px;position:relative;transform-style:preserve-3d;transition:transform 0.5s}
-.fc-card.flipped{transform:rotateY(180deg)}
-.fc-face{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;padding:20px;box-sizing:border-box}
-.fc-front{background:#fff;border:2px solid #e0e0e0;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
-.fc-back{background:#111;color:#fff;transform:rotateY(180deg);box-shadow:0 4px 16px rgba(0,0,0,0.3)}
+/* Flashcard — single face, no 3D transform (eliminates backface flash) */
+.fc-scene{cursor:pointer;user-select:none}
+.fc-card{width:100%;min-height:180px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;padding:20px;box-sizing:border-box;animation:fc-in .15s ease}
+@keyframes fc-in{from{opacity:0;transform:scale(0.96)}to{opacity:1;transform:scale(1)}}
 .fc-deck{background:#fff;border:2px solid #eee;border-radius:14px;padding:18px 16px;cursor:pointer;transition:all .15s;position:relative}
 .fc-deck:hover{border-color:#111;transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.1)}
 /* Conjugation table */
@@ -407,6 +404,11 @@ const setAuthStore = v => localStorage.setItem(AUTH_KEY, JSON.stringify(v));
 const clearAuthStore = () => localStorage.removeItem(AUTH_KEY);
 
 async function apiPost(endpoint, body) {
+  // Auto-inject session token for AI calls so the endpoint can validate the caller
+  if (endpoint === '/api/ai' && !body.token) {
+    const stored = getAuth();
+    if (stored?.token) body = {...body, token: stored.token};
+  }
   const r = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   return r.json();
 }
@@ -431,7 +433,7 @@ async function pushImages(settings) {
 
 // ─── Helpers ───
 const SK = "tutor-v5";
-const DATA_VERSION = 14;
+const DATA_VERSION = 16;
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 const fmt = d => d ? new Date(d).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}) : "—";
 const today = () => new Date().toISOString().split("T")[0];
@@ -519,7 +521,7 @@ const DEFS = {
     6:{enabled:false,ranges:[]}
   }
 };
-const DD = {students:[],lessons:[],payments:[],curriculum:[],groups:[],homework:[],lessonRequests:[],resources:[],settings:{...DEFS},_version:DATA_VERSION};
+const DD = {students:[],lessons:[],payments:[],curriculum:[],groups:[],homework:[],lessonRequests:[],resources:[],lessonLogs:[],settings:{...DEFS},_version:DATA_VERSION};
 
 // ─── IndexedDB Storage ───
 const DB_NAME = "TutorDB", DB_STORE = "appdata", DB_KEY = "main";
@@ -585,6 +587,7 @@ function migrateData(data) {
   }
   if (v < 6) {
     if (!d.lessonRequests) d.lessonRequests = [];
+    if (!d.lessonLogs) d.lessonLogs = [];
     d._version = DATA_VERSION;
   }
   if (v < 7) {
@@ -649,6 +652,20 @@ function migrateData(data) {
     }));
     d._version = DATA_VERSION;
   }
+  if (v < 15) {
+    d.students = (d.students||[]).map((s, i) => ({
+      ...s,
+      studentNumber: s.studentNumber || (i + 1)
+    }));
+    d._version = DATA_VERSION;
+  }
+  if (v < 16) {
+    d.students = (d.students||[]).map(s => ({
+      ...s,
+      quizHistory: s.quizHistory || []
+    }));
+    d._version = DATA_VERSION;
+  }
   return d;
 }
 
@@ -663,12 +680,26 @@ async function loadData() {
 }
 function getStorageEstimate() { return (navigator.storage?.estimate) ? navigator.storage.estimate() : Promise.resolve({usage:0,quota:0}); }
 
-const mkStudent = S => ({id:uid(),name:"",email:"",phone:"",whatsapp:"",timezone:"",avatar:"",gender:"",nickname:"",nicknameEmoji:"",type:(S?.types||DEFS.types)[0],level:(S?.levels||DEFS.levels)[0],paymentPlan:(S?.payPlans||DEFS.payPlans)[0],lessonRate:0,bundleSize:10,lessonsTotal:0,lessonsTaken:0,remainingClasses:0,freeTotal:0,freeTaken:0,totalPaid:0,startDate:today(),notes:[],assignedLessons:[],completedLessons:[],active:true,enrollmentStatus:"",studentNote:"",skillReading:3,skillWriting:3,skillListening:3,skillSpeaking:3,skillDialectListening:3,skillDialectSpeaking:3,skillTajweed:3,skillMakharij:3,skillHifz:3,skillTarteel:3,studyTypes:["classical","dialect","quran"],teacherSummary:"",teacherStrengths:"",teacherImprove:"",teacherPrivateNotes:"",goals:"",nextSteps:"",homeworkNotes:"",skillHistory:[],focusItems:[],weeklyTasks:[]});
+const mkStudent = S => ({id:uid(),studentNumber:0,quizHistory:[],name:"",email:"",phone:"",whatsapp:"",timezone:"",avatar:"",gender:"",nickname:"",nicknameEmoji:"",type:(S?.types||DEFS.types)[0],level:(S?.levels||DEFS.levels)[0],paymentPlan:(S?.payPlans||DEFS.payPlans)[0],lessonRate:0,bundleSize:10,lessonsTotal:0,lessonsTaken:0,remainingClasses:0,freeTotal:0,freeTaken:0,totalPaid:0,startDate:today(),notes:[],assignedLessons:[],completedLessons:[],active:true,enrollmentStatus:"",studentNote:"",skillReading:3,skillWriting:3,skillListening:3,skillSpeaking:3,skillDialectListening:3,skillDialectSpeaking:3,skillTajweed:3,skillMakharij:3,skillHifz:3,skillTarteel:3,studyTypes:["classical","dialect","quran"],teacherSummary:"",teacherStrengths:"",teacherImprove:"",teacherPrivateNotes:"",goals:"",nextSteps:"",homeworkNotes:"",skillHistory:[],focusItems:[],weeklyTasks:[],xp:0,streakDays:0,streakLastDate:null});
+const nextStudentNumber = (students) => { const nums = (students||[]).map(s=>s.studentNumber||0); return (nums.length ? Math.max(...nums) : 0) + 1; };
 const mkLesson = S => ({id:uid(),studentId:"",groupId:"",date:today(),time:"10:00",duration:60,type:(S?.types||DEFS.types)[0],status:"Scheduled",notes:""});
 const mkPayment = () => ({id:uid(),studentId:"",amount:0,date:today(),method:"Cash",notes:"",lessonsAdded:0,status:"Pending"});
 const mkCurriculum = S => ({id:uid(),title:"",category:(S?.types||DEFS.types)[0],level:(S?.levels||DEFS.levels)[0],description:"",fileName:"",fileData:""});
 const mkGroup = S => ({id:uid(),name:"",type:(S?.types||DEFS.types)[0],studentIds:[],schedule:"",notes:"",whatsappUrl:""});
 const mkHomework = sid => ({id:uid(),studentId:sid||"",title:"",description:"",dueDate:today(),assignedDate:today(),status:"assigned",submissionText:"",submissionUrl:"",submittedAt:null,teacherComment:"",reviewedAt:null});
+const mkLessonLog = (sid) => ({id:uid(),studentId:sid||"",date:today(),coveredTopics:"",performance:"",teacherNotes:"",aiNextSteps:"",aiWeeklyTasks:[],aiStudentSummary:"",aiTeacherSummary:"",createdAt:today()});
+
+// ─── XP + Streak helper ───
+// Call this with the current student object and the XP amount to award.
+// Returns a patch object {xp, streakDays, streakLastDate} to merge into the student.
+function earnXP(s, amount) {
+  const td = new Date().toISOString().split('T')[0];
+  const last = s.streakLastDate;
+  const dayDiff = last ? Math.floor((new Date(td) - new Date(last)) / 86400000) : 999;
+  const cur = s.streakDays || 0;
+  const newStreak = dayDiff === 0 ? cur : dayDiff === 1 ? cur + 1 : 1;
+  return { xp: (s.xp||0) + amount, streakDays: newStreak, streakLastDate: td };
+}
 const mkResource = () => ({id:uid(),title:"",url:"",description:"",ogTitle:"",ogImage:"",ogDescription:"",type:"link",videoId:"",category:"General",fileName:"",fileData:"",addedAt:new Date().toISOString()});
 
 // ── Reliable cross-device file download (Blob URL method) ──────────────────
@@ -708,11 +739,14 @@ function fillMsg(t,s,l){return(t||"").replace(/\{name\}/g,s?.name||"").replace(/
 const FREE_EXPIRY_WEEKS = 6;
 function freeExpiry(s) {
   if (!s.startDate || !(s.freeTotal||0)) return {expired:false, daysLeft:0, expiryDate:null};
-  const start = new Date(s.startDate);
-  const expiry = new Date(start.getTime() + FREE_EXPIRY_WEEKS * 7 * 86400000);
+  // Parse date as local midnight (avoid UTC offset shifting the date by a day)
+  const [sy, sm, sd] = s.startDate.split("-").map(Number);
+  const start = new Date(sy, sm - 1, sd);
+  // Expiry = end of the last valid day (23:59:59), so a lesson on that day is still valid
+  const expiry = new Date(sy, sm - 1, sd + FREE_EXPIRY_WEEKS * 7, 23, 59, 59);
   const now = new Date();
   const daysLeft = Math.ceil((expiry - now) / 86400000);
-  return {expired: daysLeft <= 0, daysLeft: Math.max(0, daysLeft), expiryDate: expiry.toISOString().split("T")[0]};
+  return {expired: now > expiry, daysLeft: Math.max(0, daysLeft), expiryDate: expiry.toLocaleDateString("en-CA")};
 }
 function freeLeft(s) {
   const fe = freeExpiry(s);
@@ -771,26 +805,40 @@ function SpiderChart({axes, size, color}) {
   const cx = size/2, cy = size/2, r = size*0.33, lr = size*0.47;
   const ang = i => (Math.PI*2*i/n) - Math.PI/2;
   const pt  = (i,v) => { const a=ang(i), d=(v/5)*r; return [+(cx+d*Math.cos(a)).toFixed(2), +(cy+d*Math.sin(a)).toFixed(2)]; };
-  // Build SVG as a string — more reliable than React SVG elements in HTM
-  let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="display:block;margin:auto;overflow:visible">`;
-  for (let ring=1; ring<=5; ring++) {
+
+  // Grid rings
+  const rings = [1,2,3,4,5].map(ring => {
     const pts = axes.map((_,i)=>pt(i,ring).join(",")).join(" ");
-    svg += `<polygon points="${pts}" fill="none" stroke="${ring===5?"#b8d0f0":"#ebebeb"}" stroke-width="${ring===5?1.5:0.8}"/>`;
-  }
-  axes.forEach((_,i)=>{ const [x,y]=pt(i,5); svg += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#d8d8d8" stroke-width="1"/>`; });
+    return h`<polygon key=${ring} points=${pts} fill="none" stroke=${ring===5?"#b8d0f0":"#ebebeb"} strokeWidth=${ring===5?1.5:0.8}/>`;
+  });
+  // Axis lines
+  const axisLines = axes.map((_,i) => {
+    const [x,y]=pt(i,5);
+    return h`<line key=${"ax"+i} x1=${cx} y1=${cy} x2=${x} y2=${y} stroke="#d8d8d8" strokeWidth="1"/>`;
+  });
+  // Data polygon
   const dataPts = axes.map((a,i)=>pt(i,a.value||0).join(",")).join(" ");
-  svg += `<polygon points="${dataPts}" fill="${color}40" stroke="${color}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
-  axes.forEach((ax,i)=>{ const [dx,dy]=pt(i,ax.value||0); svg += `<circle cx="${dx}" cy="${dy}" r="4.5" fill="${color}" stroke="#fff" stroke-width="2"/>`; });
-  axes.forEach((ax,i)=>{
+  // Dots and labels
+  const dots = axes.map((ax,i) => {
+    const [dx,dy]=pt(i,ax.value||0);
+    return h`<circle key=${"d"+i} cx=${dx} cy=${dy} r="4.5" fill=${color} stroke="#fff" strokeWidth="2"/>`;
+  });
+  const valLabels = axes.map((ax,i) => {
+    const [dx,dy]=pt(i,ax.value||0);
+    if (!(ax.value||0)) return null;
+    return h`<text key=${"vl"+i} x=${dx} y=${dy-8} textAnchor="middle" dominantBaseline="middle" fontSize="9" fill=${color} fontWeight="700">${ax.value}</text>`;
+  });
+  const axLabels = axes.map((ax,i) => {
     const a=ang(i), lx=+(cx+lr*Math.cos(a)).toFixed(2), ly=+(cy+lr*Math.sin(a)).toFixed(2);
     const ta=Math.cos(a)>0.15?"start":Math.cos(a)<-0.15?"end":"middle";
-    svg += `<text x="${lx}" y="${ly}" text-anchor="${ta}" dominant-baseline="middle" font-size="10.5" fill="#333" font-family="system-ui,sans-serif" font-weight="700">${ax.short}</text>`;
-    // value label on dot
-    const [dx,dy]=pt(i,ax.value||0);
-    if ((ax.value||0)>0) svg += `<text x="${dx}" y="${dy-8}" text-anchor="middle" font-size="9" fill="${color}" font-weight="700">${ax.value}</text>`;
+    return h`<text key=${"l"+i} x=${lx} y=${ly} textAnchor=${ta} dominantBaseline="middle" fontSize="10.5" fill="#333" fontFamily="system-ui,sans-serif" fontWeight="700">${ax.short}</text>`;
   });
-  svg += `</svg>`;
-  return h`<div dangerouslySetInnerHTML=${{__html:svg}}/>`;
+
+  return h`<svg xmlns="http://www.w3.org/2000/svg" width=${size} height=${size} viewBox=${"0 0 "+size+" "+size} style=${{display:"block",margin:"auto",overflow:"visible"}}>
+    ${rings}${axisLines}
+    <polygon points=${dataPts} fill=${color+"40"} stroke=${color} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round"/>
+    ${dots}${valLabels}${axLabels}
+  </svg>`;
 }
 
 function SkillCategoryCard({type, title, icon, color, s, upd, recordSnap}) {
@@ -1010,11 +1058,70 @@ function exportQuizPDF(questions, answers, score, studentName) {
   win.document.close();
 }
 
+function exportConjugationPDF(result, studentName) {
+  const win = window.open('', '_blank');
+  if (!win) return;
+  const rows = (result.table||[]).map(row => {
+    if (result.type === 'verb') {
+      return `<tr>
+        <td style="text-align:center"><div style="font-family:'Amiri',serif;font-size:20px;direction:rtl">${row.pronoun_ar||''}</div><div style="font-size:10px;color:#888">${row.pronoun_en||''}</div></td>
+        <td style="text-align:center;font-family:'Amiri',serif;font-size:20px;direction:rtl">${(row.past||'—').replace(/\[\[/g,'<span style="color:#d32f2f;font-weight:900">').replace(/\]\]/g,'</span>')}</td>
+        <td style="text-align:center;font-family:'Amiri',serif;font-size:20px;direction:rtl">${(row.present||'—').replace(/\[\[/g,'<span style="color:#d32f2f;font-weight:900">').replace(/\]\]/g,'</span>')}</td>
+        <td style="text-align:center;font-family:'Amiri',serif;font-size:20px;direction:rtl">${(row.imperative||'—').replace(/\[\[/g,'<span style="color:#d32f2f;font-weight:900">').replace(/\]\]/g,'</span>')}</td>
+      </tr>`;
+    } else {
+      return `<tr>
+        <td style="text-align:center"><div style="font-family:'Amiri',serif;font-size:18px;direction:rtl">${row.form_ar||''}</div><div style="font-size:10px;color:#888">${row.form_en||''}</div></td>
+        <td style="text-align:center;font-family:'Amiri',serif;font-size:18px;direction:rtl">${row.indef||'—'}</td>
+        <td style="text-align:center;font-family:'Amiri',serif;font-size:18px;direction:rtl">${row.def||'—'}</td>
+        <td style="text-align:center;font-size:13px;color:#555;font-style:italic">${row.translation||'—'}</td>
+      </tr>`;
+    }
+  }).join('');
+  const headers = result.type === 'verb'
+    ? `<th>Pronoun</th><th>ماضي Past</th><th>مضارع Present</th><th>أمر Imperative</th>`
+    : `<th>Form</th><th>نَكِرَة Indefinite</th><th>مَعْرِفَة Definite</th><th>Meaning</th>`;
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${result.word} — Conjugation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+  <style>body{font-family:Arial,sans-serif;margin:30px;color:#111;max-width:780px}table{width:100%;border-collapse:collapse;margin-top:20px}th{background:#000;color:#fff;padding:10px 8px;text-align:center;font-size:12px}td{padding:10px 8px;border-bottom:1px solid #eee}tr:nth-child(even){background:#fafafa}@media print{button{display:none}}</style>
+  </head><body>
+  <button style="padding:10px 20px;background:#000;color:#fff;border:none;cursor:pointer;font-size:13px;border-radius:4px;margin-bottom:24px" onclick="window.print()">🖨 Print / Save as PDF</button>
+  <div style="font-family:'Amiri',serif;font-size:52px;direction:rtl;margin-bottom:6px">${result.word}</div>
+  <div style="font-size:18px;font-weight:700;margin-bottom:4px">${result.meaning}</div>
+  <div style="font-size:12px;color:#888;margin-bottom:18px">${studentName||'Student'} · ${new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'})}${result.root?' · Root: '+result.root:''}</div>
+  ${result.note?`<div style="background:#fffde7;border:1px solid #ffe082;padding:10px 14px;border-radius:6px;font-size:13px;color:#5f4300;margin-bottom:16px">💡 ${result.note}</div>`:''}
+  <table><thead><tr>${headers}</tr></thead><tbody>${rows}</tbody></table>
+  </body></html>`);
+  win.document.close();
+}
+
+function exportSentenceLabPDF(saved, studentName) {
+  const win = window.open('', '_blank');
+  if (!win) return;
+  const rows = saved.map((item, i) => `<div style="margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid #eee">
+    <div style="font-size:11px;font-weight:700;color:#4a90d9;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">#${i+1} · ${item.modeLabel||''}</div>
+    <div style="font-family:'Amiri',serif;font-size:28px;direction:rtl;text-align:right;line-height:2;color:#111;margin-bottom:6px">${item.sentence}</div>
+    <div style="font-size:13px;color:#666;font-style:italic;margin-bottom:4px">${item.transliteration||''}</div>
+    <div style="font-size:14px;color:#333;margin-bottom:6px">${item.translation||''}</div>
+    ${item.grammar_note?`<div style="font-size:12px;color:#777;background:#f9f9f9;padding:8px 12px;border-radius:6px;line-height:1.7">${item.grammar_note}</div>`:''}
+  </div>`).join('');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Saved Sentences</title>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+  <style>body{font-family:Arial,sans-serif;margin:30px;color:#111;max-width:700px}@media print{button{display:none}}</style>
+  </head><body>
+  <button style="padding:10px 20px;background:#000;color:#fff;border:none;cursor:pointer;font-size:13px;border-radius:4px;margin-bottom:24px" onclick="window.print()">🖨 Print / Save as PDF</button>
+  <h1 style="font-size:22px;margin-bottom:2px">Saved Sentences</h1>
+  <div style="font-size:12px;color:#888;margin-bottom:24px">${studentName||'Student'} · ${new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'})}</div>
+  ${rows}
+  </body></html>`);
+  win.document.close();
+}
+
 function exportProfilePDF(s, data, shareWA) {
-  const {jsPDF} = window.jspdf;
-  const doc = new jsPDF();
-  const W = doc.internal.pageSize.getWidth();
+  const win = window.open('', '_blank');
+  if (!win) return;
   const CUR = data.settings.currency || "$";
+  const brand = data.settings.brand || "ARABIC ENTHUSIAST";
   const sLessons = data.lessons.filter(l=>l.studentId===s.id&&l.status==="Completed").sort((a,b)=>new Date(b.date)-new Date(a.date));
   const cur = data.curriculum||[];
   const assigned = cur.filter(c=>(s.assignedLessons||[]).includes(c.id));
@@ -1022,249 +1129,134 @@ function exportProfilePDF(s, data, shareWA) {
   const doneCount = assigned.filter(c=>completed.includes(c.id)).length;
   const totalTaken = s.lessonsTaken + (s.freeTaken||0);
   const att = attendanceStats(s.id, data.lessons);
-  let y = 20;
-  const ln = (inc=6) => { y+=inc; if(y>275){doc.addPage();y=20;} };
-
-  // Note: For full Arabic text support in PDF, you would need to embed an Arabic font.
-  // jsPDF's default Helvetica does not support Arabic glyphs.
-  // The workaround below uses the built-in font for Latin text.
-  // For production, load a custom font: doc.addFont('NotoKufiArabic-Regular.ttf', 'NotoKufi', 'normal');
-
-  doc.setFillColor(0,0,0);
-  doc.rect(0,0,W,42,"F");
-  doc.setTextColor(255,255,255);
-  doc.setFontSize(24);
-  doc.setFont("helvetica","bold");
-  doc.text(data.settings.brand || "ARABIC ENTHUSIAST", 14, 20);
-  doc.setFontSize(11);
-  doc.setFont("helvetica","normal");
-  doc.text("Student Progress Report", 14, 30);
-  doc.setFontSize(9);
-  doc.text(new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"long",year:"numeric"}), W-14, 30, {align:"right"});
-  doc.setTextColor(0,0,0);
-  y = 54;
-
-  doc.setFontSize(20);
-  doc.setFont("helvetica","bold");
-  doc.text(s.name, 14, y);
-  doc.setFontSize(10);
-  doc.setFont("helvetica","normal");
-  doc.setTextColor(100);
-  doc.text(s.type + "  |  " + s.level + "  |  Started " + fmt(s.startDate), 14, y+8);
-  y += 18;
-
-  doc.setDrawColor(0,170,85); doc.setLineWidth(0.8);
-  doc.line(14, y, 18, y);
-  y += 6;
-  doc.setFontSize(10);
-  doc.setFont("helvetica","normal");
-  doc.setTextColor(30,30,30);
-  const summary = genEncouragement(s, data);
-  const sumLines = doc.splitTextToSize(summary, W-32);
-  sumLines.forEach(line => { doc.text(line, 16, y); ln(5); });
-  ln(4);
-
-  doc.setDrawColor(0); doc.setLineWidth(0.5);
-  doc.line(14, y, W-14, y); ln(8);
-  doc.setFontSize(13); doc.setFont("helvetica","bold"); doc.setTextColor(0);
-  doc.text("ATTENDANCE & CONSISTENCY", 14, y); ln(10);
-
-  const attBoxW = (W-38)/4;
-  const attBoxes = [
-    {label:"ATTENDANCE RATE", val: att.rate+"%", color: att.rate>=90?[0,170,85]:att.rate>=75?[255,136,0]:[221,34,34]},
-    {label:"LESSONS/WEEK", val: att.perWeek.toFixed(1), color: att.perWeek>=2?[0,170,85]:att.perWeek>=1?[255,136,0]:[221,34,34]},
-    {label:"CURRENT STREAK", val: String(att.streak), color: att.streak>=5?[0,170,85]:att.streak>=3?[255,136,0]:[100,100,100]},
-    {label:"TOTAL COMPLETED", val: String(att.completed), color: [0,0,0]},
-  ];
-  attBoxes.forEach((b,i) => {
-    const bx = 14 + i*(attBoxW+5);
-    doc.setFillColor(245,245,245);
-    doc.rect(bx, y, attBoxW, 24, "F");
-    doc.setDrawColor(b.color[0],b.color[1],b.color[2]); doc.setLineWidth(1.5);
-    doc.line(bx, y, bx, y+24);
-    doc.setDrawColor(0); doc.setLineWidth(0.5);
-    doc.setFontSize(7); doc.setFont("helvetica","normal"); doc.setTextColor(120);
-    doc.text(b.label, bx+6, y+7);
-    doc.setFontSize(18); doc.setFont("helvetica","bold"); doc.setTextColor(b.color[0],b.color[1],b.color[2]);
-    doc.text(b.val, bx+6, y+20);
-  });
-  y += 32;
-  if (att.missed > 0 || att.cancelled > 0) {
-    doc.setFontSize(9); doc.setFont("helvetica","normal"); doc.setTextColor(120);
-    doc.text("Missed: " + att.missed + "  |  Cancelled: " + att.cancelled + "  |  Total scheduled: " + att.total, 18, y);
-    ln(8);
-  }
-
-  // Skill ratings
-  doc.setDrawColor(0); doc.setLineWidth(0.5);
-  doc.line(14, y, W-14, y); ln(8);
-  doc.setFontSize(13); doc.setFont("helvetica","bold"); doc.setTextColor(0);
-  doc.text("SKILL ASSESSMENT", 14, y); ln(10);
-
-  const drawSkill = (label, val, prevVal) => {
-    doc.setFontSize(9); doc.setFont("helvetica","bold"); doc.setTextColor(80);
-    doc.text(label.toUpperCase(), 18, y);
-    const bx = 70;
-    for (let i = 1; i <= 5; i++) {
-      const filled = i <= val;
-      if (filled) {
-        const r = i<=1?221:i<=2?255:i<=3?221:i<=4?68:0;
-        const g = i<=1?34:i<=2?136:i<=3?170:i<=4?170:170;
-        const b = i<=1?34:i<=2?0:i<=3?0:i<=4?68:85;
-        doc.setFillColor(r,g,b);
-        doc.rect(bx+(i-1)*22, y-5, 18, 7, "F");
-        doc.setTextColor(255);
-      } else {
-        doc.setFillColor(240,240,240);
-        doc.rect(bx+(i-1)*22, y-5, 18, 7, "F");
-        doc.setDrawColor(200); doc.rect(bx+(i-1)*22, y-5, 18, 7, "S");
-        doc.setTextColor(180);
-      }
-      doc.setFontSize(7); doc.setFont("helvetica","bold");
-      doc.text(String(i), bx+(i-1)*22+7, y);
-    }
-    doc.setFontSize(9); doc.setFont("helvetica","normal");
-    doc.setTextColor(60);
-    doc.text(SKILL_LABELS[val], bx + 5*22 + 4, y);
-    if (prevVal !== null && prevVal !== undefined && prevVal !== val) {
-      const diff = val - prevVal;
-      const arrow = diff > 0 ? " +" + diff + " ↑" : " " + diff + " ↓";
-      doc.setTextColor(diff>0?0:221, diff>0?170:34, diff>0?85:34);
-      doc.setFontSize(8); doc.setFont("helvetica","bold");
-      doc.text(arrow, bx + 5*22 + 4 + doc.getTextWidth(SKILL_LABELS[val]) + 4, y);
-    }
-    ln(11);
-  };
-
+  const avg = skillAvg(s);
   const histArr = s.skillHistory || [];
   const prev = histArr.length >= 2 ? histArr[0] : null;
-  drawSkill("Reading", s.skillReading||3, prev?.r);
-  drawSkill("Writing", s.skillWriting||3, prev?.w);
-  drawSkill("Listening", s.skillListening||3, prev?.l);
-  drawSkill("Speaking", s.skillSpeaking||3, prev?.sp);
+  const weeksOfStudy = Math.max(1, Math.round((new Date() - new Date(s.startDate)) / (7*86400000)));
+  const summary = genEncouragement(s, data);
+  const dateStr = new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"long",year:"numeric"});
 
-  const avg = skillAvg(s);
-  doc.setFontSize(10); doc.setFont("helvetica","bold"); doc.setTextColor(0,140,70);
-  doc.text("Overall: " + avg + " / 5", 18, y);
-  ln(10);
+  const skillColor = v => v>=5?"#00aa55":v>=4?"#44aa44":v>=3?"#ddaa00":v>=2?"#ff8800":"#dd2222";
+  const attColor = (v, good, ok) => v>=good?"#00aa55":v>=ok?"#ff8800":"#dd2222";
 
-  // Progress
-  doc.setDrawColor(0); doc.line(14, y, W-14, y); ln(8);
-  doc.setFontSize(13); doc.setFont("helvetica","bold"); doc.setTextColor(0);
-  doc.text("PROGRESS SNAPSHOT", 14, y); ln(10);
+  const skillRow = (label, val, prevVal) => {
+    const dots = [1,2,3,4,5].map(i => {
+      const on = i <= val;
+      return `<span style="display:inline-block;width:28px;height:20px;line-height:20px;text-align:center;border-radius:4px;font-size:11px;font-weight:900;margin-right:3px;background:${on?skillColor(val):"#eee"};color:${on?"#fff":"#aaa"}">${i}</span>`;
+    }).join('');
+    const diff = (prevVal !== null && prevVal !== undefined && prevVal !== val) ? (val - prevVal) : null;
+    const arrow = diff !== null ? `<span style="color:${diff>0?"#00aa55":"#dd2222"};font-size:12px;font-weight:900;margin-left:6px">${diff>0?"+"+diff:diff} ${diff>0?"↑":"↓"}</span>` : '';
+    return `<tr>
+      <td style="font-size:12px;font-weight:700;color:#444;width:100px;padding:8px 0">${label}</td>
+      <td style="padding:8px 0">${dots}</td>
+      <td style="font-size:12px;color:#666;padding:8px 0">${SKILL_LABELS[val]||"—"}${arrow}</td>
+    </tr>`;
+  };
 
-  const boxW = (W-38)/3;
-  const boxes = [
-    {label:"LESSONS COMPLETED", val:String(totalTaken)},
-    {label:"TOPICS COVERED", val:doneCount+"/"+assigned.length},
-    {label:"WEEKS OF STUDY", val:String(Math.max(1,Math.round((new Date()-new Date(s.startDate))/(7*86400000))))},
-  ];
-  boxes.forEach((b,i) => {
-    const bx = 14 + i*(boxW+5);
-    doc.setFillColor(245,245,245);
-    doc.rect(bx, y, boxW, 24, "F");
-    doc.setDrawColor(0); doc.rect(bx, y, boxW, 24, "S");
-    doc.setFontSize(7); doc.setFont("helvetica","normal"); doc.setTextColor(120);
-    doc.text(b.label, bx+boxW/2, y+7, {align:"center"});
-    doc.setFontSize(18); doc.setFont("helvetica","bold"); doc.setTextColor(0);
-    doc.text(b.val, bx+boxW/2, y+20, {align:"center"});
-  });
-  y += 32;
+  const statBox = (label, val, color) => `
+    <div style="flex:1;background:#f7f7f7;border-radius:8px;padding:14px 10px;border-left:4px solid ${color||"#000"}">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#999;margin-bottom:6px">${label}</div>
+      <div style="font-size:24px;font-weight:900;color:${color||"#000"}">${val}</div>
+    </div>`;
 
-  if (s.goals || s.nextSteps) {
-    doc.setDrawColor(0); doc.line(14, y, W-14, y); ln(8);
-    doc.setFontSize(13); doc.setFont("helvetica","bold"); doc.setTextColor(0);
-    doc.text("GOALS & NEXT STEPS", 14, y); ln(8);
-    if (s.goals) {
-      doc.setFontSize(8); doc.setFont("helvetica","bold"); doc.setTextColor(0,80,180);
-      doc.text("CURRENT GOALS", 18, y+1); ln(6);
-      doc.setFontSize(9); doc.setFont("helvetica","normal"); doc.setTextColor(50);
-      doc.splitTextToSize(s.goals, W-40).forEach(line => { doc.text(line, 18, y); ln(5); });
-      ln(4);
-    }
-    if (s.nextSteps) {
-      doc.setFontSize(8); doc.setFont("helvetica","bold"); doc.setTextColor(200,130,0);
-      doc.text("NEXT STEPS", 18, y+1); ln(6);
-      doc.setFontSize(9); doc.setFont("helvetica","normal"); doc.setTextColor(50);
-      doc.splitTextToSize(s.nextSteps, W-40).forEach(line => { doc.text(line, 18, y); ln(5); });
-      ln(4);
-    }
-  }
+  const lessonRows = sLessons.slice(0,12).map((l,i) => `
+    <tr style="background:${i%2===0?"#fafafa":"#fff"}">
+      <td>${fmt(l.date)}</td>
+      <td>${l.time||"—"}</td>
+      <td>${l.type||"—"}</td>
+      <td>${(l.duration||60)} min</td>
+    </tr>`).join('');
 
-  if (s.homeworkNotes) {
-    doc.setDrawColor(0); doc.line(14, y, W-14, y); ln(8);
-    doc.setFontSize(13); doc.setFont("helvetica","bold"); doc.setTextColor(0);
-    doc.text("HOMEWORK & PRACTICE", 14, y); ln(8);
-    doc.setFontSize(9); doc.setFont("helvetica","normal"); doc.setTextColor(50);
-    doc.splitTextToSize(s.homeworkNotes, W-40).forEach(line => { doc.text(line, 18, y); ln(5); });
-    ln(4);
-  }
+  const section = (title, content) => `
+    <div style="margin-bottom:24px">
+      <div style="font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:#000;border-bottom:2px solid #000;padding-bottom:4px;margin-bottom:14px">${title}</div>
+      ${content}
+    </div>`;
 
-  // Lesson history
-  if (sLessons.length > 0) {
-    doc.setDrawColor(0); doc.line(14, y, W-14, y); ln(8);
-    doc.setFontSize(13); doc.setFont("helvetica","bold"); doc.setTextColor(0);
-    doc.text("RECENT LESSONS", 14, y); ln(8);
-    doc.setFillColor(0); doc.rect(14, y-4, W-28, 7, "F");
-    doc.setFontSize(8); doc.setFont("helvetica","bold"); doc.setTextColor(255);
-    doc.text("DATE", 18, y+1); doc.text("TIME", 65, y+1); doc.text("TYPE", 100, y+1); doc.text("DURATION", 145, y+1);
-    ln(9);
-    doc.setFont("helvetica","normal"); doc.setTextColor(60); doc.setFontSize(9);
-    sLessons.slice(0,12).forEach((l,i) => {
-      if (i%2===0) { doc.setFillColor(248,248,248); doc.rect(14, y-4, W-28, 7, "F"); }
-      doc.setTextColor(60);
-      doc.text(fmt(l.date), 18, y);
-      doc.text(l.time||"—", 65, y);
-      doc.text(l.type||"—", 100, y);
-      doc.text((l.duration||60)+" min", 145, y);
-      ln(7);
-    });
-    ln(4);
-  }
+  let html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>${s.name} — Progress Report</title>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body{font-family:Arial,sans-serif;margin:0;color:#111;font-size:13px}
+    .page{max-width:780px;margin:0 auto;padding:30px}
+    table{width:100%;border-collapse:collapse}
+    td,th{padding:8px 12px;text-align:left}
+    th{background:#111;color:#fff;font-size:10px;text-transform:uppercase;letter-spacing:1px}
+    .arabic{font-family:'Amiri',serif;direction:rtl;text-align:right}
+    button{padding:10px 22px;background:#000;color:#fff;border:none;cursor:pointer;font-size:13px;border-radius:4px;margin-bottom:24px}
+    @media print{button{display:none}.page{padding:10px}}
+  </style></head><body><div class="page">
 
-  // Teacher notes (public only)
-  if (s.teacherStrengths || s.teacherImprove) {
-    doc.setDrawColor(0); doc.line(14, y, W-14, y); ln(8);
-    doc.setFontSize(13); doc.setFont("helvetica","bold"); doc.setTextColor(0);
-    doc.text("TEACHER'S NOTES", 14, y); ln(8);
-    if (s.teacherStrengths) {
-      doc.setFontSize(10); doc.setFont("helvetica","bold"); doc.setTextColor(0,140,70);
-      doc.text("Strengths:", 18, y); ln(6);
-      doc.setFont("helvetica","normal"); doc.setTextColor(50);
-      doc.splitTextToSize(s.teacherStrengths, W-40).forEach(line => { doc.text(line, 18, y); ln(5); });
-      ln(4);
-    }
-    if (s.teacherImprove) {
-      doc.setFontSize(10); doc.setFont("helvetica","bold"); doc.setTextColor(200,130,0);
-      doc.text("Areas to Focus On:", 18, y); ln(6);
-      doc.setFont("helvetica","normal"); doc.setTextColor(50);
-      doc.splitTextToSize(s.teacherImprove, W-40).forEach(line => { doc.text(line, 18, y); ln(5); });
-      ln(4);
-    }
-  }
+  <div style="background:#000;color:#fff;padding:20px 24px;border-radius:8px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <div style="font-size:20px;font-weight:900;letter-spacing:2px">${brand}</div>
+      <div style="font-size:11px;opacity:0.7;margin-top:4px">Student Progress Report</div>
+    </div>
+    <div style="font-size:11px;opacity:0.6">${dateStr}</div>
+  </div>
 
-  // Footer
-  doc.setDrawColor(0); doc.setLineWidth(0.5); doc.line(14, y, W-14, y); ln(6);
-  doc.setFontSize(9); doc.setFont("helvetica","bold"); doc.setTextColor(0);
-  doc.text(data.settings.brand || "ARABIC ENTHUSIAST", 14, y);
-  doc.setFontSize(8); doc.setFont("helvetica","normal"); doc.setTextColor(150);
-  doc.text("Progress Report — " + s.name, W-14, y, {align:"right"});
+  <button onclick="window.print()">🖨 Print / Save as PDF</button>
 
-  const fileName = s.name.replace(/\s+/g,"_") + "_progress.pdf";
-  if (shareWA && navigator.canShare) {
-    const blob = doc.output("blob");
-    const file = new File([blob], fileName, {type:"application/pdf"});
-    if (navigator.canShare({files:[file]})) {
-      navigator.share({files:[file], title:s.name+" Progress Report"}).catch(()=>doc.save(fileName));
-      return;
-    }
-  }
+  <div style="margin-bottom:24px">
+    <div style="font-size:22px;font-weight:900">${s.name}</div>
+    <div style="font-size:12px;color:#888;margin-top:4px">${s.type||""} &nbsp;·&nbsp; ${s.level||""} &nbsp;·&nbsp; Started ${fmt(s.startDate)}</div>
+    <div style="margin-top:10px;font-size:13px;color:#333;line-height:1.6;padding:12px 16px;background:#f9f9f9;border-left:3px solid #00aa55;border-radius:0 6px 6px 0">${summary}</div>
+  </div>
+
+  ${section("Attendance &amp; Consistency", `
+    <div style="display:flex;gap:12px;margin-bottom:12px">
+      ${statBox("Attendance Rate", att.rate+"%", attColor(att.rate,90,75))}
+      ${statBox("Lessons / Week", att.perWeek.toFixed(1), attColor(att.perWeek,2,1))}
+      ${statBox("Current Streak", att.streak, attColor(att.streak,5,3))}
+      ${statBox("Total Completed", att.completed, "#000")}
+    </div>
+    ${(att.missed>0||att.cancelled>0)?`<div style="font-size:11px;color:#999">Missed: ${att.missed} &nbsp;·&nbsp; Cancelled: ${att.cancelled} &nbsp;·&nbsp; Total scheduled: ${att.total}</div>`:""}`)}
+
+  ${section("Skill Assessment", `
+    <table style="width:auto">
+      ${skillRow("Reading", s.skillReading||3, prev?.r)}
+      ${skillRow("Writing", s.skillWriting||3, prev?.w)}
+      ${skillRow("Listening", s.skillListening||3, prev?.l)}
+      ${skillRow("Speaking", s.skillSpeaking||3, prev?.sp)}
+    </table>
+    <div style="margin-top:10px;font-size:13px;font-weight:700;color:#00aa55">Overall: ${avg} / 5</div>`)}
+
+  ${section("Progress Snapshot", `
+    <div style="display:flex;gap:12px">
+      ${statBox("Lessons Completed", totalTaken, "#000")}
+      ${statBox("Topics Covered", doneCount+"/"+assigned.length, "#000")}
+      ${statBox("Weeks of Study", weeksOfStudy, "#000")}
+    </div>`)}
+
+  ${(s.goals||s.nextSteps) ? section("Goals &amp; Next Steps", `
+    ${s.goals?`<div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#0050b4;margin-bottom:4px">Current Goals</div><div style="margin-bottom:14px;line-height:1.7">${s.goals}</div>`:""}
+    ${s.nextSteps?`<div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#c88200;margin-bottom:4px">Next Steps</div><div style="line-height:1.7">${s.nextSteps}</div>`:""}`) : ""}
+
+  ${s.homeworkNotes ? section("Homework &amp; Practice", `<div style="line-height:1.7">${s.homeworkNotes}</div>`) : ""}
+
+  ${sLessons.length > 0 ? section("Recent Lessons", `
+    <table>
+      <tr><th>Date</th><th>Time</th><th>Type</th><th>Duration</th></tr>
+      ${lessonRows}
+    </table>`) : ""}
+
+  ${(s.teacherStrengths||s.teacherImprove) ? section("Teacher's Notes", `
+    ${s.teacherStrengths?`<div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#008c46;margin-bottom:4px">Strengths</div><div style="margin-bottom:14px;line-height:1.7">${s.teacherStrengths}</div>`:""}
+    ${s.teacherImprove?`<div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#c88200;margin-bottom:4px">Areas to Focus On</div><div style="line-height:1.7">${s.teacherImprove}</div>`:""}`) : ""}
+
+  <div style="border-top:1px solid #eee;padding-top:12px;margin-top:8px;display:flex;justify-content:space-between;font-size:10px;color:#aaa">
+    <span style="font-weight:700">${brand}</span>
+    <span>Progress Report — ${s.name}</span>
+  </div>
+
+  </div></body></html>`;
+
+  win.document.write(html);
+  win.document.close();
+
   if (shareWA && s.whatsapp) {
-    doc.save(fileName);
-    setTimeout(()=>waMsg(s.whatsapp, "Hi " + s.name.split(" ")[0] + "! Here is your Arabic progress report."), 500);
-    return;
+    setTimeout(()=>waMsg(s.whatsapp, "Hi " + s.name.split(" ")[0] + "! Here is your Arabic progress report. 📊"), 800);
   }
-  doc.save(fileName);
 }
 
 // ─── SVG Icons ───
@@ -1505,8 +1497,17 @@ function StudentHwSubmit({hw, data, setData, auth, studentName}) {
 // ════════════════════════════════════════
 // AI RIGHT PANEL (sticky sidebar for students)
 // ════════════════════════════════════════
-function StudentAIPanel({student, data}) {
-  const [msgs, setMsgs] = useState([]);
+function StudentAIPanel({student, data, setData, auth}) {
+  const ONE_MONTH_MS = 30 * 24 * 60 * 60 * 1000;
+
+  // Load persisted history from student data, filter to last 30 days
+  const loadHistory = () => {
+    const raw = student.aiChatHistory || [];
+    const cutoff = Date.now() - ONE_MONTH_MS;
+    return raw.filter(m => !m.ts || new Date(m.ts).getTime() > cutoff);
+  };
+
+  const [msgs, setMsgs] = useState(loadHistory);
   const [input, setInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
@@ -1516,35 +1517,57 @@ function StudentAIPanel({student, data}) {
     if (msgsRef.current) msgsRef.current.scrollTop = msgsRef.current.scrollHeight;
   }, [msgs]);
 
+  // Persist messages to student data whenever msgs changes (debounced)
+  const saveTimer = useRef(null);
+  useEffect(() => {
+    if (!setData || msgs.length === 0) return;
+    clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      const cutoff = Date.now() - ONE_MONTH_MS;
+      const toSave = msgs.filter(m => !m.ts || new Date(m.ts).getTime() > cutoff);
+      setData(d => ({...d, students: d.students.map(x => x.id === student.id ? {...x, aiChatHistory: toSave} : x)}));
+    }, 1500);
+    return () => clearTimeout(saveTimer.current);
+  }, [msgs]);
+
   const send = async () => {
     const msg = input.trim(); if (!msg) return;
-    setInput(""); setMsgs(m=>[...m,{r:"user",t:msg}]); setChatLoading(true);
+    const newUserMsg = {r:"user", t:msg, ts:new Date().toISOString()};
+    setInput("");
+    setMsgs(m=>[...m, newUserMsg]);
+    setChatLoading(true);
     try {
       const lp = student.learningProfile || {};
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 25000);
-      const res = await fetch("/api/ai",{method:"POST",headers:{"Content-Type":"application/json"},signal:controller.signal,body:JSON.stringify({type:"student_chat",context:{
-        message:msg,
-        level:student.level||"Beginner",
-        type:student.type||"Arabic",
-        goals:student.goals||"",
-        learningWhy:lp.why||"",
-        learningStyle:lp.style||"",
-        interests:lp.topics||"",
-        challenge:lp.challenge||""
-      }})});
+      const currentMsgs = [...msgs, newUserMsg];
+      const res = await fetch("/api/ai",{method:"POST",headers:{"Content-Type":"application/json"},signal:controller.signal,body:JSON.stringify({
+        token: auth?.token,
+        type:"student_chat",
+        context:{
+          message:msg,
+          history: currentMsgs.slice(-40),
+          level:student.level||"Beginner",
+          type:student.type||"Arabic",
+          goals:student.goals||"",
+          learningWhy:lp.why||"",
+          learningStyle:lp.style||"",
+          interests:lp.topics||"",
+          challenge:lp.challenge||""
+        }
+      })});
       clearTimeout(timeout);
       if (!res.ok) {
         const errText = await res.text();
-        setMsgs(m=>[...m,{r:"ai",t:"⚠️ Server error ("+res.status+"). Please try again."}]);
+        setMsgs(m=>[...m,{r:"ai",t:"⚠️ Server error ("+res.status+"). Please try again.",ts:new Date().toISOString()}]);
         console.error("AI chat error:", errText);
       } else {
         const d = await res.json();
-        setMsgs(m=>[...m,{r:"ai",t:d.result||d.error||"No response."}]);
+        setMsgs(m=>[...m,{r:"ai",t:d.result||d.error||"No response.",ts:new Date().toISOString()}]);
       }
     } catch(e) {
       const msg2 = e.name==="AbortError" ? "⚠️ Request timed out. Please try again." : "⚠️ Connection error. Check your internet and try again.";
-      setMsgs(m=>[...m,{r:"ai",t:msg2}]);
+      setMsgs(m=>[...m,{r:"ai",t:msg2,ts:new Date().toISOString()}]);
       console.error("AI chat exception:", e);
     }
     setChatLoading(false);
@@ -1880,7 +1903,7 @@ function StudentScheduler({student, data, setData, auth}) {
       } else {
         setBookedSlots(prev => [...(prev||[]), r.slot]);
         setView("cal"); setSelDate(null); setSelSlot(null);
-        flash("Booked! See you at your lesson.");
+        flash(r.calendarWarning ? "Booked! (Note: " + r.calendarWarning + ")" : "Booked! See you at your lesson.");
         const {dayName,dateLabel,timeLabel} = fmtDateTime(selSlot.date, selSlot.time);
         notifyTutor(auth.token, "📅 Lesson booked!", `${student.name} booked ${dayName} ${dateLabel} at ${timeLabel}`, "booking");
       }
@@ -2118,12 +2141,13 @@ function StudentLessonRequest({student, data, setData, auth}) {
     }
     const {dayName,dateDisp,timeDisp} = fmtSlot(selectedSlot.date, selectedSlot.time);
     const msg = "📅 New lesson request from " + student.name + "!\n📆 " + dayName + ", " + dateDisp + " at " + timeDisp + (note?"\n💬 "+note:"") + "\n\nOpen the app to confirm: arabic-enthusiast.vercel.app";
-    waMsg("96176957495", msg);
+    const tutorPhone = data.settings?.tutorPhone || "96176957495";
+    waMsg(tutorPhone, msg);
     if (auth?.token) notifyTutor(auth.token, '📅 New Lesson Request', `${student.name} wants a lesson on ${dateDisp} at ${timeDisp}${note?" — "+note:""}`, 'lesson-request');
   };
 
   return h`<div style=${{background:"#fff",borderRadius:12,padding:"18px 20px",marginBottom:16,boxShadow:"0 1px 4px rgba(0,0,0,0.06)",border:"1px solid #eee"}}>
-    <div style=${{fontSize:14,fontWeight:800,fontFamily:"var(--fh)",letterSpacing:1,marginBottom:4}}>📅 SCHEDULE A LESSON</div>
+    <div style=${{fontSize:14,fontWeight:800,fontFamily:"var(--fh)",letterSpacing:1,marginBottom:4}}>📅 BOOK A LESSON</div>
 
     ${existing.length>0&&h`<div style=${{fontSize:13,background:"#fff8e1",border:"1px solid #ff9800",borderRadius:8,padding:"10px 14px",marginBottom:12,color:"#b26a00"}}>
       ⏳ You have ${existing.length} pending request${existing.length>1?"s":""} — waiting for Hadi to confirm.
@@ -2239,7 +2263,7 @@ function StudentNoteToTeacher({student, data, setData, auth}) {
 // ════════════════════════════════════════
 // STUDENT PORTAL — CURRICULUM TAB
 // ════════════════════════════════════════
-function StudentCurriculumTab({student: s, data, setData}) {
+function StudentCurriculumTab({student: s, data, setData, onGoFlashcards, onGoQuiz}) {
   const assigned = (data.curriculum||[]).filter(c=>(s.assignedLessons||[]).includes(c.id));
   const done = s.completedLessons||[];
   const total = assigned.length;
@@ -2262,12 +2286,17 @@ function StudentCurriculumTab({student: s, data, setData}) {
     </div>
     ${assigned.map((c,i)=>{
       const isDone = done.includes(c.id);
+      const topicName = c.title||c.name||"Lesson "+(i+1);
       return h`<div key=${c.id} style=${{background:"#fff",border:"1px solid #eee",borderRadius:12,padding:"14px 16px",marginBottom:10,boxShadow:"0 1px 4px rgba(0,0,0,0.05)",opacity:isDone?0.7:1,display:"flex",alignItems:"flex-start",gap:12}}>
         <button onClick=${()=>toggle(c.id)} style=${{width:24,height:24,borderRadius:6,border:"2px solid "+(isDone?"#7e57c2":"#ccc"),background:isDone?"#7e57c2":"#fff",color:"#fff",fontSize:14,cursor:"pointer",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"var(--fb)",padding:0}}>${isDone?"✓":""}</button>
         <div style=${{flex:1}}>
-          <div style=${{fontWeight:700,fontSize:14,textDecoration:isDone?"line-through":"none",color:isDone?"#aaa":"#111"}}>${i+1}. ${c.title||c.name||"Lesson "+(i+1)}</div>
+          <div style=${{fontWeight:700,fontSize:14,textDecoration:isDone?"line-through":"none",color:isDone?"#aaa":"#111"}}>${i+1}. ${topicName}</div>
           ${c.description&&h`<div style=${{fontSize:12,color:"var(--g500)",marginTop:4,lineHeight:1.6}}>${c.description}</div>`}
-          ${c.category&&h`<span style=${{display:"inline-block",marginTop:6,padding:"2px 8px",background:"#f0ebff",color:"#7e57c2",borderRadius:20,fontSize:10,fontWeight:700}}>${c.category}</span>`}
+          <div style=${{display:"flex",alignItems:"center",gap:6,marginTop:8,flexWrap:"wrap"}}>
+            ${c.category&&h`<span style=${{padding:"2px 8px",background:"#f0ebff",color:"#7e57c2",borderRadius:20,fontSize:10,fontWeight:700}}>${c.category}</span>`}
+            ${onGoFlashcards&&h`<button onClick=${()=>onGoFlashcards(topicName)} style=${{background:"#e3f2fd",color:"#1565c0",border:"1px solid #bbdefb",borderRadius:20,padding:"2px 10px",fontSize:10,fontWeight:700,cursor:"pointer",fontFamily:"var(--fb)"}}>🃏 Flashcards</button>`}
+            ${onGoQuiz&&h`<button onClick=${()=>onGoQuiz(topicName)} style=${{background:"#f3e5f5",color:"#6a1b9a",border:"1px solid #ce93d8",borderRadius:20,padding:"2px 10px",fontSize:10,fontWeight:700,cursor:"pointer",fontFamily:"var(--fb)"}}>🧠 Quiz Me</button>`}
+          </div>
         </div>
       </div>`;
     })}
@@ -2278,26 +2307,104 @@ function StudentCurriculumTab({student: s, data, setData}) {
 // STUDENT PORTAL — LIBRARY TAB
 // ════════════════════════════════════════
 // ════════════════════════════════════════
+// ════════════════════════════════════════
+// SM-2 SPACED REPETITION
+// ════════════════════════════════════════
+function sm2(card, rating) {
+  // rating: 0=Again  1=Hard  2=Good  3=Easy
+  let interval = card.srsInterval || 1;
+  let ease     = card.srsEase     || 2.5;
+  let reps     = card.srsReps     || 0;
+
+  if (rating < 2) {
+    interval = 1;
+    reps = 0;
+  } else {
+    if (reps === 0)      interval = 1;
+    else if (reps === 1) interval = 6;
+    else                 interval = Math.round(interval * ease);
+    reps += 1;
+    ease += 0.1 - (3 - rating) * (0.08 + (3 - rating) * 0.02);
+    ease = Math.max(1.3, ease);
+  }
+
+  const due = new Date();
+  due.setDate(due.getDate() + interval);
+  return {
+    ...card,
+    srsInterval: interval,
+    srsEase: parseFloat(ease.toFixed(2)),
+    srsReps: reps,
+    srsDue: due.toISOString().split('T')[0],
+    srsLastReviewed: new Date().toISOString().split('T')[0]
+  };
+}
+
+function isDueToday(card) {
+  if (!card.srsDue) return true; // never reviewed = always due
+  return card.srsDue <= new Date().toISOString().split('T')[0];
+}
+
 // LIBRARY — FLASHCARDS
 // ════════════════════════════════════════
-function LibraryFlashcards({student: s, data, setData}) {
+function LibraryFlashcards({student: s, data, setData, initialTopic}) {
   const [view, setView] = useState("decks"); // "decks" | "study"
   const [activeDeckId, setActiveDeckId] = useState(null);
   const [cardIdx, setCardIdx] = useState(0);
   const [flipped, setFlipped] = useState(false);
-  const [newTopic, setNewTopic] = useState("");
+  const [srsMode, setSrsMode] = useState(true); // true = SRS/due only, false = all cards
+  const [lastRating, setLastRating] = useState(null); // show "next review in X days" feedback
+  const [newTopic, setNewTopic] = useState(initialTopic||"");
   const [newWord, setNewWord] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
 
   const decks = s.flashcardDecks || [];
   const activeDeck = decks.find(d=>d.id===activeDeckId);
-  const cards = activeDeck ? (activeDeck.cards||[]) : [];
+  const allCards = activeDeck ? (activeDeck.cards||[]) : [];
+
+  // In SRS mode show only due cards, sorted by most overdue first
+  const today = new Date().toISOString().split('T')[0];
+  const dueCards = allCards.filter(isDueToday).sort((a,b)=>(a.srsDue||'')<(b.srsDue||'')?-1:1);
+  const cards = srsMode ? dueCards : allCards;
   const card = cards[cardIdx] || null;
 
   const updDecks = (d) => setData({...data, students: data.students.map(x=>x.id===s.id?{...x,flashcardDecks:d}:x)});
 
-  const openDeck = (id) => { setActiveDeckId(id); setCardIdx(0); setFlipped(false); setView("study"); };
+  const openDeck = (id) => { setActiveDeckId(id); setCardIdx(0); setFlipped(false); setLastRating(null); setView("study"); };
+
+  // Apply an SRS rating to the current card
+  const rate = (rating) => {
+    if (!card) return;
+    const updated = sm2(card, rating);
+    const nextInterval = updated.srsInterval;
+    setLastRating({rating, nextDays: nextInterval});
+    // 1 XP per card reviewed; bonus 2 XP for Good/Easy ratings
+    const xpAmt = rating >= 2 ? 2 : 1;
+    const xpPatch = earnXP(s, xpAmt);
+    const newDecks = decks.map(dk=>dk.id===activeDeckId ? {...dk, cards: dk.cards.map(c=>c.id===card.id ? updated : c)} : dk);
+    setData({...data, students: data.students.map(x=>x.id===s.id?{...x,...xpPatch,flashcardDecks:newDecks}:x)});
+    setFlipped(false);
+    setTimeout(() => {
+      setLastRating(null);
+      if (cardIdx < cards.length - 1) setCardIdx(cardIdx + 1);
+      else setCardIdx(cards.length); // finished
+    }, 800);
+  };
+
+  const safeParseCards = (raw) => {
+    try {
+      let str = raw.replace(/```json|```/g,"").trim();
+      const start = str.indexOf("[");
+      if (start > 0) str = str.slice(start);
+      let arr = JSON.parse(str);
+      if (!Array.isArray(arr)) {
+        const key = Object.keys(arr).find(k=>Array.isArray(arr[k]));
+        arr = key ? arr[key] : [];
+      }
+      return arr.map(c=>({id:uid(), known:false, en:c.en||"", ar:c.ar||"", translit:c.translit||""}));
+    } catch(e) { return null; }
+  };
 
   const generateDeck = async (topic) => {
     if (!topic.trim()) return;
@@ -2305,10 +2412,11 @@ function LibraryFlashcards({student: s, data, setData}) {
     try {
       const d = await apiPost("/api/ai", {type:"flashcard_generate", context:{topic:topic.trim(), level:s.level||"beginner", type:s.type||"Classical Arabic"}});
       if (d.result) {
-        const cards = JSON.parse(d.result.replace(/```json|```/g,"").trim());
+        const cards = safeParseCards(d.result);
+        if (!cards || cards.length === 0) { setErr("Generated cards were empty. Please try again."); setLoading(false); return; }
         updDecks([...decks, {id:uid(), name:topic.trim(), cards, createdAt:new Date().toISOString()}]);
         setNewTopic("");
-      } else { setErr("Could not generate. Try again."); }
+      } else { setErr(d.error || "Could not generate. Try again."); }
     } catch(e) { setErr(e.message); }
     setLoading(false);
   };
@@ -2319,18 +2427,21 @@ function LibraryFlashcards({student: s, data, setData}) {
     try {
       const d = await apiPost("/api/ai", {type:"flashcard_translate", context:{word:newWord.trim(), level:s.level||"beginner", type:s.type||"Classical Arabic"}});
       if (d.result) {
-        const card = JSON.parse(d.result.replace(/```json|```/g,"").trim());
+        let raw = d.result.replace(/```json|```/g,"").trim();
+        const card = JSON.parse(raw);
         card.id = uid(); card.known = false;
+        card.en = card.en||newWord.trim(); card.ar = card.ar||""; card.translit = card.translit||"";
         updDecks(decks.map(dk=>dk.id===activeDeckId?{...dk,cards:[...(dk.cards||[]),card]}:dk));
         setNewWord("");
-      } else { setErr("Could not translate. Try again."); }
+      } else { setErr(d.error || "Could not translate. Try again."); }
     } catch(e) { setErr(e.message); }
     setLoading(false);
   };
 
-  const markKnown = (known) => {
-    updDecks(decks.map(dk=>dk.id===activeDeckId?{...dk,cards:dk.cards.map((c,i)=>i===cardIdx?{...c,known}:c)}:dk));
-    if (cardIdx < cards.length-1) { setCardIdx(cardIdx+1); setFlipped(false); }
+  const markKnown = (isKnown) => {
+    updDecks(decks.map(dk=>dk.id===activeDeckId?{...dk,cards:dk.cards.map((c,i)=>i===cardIdx?{...c,known:isKnown}:c)}:dk));
+    setFlipped(false); // always unflip
+    if (cardIdx < cards.length-1) setCardIdx(cardIdx+1);
   };
 
   const deleteDeck = (id) => {
@@ -2342,52 +2453,110 @@ function LibraryFlashcards({student: s, data, setData}) {
   const STARTERS = ["Numbers (الأرقام)","Greetings (التحيات)","Family (العائلة)","Food & Drink (الطعام)","Colors (الألوان)","Common Verbs (أفعال شائعة)","Travel (السفر)","Days & Time (الوقت)","The Body (الجسم)","Weather (الطقس)"];
 
   if (view==="study" && activeDeck) {
-    const known = cards.filter(c=>c.known).length;
+    const dueCount = allCards.filter(isDueToday).length;
+    const sessionCards = cards; // already filtered by mode
+    const isFinished = cardIdx >= sessionCards.length;
+    const accent = s.studentTheme || "#4a90d9";
+
     return h`<div style=${{maxWidth:580,margin:"0 auto"}}>
-      <div style=${{display:"flex",alignItems:"center",gap:10,marginBottom:18}}>
-        <button class="btn btn-sm" onClick=${()=>{setView("decks");setFlipped(false);}}>← Back</button>
-        <div style=${{flex:1,fontWeight:800,fontSize:16,fontFamily:"var(--fh)",letterSpacing:1}}>${activeDeck.name.toUpperCase()}</div>
-        <div style=${{fontSize:12,color:"var(--g400)"}}>${cardIdx+1}/${cards.length}</div>
-        <button class="btn btn-sm" onClick=${()=>exportFlashcardPDF(activeDeck, s.name)} title="Download as PDF">📥 PDF</button>
+      <!-- Header -->
+      <div style=${{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+        <button class="btn btn-sm" onClick=${()=>{setView("decks");setFlipped(false);setLastRating(null);}}>← Back</button>
+        <div style=${{flex:1,fontWeight:800,fontSize:15,fontFamily:"var(--fh)",letterSpacing:1}}>${activeDeck.name.toUpperCase()}</div>
+        <button class="btn btn-sm" onClick=${()=>exportFlashcardPDF(activeDeck, s.name)} title="PDF">📥</button>
       </div>
 
-      ${cards.length===0?h`<div style=${{textAlign:"center",padding:32,color:"var(--g400)"}}>No cards yet. Add a word below.</div>`:h`<div>
+      <!-- Mode toggle -->
+      <div style=${{display:"flex",gap:6,marginBottom:14,background:"#f5f5f5",borderRadius:10,padding:4}}>
+        <button onClick=${()=>{setSrsMode(true);setCardIdx(0);setFlipped(false);setLastRating(null);}} style=${{flex:1,padding:"8px 0",borderRadius:8,border:"none",cursor:"pointer",fontWeight:700,fontSize:12,fontFamily:"var(--fb)",background:srsMode?"#fff":"transparent",color:srsMode?accent:"#888",boxShadow:srsMode?"0 1px 4px rgba(0,0,0,0.1)":"none",transition:"all .15s"}}>
+          ⏰ Review Due${dueCount>0?h`<span style=${{marginLeft:5,background:accent,color:"#fff",borderRadius:10,padding:"1px 7px",fontSize:10}}>${dueCount}</span>`:null}
+        </button>
+        <button onClick=${()=>{setSrsMode(false);setCardIdx(0);setFlipped(false);setLastRating(null);}} style=${{flex:1,padding:"8px 0",borderRadius:8,border:"none",cursor:"pointer",fontWeight:700,fontSize:12,fontFamily:"var(--fb)",background:!srsMode?"#fff":"transparent",color:!srsMode?accent:"#888",boxShadow:!srsMode?"0 1px 4px rgba(0,0,0,0.1)":"none",transition:"all .15s"}}>
+          📚 All Cards (${allCards.length})
+        </button>
+      </div>
+
+      ${sessionCards.length===0 ? h`<div style=${{textAlign:"center",padding:"32px 20px",background:"#f8f9fb",borderRadius:14}}>
+        ${srsMode
+          ? h`<div><div style=${{fontSize:32,marginBottom:12}}>🎉</div><div style=${{fontWeight:800,fontSize:16,marginBottom:6}}>All caught up!</div><div style=${{fontSize:13,color:"var(--g500)"}}>No cards due right now. Switch to "All Cards" to keep practising, or come back later.</div></div>`
+          : h`<div style=${{color:"var(--g400)",fontSize:13}}>No cards yet. Add a word below.</div>`}
+      </div>` : isFinished ? h`<div style=${{textAlign:"center",padding:"32px 20px",background:"linear-gradient(135deg,#f0fff4,#e8f5e9)",borderRadius:14,border:"2px solid #4caf50"}}>
+        <div style=${{fontSize:36,marginBottom:10}}>✅</div>
+        <div style=${{fontWeight:800,fontSize:18,color:"#2e7d32",marginBottom:6}}>${srsMode?"Review session complete!":"All cards done!"}</div>
+        <div style=${{fontSize:13,color:"#388e3c",marginBottom:16}}>${srsMode?`You reviewed ${sessionCards.length} card${sessionCards.length!==1?"s":""}.`:`You went through all ${allCards.length} cards.`}</div>
+        <button class="btn btn-p" style=${{background:"#4caf50",borderColor:"#4caf50"}} onClick=${()=>{setCardIdx(0);setFlipped(false);setLastRating(null);}}>↺ Go again</button>
+      </div>` : h`<div>
         <!-- Progress bar -->
-        <div style=${{height:4,background:"#f0f0f0",borderRadius:4,overflow:"hidden",marginBottom:16}}>
-          <div style=${{height:"100%",width:((cardIdx+1)/cards.length*100)+"%",background:s.studentTheme||"#4a90d9",borderRadius:4,transition:"width 0.3s"}}></div>
+        <div style=${{height:5,background:"#f0f0f0",borderRadius:4,overflow:"hidden",marginBottom:4}}>
+          <div style=${{height:"100%",width:((cardIdx)/sessionCards.length*100)+"%",background:accent,borderRadius:4,transition:"width 0.4s"}}></div>
         </div>
+        <div style=${{fontSize:11,color:"#aaa",textAlign:"right",marginBottom:14}}>${cardIdx+1} / ${sessionCards.length}</div>
+
+        <!-- SRS info chip for this card -->
+        ${srsMode && card.srsDue && h`<div style=${{fontSize:11,color:"#888",marginBottom:8,textAlign:"center"}}>
+          Last reviewed: ${card.srsLastReviewed||"never"} · Ease: ${(card.srsEase||2.5).toFixed(1)} · Streak: ${card.srsReps||0}
+        </div>`}
+
+        <!-- Rating feedback flash -->
+        ${lastRating && h`<div style=${{
+          textAlign:"center",fontSize:13,fontWeight:700,marginBottom:8,
+          color:lastRating.rating===0?"#c62828":lastRating.rating===1?"#e65100":lastRating.rating===2?"#2e7d32":"#1565c0"
+        }}>
+          ${lastRating.rating===0?"🔁 Review again tomorrow":lastRating.rating===1?"📅 Next in "+lastRating.nextDays+" days":lastRating.rating===2?"✅ Next in "+lastRating.nextDays+" days":"🚀 Next in "+lastRating.nextDays+" days"}
+        </div>`}
+
         <!-- Flashcard -->
-        <div class="fc-scene" onClick=${()=>setFlipped(!flipped)} style=${{marginBottom:16}}>
-          <div class=${"fc-card"+(flipped?" flipped":"")}>
-            <div class="fc-face fc-front">
-              <div style=${{fontSize:13,color:"#aaa",fontWeight:600,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>English</div>
-              <div style=${{fontSize:22,fontWeight:800,color:"#111",textAlign:"center",lineHeight:1.4}}>${card.en}</div>
-              <div style=${{fontSize:11,color:"#bbb",marginTop:8}}>Tap to reveal Arabic</div>
-            </div>
-            <div class="fc-face fc-back">
-              <div style=${{fontSize:13,color:"rgba(255,255,255,0.5)",fontWeight:600,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>Arabic</div>
-              <div style=${{fontFamily:"'Amiri',serif",fontSize:34,fontWeight:700,textAlign:"center",direction:"rtl",lineHeight:1.6}}>${card.ar}</div>
-              ${card.translit?h`<div style=${{fontSize:13,color:"rgba(255,255,255,0.65)",marginTop:4,fontStyle:"italic"}}>${card.translit}</div>`:null}
-            </div>
+        <div class="fc-scene" onClick=${()=>!lastRating&&setFlipped(!flipped)} style=${{marginBottom:14,cursor:lastRating?"default":"pointer"}}>
+          <div key=${cardIdx+"-"+flipped} class="fc-card" style=${{
+            background:flipped?"#111":"#fff",
+            border:"2px solid "+(flipped?"#333":"#e0e0e0"),
+            boxShadow:flipped?"0 4px 16px rgba(0,0,0,0.3)":"0 2px 8px rgba(0,0,0,0.08)",
+            color:flipped?"#fff":"#111",
+            opacity:lastRating?.0.6:1,transition:"opacity 0.3s"
+          }}>
+            ${flipped
+              ? h`<div style=${{display:"flex",flexDirection:"column",alignItems:"center",gap:8,width:"100%"}}>
+                  <div style=${{fontSize:12,color:"rgba(255,255,255,0.4)",fontWeight:600,textTransform:"uppercase",letterSpacing:1}}>Arabic</div>
+                  <div style=${{fontFamily:"'Amiri',serif",fontSize:36,fontWeight:700,textAlign:"center",direction:"rtl",lineHeight:1.6}}>${card.ar}</div>
+                  ${card.translit?h`<div style=${{fontSize:13,color:"rgba(255,255,255,0.55)",fontStyle:"italic",textAlign:"center"}}>${card.translit}</div>`:null}
+                  ${card.note?h`<div style=${{fontSize:11,color:"rgba(255,255,255,0.4)",textAlign:"center",marginTop:4,lineHeight:1.5}}>${card.note}</div>`:null}
+                </div>`
+              : h`<div style=${{display:"flex",flexDirection:"column",alignItems:"center",gap:8,width:"100%"}}>
+                  <div style=${{fontSize:12,color:"#bbb",fontWeight:600,textTransform:"uppercase",letterSpacing:1}}>English</div>
+                  <div style=${{fontSize:22,fontWeight:800,color:"#111",textAlign:"center",lineHeight:1.4}}>${card.en}</div>
+                  <div style=${{fontSize:11,color:"#ddd",marginTop:6}}>Tap to reveal →</div>
+                </div>`}
           </div>
         </div>
-        <!-- Know it? buttons (only when flipped) -->
-        ${flipped?h`<div style=${{display:"flex",gap:10,marginBottom:16}}>
-          <button class="btn" style=${{flex:1,background:"#fce4ec",border:"2px solid #f44336",color:"#c62828"}} onClick=${()=>{setFlipped(false);if(cardIdx<cards.length-1)setCardIdx(cardIdx+1);}}>✕ Still learning</button>
-          <button class="btn" style=${{flex:1,background:"#e8f5e9",border:"2px solid #4caf50",color:"#2e7d32"}} onClick=${()=>markKnown(true)}>✓ I know it!</button>
-        </div>`:h`<div style=${{display:"flex",gap:10,marginBottom:16}}>
-          <button class="btn btn-sm" disabled=${cardIdx===0} onClick=${()=>{setCardIdx(cardIdx-1);setFlipped(false);}}>← Prev</button>
-          <div style=${{flex:1,textAlign:"center",fontSize:12,color:"#aaa",alignSelf:"center"}}>Tap card to flip</div>
-          <button class="btn btn-sm" disabled=${cardIdx===cards.length-1} onClick=${()=>{setCardIdx(cardIdx+1);setFlipped(false);}}>Next →</button>
-        </div>`}
-        <!-- Known count -->
-        <div style=${{textAlign:"center",fontSize:12,color:"var(--g400)",marginBottom:16}}>✅ ${known}/${cards.length} known</div>
-        ${known===cards.length&&cards.length>0?h`<div style=${{background:"#e8f5e9",border:"2px solid #4caf50",borderRadius:10,padding:"12px 16px",textAlign:"center",fontWeight:700,color:"#2e7d32",marginBottom:16}}>🎉 You know all the cards in this deck!</div>`:null}
+
+        <!-- Buttons — SRS mode: 4 ratings. Browse mode: prev/next -->
+        ${flipped && !lastRating ? h`<div style=${{marginBottom:14}}>
+          <div style=${{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:"#aaa",textAlign:"center",marginBottom:8}}>How well did you know it?</div>
+          <div style=${{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:6}}>
+            <button onClick=${()=>rate(0)} style=${{padding:"12px 4px",borderRadius:10,border:"2px solid #f44336",background:"#fce4ec",color:"#c62828",cursor:"pointer",fontWeight:800,fontSize:12,fontFamily:"var(--fb)",textAlign:"center"}}>
+              <div style=${{fontSize:16}}>🔁</div><div>Again</div>
+            </button>
+            <button onClick=${()=>rate(1)} style=${{padding:"12px 4px",borderRadius:10,border:"2px solid #ff9800",background:"#fff3e0",color:"#e65100",cursor:"pointer",fontWeight:800,fontSize:12,fontFamily:"var(--fb)",textAlign:"center"}}>
+              <div style=${{fontSize:16}}>😅</div><div>Hard</div>
+            </button>
+            <button onClick=${()=>rate(2)} style=${{padding:"12px 4px",borderRadius:10,border:"2px solid #4caf50",background:"#e8f5e9",color:"#2e7d32",cursor:"pointer",fontWeight:800,fontSize:12,fontFamily:"var(--fb)",textAlign:"center"}}>
+              <div style=${{fontSize:16}}>👍</div><div>Good</div>
+            </button>
+            <button onClick=${()=>rate(3)} style=${{padding:"12px 4px",borderRadius:10,border:"2px solid #2196f3",background:"#e3f2fd",color:"#1565c0",cursor:"pointer",fontWeight:800,fontSize:12,fontFamily:"var(--fb)",textAlign:"center"}}>
+              <div style=${{fontSize:16}}>⚡</div><div>Easy</div>
+            </button>
+          </div>
+          <div style=${{fontSize:10,color:"#ccc",textAlign:"center",marginTop:6}}>Again = review tomorrow · Easy = skip ahead many days</div>
+        </div>` : !flipped ? h`<div style=${{display:"flex",gap:8,marginBottom:14}}>
+          <button class="btn btn-sm" disabled=${cardIdx===0||!!lastRating} onClick=${()=>{setCardIdx(cardIdx-1);setFlipped(false);}}>← Prev</button>
+          <div style=${{flex:1,textAlign:"center",fontSize:12,color:"#bbb",alignSelf:"center"}}>Tap card to flip</div>
+          <button class="btn btn-sm" disabled=${cardIdx>=sessionCards.length-1||!!lastRating} onClick=${()=>{setCardIdx(cardIdx+1);setFlipped(false);}}>Next →</button>
+        </div>` : null}
       </div>`}
 
       <!-- Add word -->
-      <div class="card" style=${{marginTop:8}}>
-        <div style=${{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:"var(--g500)",marginBottom:8}}>➕ Add a word to this deck</div>
+      <div class="card" style=${{marginTop:12}}>
+        <div style=${{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:"var(--g500)",marginBottom:8}}>➕ Add a word</div>
         <div style=${{display:"flex",gap:8}}>
           <input style=${{flex:1,padding:"9px 11px",border:"2px solid var(--g200)",fontFamily:"var(--fb)",fontSize:13,outline:"none",borderRadius:6}} placeholder="Type an English word..." value=${newWord} onInput=${e=>setNewWord(e.target.value)} onKeyDown=${e=>{if(e.key==="Enter")translateWord();}}/>
           <button class="btn btn-p btn-sm" onClick=${translateWord} disabled=${loading||!newWord.trim()}>${loading?"...":"Add"}</button>
@@ -2399,6 +2568,10 @@ function LibraryFlashcards({student: s, data, setData}) {
 
   // Decks view
   return h`<div style=${{maxWidth:700,margin:"0 auto"}}>
+    ${initialTopic&&h`<div style=${{background:"#e3f2fd",border:"1px solid #90caf9",borderRadius:10,padding:"10px 14px",marginBottom:16,fontSize:13,color:"#1565c0",display:"flex",alignItems:"center",gap:8}}>
+      <span style=${{fontSize:16}}>🃏</span>
+      <span>Creating flashcards for <strong>${initialTopic}</strong> — hit <strong>Create</strong> to generate your deck!</span>
+    </div>`}
     <!-- Create new deck -->
     <div class="card" style=${{marginBottom:20}}>
       <div style=${{fontWeight:700,fontSize:14,marginBottom:4}}>🃏 Create a Flashcard Deck</div>
@@ -2418,20 +2591,22 @@ function LibraryFlashcards({student: s, data, setData}) {
     ${decks.length===0?h`<div style=${{textAlign:"center",padding:"24px 0",color:"var(--g400)",fontSize:13}}>No decks yet — pick a topic above to get started!</div>`:h`<div style=${{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:12}}>
       ${decks.map(dk=>{
         const total = (dk.cards||[]).length;
-        const known = (dk.cards||[]).filter(c=>c.known).length;
-        const pct = total>0?Math.round(known/total*100):0;
-        return h`<div key=${dk.id} class="fc-deck" onClick=${()=>openDeck(dk.id)}>
+        const due = (dk.cards||[]).filter(isDueToday).length;
+        const mastered = (dk.cards||[]).filter(c=>c.srsReps>=3).length;
+        const pct = total>0?Math.round(mastered/total*100):0;
+        return h`<div key=${dk.id} class="fc-deck" onClick=${()=>openDeck(dk.id)} style=${{position:"relative"}}>
           <div style=${{position:"absolute",top:10,right:10,display:"flex",gap:4}} onClick=${e=>e.stopPropagation()}>
             <button style=${{background:"none",border:"none",cursor:"pointer",color:"#999",fontSize:12,padding:"2px 4px",fontFamily:"var(--fb)"}} title="Download PDF" onClick=${()=>exportFlashcardPDF(dk, s.name)}>📥</button>
             <button style=${{background:"none",border:"none",cursor:"pointer",color:"#ccc",fontSize:14,padding:2}} title="Delete deck" onClick=${()=>deleteDeck(dk.id)}>✕</button>
           </div>
-          <div style=${{fontSize:28,marginBottom:8}}>🃏</div>
+          ${due>0?h`<div style=${{position:"absolute",top:10,left:10,background:"#f44336",color:"#fff",fontSize:10,fontWeight:800,borderRadius:10,padding:"2px 8px"}}>${due} due</div>`:null}
+          <div style=${{fontSize:28,marginBottom:8,marginTop:due>0?16:0}}>🃏</div>
           <div style=${{fontWeight:800,fontSize:14,fontFamily:"var(--fh)",letterSpacing:1,marginBottom:6}}>${dk.name.toUpperCase()}</div>
           <div style=${{fontSize:12,color:"var(--g500)",marginBottom:8}}>${total} card${total!==1?"s":""}</div>
           <div style=${{height:4,background:"#f0f0f0",borderRadius:4,overflow:"hidden"}}>
             <div style=${{height:"100%",width:pct+"%",background:"#4caf50",borderRadius:4}}></div>
           </div>
-          <div style=${{fontSize:11,color:"var(--g400)",marginTop:4}}>${known}/${total} known</div>
+          <div style=${{fontSize:11,color:"var(--g400)",marginTop:4}}>${mastered}/${total} mastered</div>
         </div>`;
       })}
     </div>`}
@@ -2519,6 +2694,10 @@ function LibraryConjugation({student: s}) {
       </div>
 
       ${result.note?h`<div style=${{background:"#fffde7",border:"1px solid #ffe082",borderRadius:10,padding:"10px 14px",marginBottom:16,fontSize:13,color:"#5f4300",lineHeight:1.7}}>💡 ${result.note}</div>`:null}
+
+      <div style=${{display:"flex",justifyContent:"flex-end",marginBottom:12}}>
+        <button class="btn btn-sm" onClick=${()=>exportConjugationPDF(result, s.name)} style=${{fontSize:11}}>📥 Download PDF</button>
+      </div>
 
       <!-- VERB TABLE -->
       ${result.type==="verb"&&result.table?h`<div>
@@ -2610,7 +2789,7 @@ function LibraryConjugation({student: s}) {
 // ════════════════════════════════════════
 // LIBRARY TAB — PDF downloads, Flashcards, Conjugation
 // ════════════════════════════════════════
-function StudentLibraryTab({student: s, data, setData}) {
+function StudentLibraryTab({student: s, data, setData, initialTopic}) {
   const [libTab, setLibTab] = useState("flashcards");
   // PDFs from curriculum uploads + PDFs uploaded via Resources section
   const curriculumPdfs = (data.curriculum||[]).filter(c=>c.fileData&&c.fileName&&(c.fileName.toLowerCase().endsWith(".pdf")||c.fileData.startsWith("data:application/pdf")));
@@ -2624,11 +2803,12 @@ function StudentLibraryTab({student: s, data, setData}) {
 
   return h`<div style=${{maxWidth:800,margin:"0 auto"}}>
     <div class="lib-tab-nav">
-      ${[["flashcards","🃏 Flashcards"],["conjugation","📖 تصريف"],["pdfs","📎 PDFs"],["links","🔗 Links"]].map(([id,label])=>h`
+      ${[["flashcards","🃏 Flashcards"],["dictation","🎧 Dictation"],["conjugation","📖 تصريف"],["pdfs","📎 PDFs"],["links","🔗 Links"]].map(([id,label])=>h`
         <button key=${id} class=${"lib-tab"+(libTab===id?" on":"")} onClick=${()=>setLibTab(id)}>${label}</button>
       `)}
     </div>
-    ${libTab==="flashcards"&&h`<${LibraryFlashcards} student=${s} data=${data} setData=${setData}/>`}
+    ${libTab==="flashcards"&&h`<${LibraryFlashcards} student=${s} data=${data} setData=${setData} initialTopic=${initialTopic}/>`}
+    ${libTab==="dictation"&&h`<${DictationTab} student=${s} data=${data} setData=${setData}/>`}
     ${libTab==="conjugation"&&h`<${LibraryConjugation} student=${s}/>`}
     ${libTab==="pdfs"&&h`<div>
       ${allPdfs.length===0?h`<div style=${{padding:32,textAlign:"center",color:"var(--g400)"}}>No PDFs yet — Hadi will upload study materials here.</div>`:h`<div>
@@ -2672,103 +2852,462 @@ function StudentLibraryTab({student: s, data, setData}) {
 }
 
 // ════════════════════════════════════════
-// STUDENT PORTAL — QUIZ TAB
+// STUDENT PORTAL — QUIZ TAB (v2: saved, scored, topics, levels)
 // ════════════════════════════════════════
-function StudentQuizTab({student: s, data}) {
+const QUIZ_TOPICS = ["Greetings","Numbers & Time","Food & Dining","Family","Travel","Religion & Quran","Verbs","Nouns & Plurals","Everyday Conversation","Grammar","Sentence Structure","Common Vocabulary"];
+const LABEL_STYLE = {Easy:{bg:"#e8f5e9",color:"#2e7d32",border:"#a5d6a7"},Intermediate:{bg:"#fff3e0",color:"#e65100",border:"#ffcc80"},Hard:{bg:"#ffebee",color:"#c62828",border:"#ef9a9a"}};
+const DIALECT_STYLE = {classical:{bg:"#e3f2fd",color:"#1565c0"},quranic:{bg:"#f3e5f5",color:"#6a1b9a"},levantine:{bg:"#e0f7fa",color:"#00695c"},general:{bg:"#f5f5f5",color:"#555"}};
+
+function QuizBadge({label, style$}) {
+  const ls = LABEL_STYLE[label]||LABEL_STYLE.Intermediate;
+  return h`<span style=${{background:ls.bg,color:ls.color,border:"1px solid "+ls.border,borderRadius:20,padding:"2px 10px",fontSize:10,fontWeight:800,letterSpacing:.5,...(style$||{})}}>${label||"Quiz"}</span>`;
+}
+function DialectBadge({dialect}) {
+  const ds = DIALECT_STYLE[dialect]||DIALECT_STYLE.general;
+  const labels = {classical:"Classical",quranic:"Quranic",levantine:"Levantine",general:"General"};
+  return h`<span style=${{background:ds.bg,color:ds.color,borderRadius:20,padding:"2px 10px",fontSize:10,fontWeight:700}}>${labels[dialect]||"General"}</span>`;
+}
+
+// ════════════════════════════════════════
+// DICTATION EXERCISE TAB
+// Listen to a word/sentence → type it in Arabic → get instant feedback
+// ════════════════════════════════════════
+function DictationTab({student: s, data, setData}) {
+  const accent = s.studentTheme||"#4a90d9";
+  const [items, setItems] = useState([]);       // [{ar, en, translit}]
+  const [idx, setIdx] = useState(0);
+  const [input, setInput] = useState("");
+  const [revealed, setRevealed] = useState(false);
+  const [score, setScore] = useState({correct:0,total:0});
   const [loading, setLoading] = useState(false);
-  const [questions, setQuestions] = useState(null);
-  const [answers, setAnswers] = useState({});
-  const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState("");
-  const topics = (data.curriculum||[]).filter(c=>(s.assignedLessons||[]).includes(c.id)).map(c=>c.title||c.name).join(", ");
+  const [speaking, setSpeaking] = useState(false);
+  const [sessionXP, setSessionXP] = useState(0);
+
+  const current = items[idx] || null;
 
   const generate = async () => {
-    setLoading(true); setQuestions(null); setAnswers({}); setSubmitted(false); setError("");
+    setLoading(true); setItems([]); setIdx(0); setInput(""); setRevealed(false);
     try {
-      const lp = s.learningProfile||{};
-      const d = await apiPost("/api/ai", {type:"student_quiz", context:{
-        name:s.name, level:s.level||"beginner", type:s.type||"Classical Arabic",
-        skillReading:s.skillReading||3, skillWriting:s.skillWriting||3,
-        skillListening:s.skillListening||3, skillSpeaking:s.skillSpeaking||3,
-        topics: topics||"General Arabic", goals:s.goals||"",
-        learningWhy: lp.why||"", learningStyle: lp.style||"",
-        interests: (lp.topics||[]).join(", ")||"",
-        challenge: lp.challenge||"", personalGoal: lp.personalGoal||""
+      const d = await apiPost("/api/ai", {type:"flashcard_generate", context:{
+        topic:"Common vocabulary", level:s.level||"beginner", type:s.type||"Classical Arabic"
       }});
       if (d.result) {
         const raw = d.result.replace(/```json|```/g,"").trim();
-        const parsed = JSON.parse(raw);
-        setQuestions(parsed);
-      } else { setError("Could not generate quiz."); }
-    } catch(e) { setError("Error: "+e.message); }
+        const start = raw.indexOf("[");
+        const arr = JSON.parse(start>=0?raw.slice(start):raw);
+        if (Array.isArray(arr) && arr.length > 0) {
+          setItems(arr.slice(0,10).map(c=>({ar:c.ar||"",en:c.en||"",translit:c.translit||""})));
+          setScore({correct:0,total:0});
+          setSessionXP(0);
+        }
+      }
+    } catch(e) {}
     setLoading(false);
   };
 
-  const score = questions ? questions.filter((q,i)=>answers[i]===q.answer).length : 0;
+  const speak = (text) => {
+    if (!window.speechSynthesis || speaking) return;
+    window.speechSynthesis.cancel();
+    const voices = window.speechSynthesis.getVoices();
+    const arVoice = voices.find(v=>v.lang&&v.lang.startsWith("ar"));
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.lang = "ar"; utt.rate = 0.75;
+    if (arVoice) utt.voice = arVoice;
+    setSpeaking(true);
+    utt.onend = utt.onerror = () => setSpeaking(false);
+    window.speechSynthesis.speak(utt);
+  };
+
+  const normalizeAr = str => (str||"").trim().replace(/[\u064B-\u065F\u0670]/g,"").replace(/\s+/g," ");
+
+  const check = () => {
+    if (!current || !input.trim()) return;
+    setRevealed(true);
+    const correct = normalizeAr(input) === normalizeAr(current.ar);
+    const xpAmt = correct ? 5 : 1;
+    const newCorrect = score.correct + (correct?1:0);
+    const newTotal = score.total + 1;
+    setScore({correct:newCorrect, total:newTotal});
+    setSessionXP(prev => prev + xpAmt);
+    if (correct) {
+      const xpPatch = earnXP(s, xpAmt);
+      setData({...data, students: data.students.map(x=>x.id===s.id?{...x,...xpPatch}:x)});
+    }
+  };
+
+  const next = () => {
+    if (idx < items.length - 1) { setIdx(idx+1); setInput(""); setRevealed(false); }
+    else { setIdx(items.length); } // done
+  };
+
+  if (items.length === 0) return h`<div style=${{maxWidth:560,margin:"0 auto",textAlign:"center",padding:"32px 16px"}}>
+    <div style=${{fontSize:48,marginBottom:16}}>🎧</div>
+    <h3 style=${{fontFamily:"var(--fh)",fontSize:22,letterSpacing:2,marginBottom:8}}>DICTATION</h3>
+    <p style=${{fontSize:13,color:"var(--g500)",lineHeight:1.7,maxWidth:360,margin:"0 auto 20px"}}>
+      Listen to each Arabic word or phrase, then type what you hear. Diacritics (tashkeel) are ignored when checking.
+    </p>
+    <button class="btn btn-p" onClick=${generate} disabled=${loading} style=${{padding:"12px 28px"}}>
+      ${loading?"⏳ Generating...":"▶ Start Dictation"}
+    </button>
+  </div>`;
+
+  if (idx >= items.length) return h`<div style=${{maxWidth:480,margin:"0 auto",textAlign:"center",padding:"40px 16px"}}>
+    <div style=${{fontSize:52,marginBottom:12}}>${score.correct===score.total?"🏆":score.correct>=score.total*0.7?"👍":"📚"}</div>
+    <div style=${{fontFamily:"var(--fh)",fontSize:36,letterSpacing:2,color:"#111",marginBottom:8}}>${score.correct}/${score.total}</div>
+    <div style=${{fontSize:14,color:"#888",marginBottom:6}}>${Math.round(score.correct/score.total*100)}% accuracy</div>
+    <div style=${{fontSize:13,fontWeight:700,color:"#2e7d32",marginBottom:20}}>⭐ +${sessionXP} XP earned this session</div>
+    <button class="btn btn-p" onClick=${generate} style=${{padding:"12px 28px"}}>🔄 New Round</button>
+  </div>`;
+
+  const isCorrect = revealed && normalizeAr(input) === normalizeAr(current.ar);
+  const isWrong = revealed && !isCorrect;
+
+  return h`<div style=${{maxWidth:480,margin:"0 auto",padding:"8px 0 40px"}}>
+    <!-- Progress -->
+    <div style=${{display:"flex",alignItems:"center",gap:12,marginBottom:20}}>
+      <div style=${{flex:1,height:6,background:"#f0f0f0",borderRadius:6,overflow:"hidden"}}>
+        <div style=${{height:"100%",width:(idx/items.length*100)+"%",background:accent,borderRadius:6,transition:"width 0.4s"}}></div>
+      </div>
+      <span style=${{fontSize:12,color:"#aaa",whiteSpace:"nowrap"}}>${idx+1}/${items.length}</span>
+      <span style=${{fontSize:12,fontWeight:700,color:"#2e7d32"}}>✅ ${score.correct} correct</span>
+    </div>
+
+    <!-- Card -->
+    <div style=${{background:"#fff",borderRadius:16,padding:"32px 28px",boxShadow:"0 2px 12px rgba(0,0,0,0.08)",border:"2px solid #eee",textAlign:"center",marginBottom:20}}>
+      <div style=${{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:"#bbb",marginBottom:20}}>Listen & Write what you hear</div>
+
+      <button onClick=${()=>speak(current.ar)} disabled=${speaking}
+        style=${{width:72,height:72,borderRadius:"50%",border:"3px solid "+accent,background:speaking?accent+"20":"#fff",cursor:"pointer",fontSize:32,transition:"all 0.2s",marginBottom:20}}>
+        ${speaking?"🔊":"🔉"}
+      </button>
+
+      <div style=${{fontSize:11,color:"#ccc",marginBottom:16}}>Tap to listen · you can replay as many times as you need</div>
+
+      <!-- Arabic input -->
+      <input
+        dir="rtl"
+        value=${input}
+        onInput=${e=>setInput(e.target.value)}
+        onKeyDown=${e=>{if(e.key==="Enter"&&!revealed)check();}}
+        placeholder="اكتب ما سمعت..."
+        disabled=${revealed}
+        style=${{
+          width:"100%", boxSizing:"border-box",
+          fontFamily:"'Amiri',serif", fontSize:26, direction:"rtl", textAlign:"center",
+          padding:"14px 16px", border:"2px solid "+(isCorrect?"#4caf50":isWrong?"#f44336":"#ddd"),
+          borderRadius:12, outline:"none", background:isCorrect?"#f1fff5":isWrong?"#fff5f5":"#fff",
+          color:"#111"
+        }}
+      />
+
+      ${revealed&&h`<div style=${{marginTop:16,padding:"12px 16px",borderRadius:10,background:isCorrect?"#e8f5e9":"#ffebee",border:"1px solid "+(isCorrect?"#a5d6a7":"#ef9a9a"),textAlign:"right"}}>
+        <div style=${{fontFamily:"'Amiri',serif",fontSize:28,direction:"rtl",color:isCorrect?"#2e7d32":"#c62828",marginBottom:4}}>${current.ar}</div>
+        <div style=${{fontSize:13,color:"#666",textAlign:"left"}}>${current.en}${current.translit?h`<span style=${{fontStyle:"italic",color:"#aaa",marginLeft:8}}>${current.translit}</span>`:null}</div>
+        ${isCorrect
+          ? h`<div style=${{marginTop:8,fontSize:12,fontWeight:700,color:"#2e7d32"}}>✅ Correct! +5 XP</div>`
+          : h`<div style=${{marginTop:8,fontSize:12,color:"#c62828"}}>The correct spelling is shown above. +1 XP for trying.</div>`}
+      </div>`}
+    </div>
+
+    <!-- Actions -->
+    ${!revealed
+      ? h`<button class="btn btn-p" onClick=${check} disabled=${!input.trim()} style=${{width:"100%",padding:"13px",fontSize:15}}>Check ✓</button>`
+      : h`<button class="btn btn-p" onClick=${next} style=${{width:"100%",padding:"13px",fontSize:15}}>${idx<items.length-1?"Next →":"See Results"}</button>`
+    }
+  </div>`;
+}
+
+function StudentQuizTab({student: s, data, setData, initialTopic, onGoFlashcards}) {
+  const accent = s.studentTheme||"#4a90d9";
+  const [view, setView] = useState("home"); // home | taking
+  const [activeQuiz, setActiveQuiz] = useState(null);
+  const [isRetake, setIsRetake] = useState(false);
+  const [answers, setAnswers] = useState({});
+  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  // generation options
+  const [selTopic, setSelTopic] = useState(initialTopic&&!QUIZ_TOPICS.includes(initialTopic)?"":initialTopic||"");
+  const [customTopic, setCustomTopic] = useState(initialTopic&&!QUIZ_TOPICS.includes(initialTopic)?initialTopic:"");
+  const [genLevel, setGenLevel] = useState("beginner");
+
+  const quizHistory = s.quizHistory || [];
+  const updStudent = patch => setData({...data, students: data.students.map(x=>x.id===s.id?{...x,...patch}:x)});
+
+  // Overall score — only first attempts count
+  const scoredQuizzes = quizHistory.filter(q=>q.attempts&&q.attempts.length>0);
+  const totalScore = scoredQuizzes.reduce((sum,q)=>sum+(q.attempts[0].score||0),0);
+  const totalPossible = scoredQuizzes.reduce((sum,q)=>sum+(q.questions?.length||5),0);
+  const overallPct = totalPossible>0 ? Math.round(totalScore/totalPossible*100) : null;
+  const overallOf10 = overallPct!==null ? (overallPct/10).toFixed(1) : null;
+
+  const generate = async () => {
+    setLoading(true); setError("");
+    const topic = customTopic.trim() || selTopic;
+    const prevQs = quizHistory.flatMap(q=>(q.questions||[]).map(qq=>qq.q)).slice(-25);
+    const lp = s.learningProfile||{};
+    try {
+      const d = await apiPost("/api/ai", {type:"student_quiz", context:{
+        name:s.name, level:genLevel, type:s.type||"Classical Arabic",
+        skillReading:s.skillReading||3, skillWriting:s.skillWriting||3,
+        skillListening:s.skillListening||3, skillSpeaking:s.skillSpeaking||3,
+        topic: topic||"", goals:s.goals||"",
+        learningWhy:lp.why||"", interests:(lp.topics||[]).join(", "),
+        challenge:lp.challenge||"", personalGoal:lp.personalGoal||"",
+        prevQuestions: prevQs
+      }});
+      if (!d.result) { setError("Could not generate quiz. Try again."); setLoading(false); return; }
+      let raw = d.result.replace(/```json|```/g,"").trim();
+      const objStart = raw.indexOf("{"), arrStart = raw.indexOf("[");
+      if (objStart!==-1 && (arrStart===-1 || objStart<arrStart)) raw = raw.slice(objStart);
+      else if (arrStart!==-1) raw = raw.slice(arrStart);
+      const parsed = JSON.parse(raw);
+      const questions = Array.isArray(parsed) ? parsed : (parsed.questions||[]);
+      const dialect = parsed.dialect||"general";
+      const labelMap = {beginner:"Easy",intermediate:"Intermediate",advanced:"Hard"};
+      const newQuiz = {
+        id:uid(), savedAt:new Date().toISOString(),
+        label:labelMap[genLevel]||"Intermediate", dialect,
+        topic:topic||"General", level:genLevel,
+        questions, attempts:[]
+      };
+      const newHistory = [...quizHistory, newQuiz].slice(-30); // keep max 30
+      updStudent({quizHistory:newHistory});
+      setActiveQuiz(newQuiz); setIsRetake(false);
+      setAnswers({}); setSubmitted(false); setView("taking");
+    } catch(e) { setError("Generation failed: "+e.message); }
+    setLoading(false);
+  };
+
+  const startRetake = (qz) => {
+    setActiveQuiz(qz); setIsRetake(true);
+    setAnswers({}); setSubmitted(false); setView("taking");
+  };
+
+  const submitQuiz = () => {
+    if (!activeQuiz) return;
+    const qs = activeQuiz.questions;
+    const score = qs.filter((q,i)=>answers[i]===q.answer).length;
+    const isFirst = !isRetake && (!activeQuiz.attempts||activeQuiz.attempts.length===0);
+    const attempt = {answers:{...answers},score,total:qs.length,completedAt:new Date().toISOString(),isFirst};
+    const newHistory = quizHistory.map(q=>q.id===activeQuiz.id
+      ? {...q, attempts:[...(q.attempts||[]),attempt]}
+      : q
+    );
+    // XP: 2 per correct answer + 15 bonus for passing (≥60%), only on first attempt
+    const xpEarned = isFirst ? (score * 2) + (score/qs.length >= 0.6 ? 15 : 0) : score;
+    const xpPatch = earnXP(s, xpEarned);
+    updStudent({quizHistory:newHistory, ...xpPatch});
+    setActiveQuiz(prev=>({...prev,attempts:[...(prev.attempts||[]),attempt]}));
+    setSubmitted(true);
+  };
 
   const isArabic = str => /[\u0600-\u06FF]/.test(str||"");
 
-  return h`<div style=${{maxWidth:680,margin:"0 auto"}}>
-    <div class="card" style=${{marginBottom:16}}>
-      <h3 style=${{marginBottom:4}}>🧠 AI QUIZ</h3>
-      <p style=${{fontSize:13,color:"var(--g500)",marginBottom:14,lineHeight:1.6}}>Generate a 5-question quiz personalised to your level and topics.</p>
-      <button class="btn btn-p" onClick=${generate} disabled=${loading}>${loading?"Generating quiz...":"Generate New Quiz"}</button>
-      ${error&&h`<div style=${{marginTop:10,color:"var(--bd)",fontSize:13}}>${error}</div>`}
-    </div>
-    ${questions&&h`<div>
-      ${questions.map((q,i)=>h`<div key=${i} style=${{background:"#fff",border:"1px solid #eee",borderRadius:12,padding:"20px 18px",marginBottom:14,boxShadow:"0 1px 4px rgba(0,0,0,0.06)"}}>
+  // ── Taking view ──────────────────────────────────────────────────────────────
+  if (view==="taking"&&activeQuiz) {
+    const qs = activeQuiz.questions;
+    const answeredCount = Object.keys(answers).length;
+    const lastAttempt = activeQuiz.attempts?.slice(-1)[0];
+    const score = submitted&&lastAttempt ? lastAttempt.score : qs.filter((q,i)=>answers[i]===q.answer).length;
+    const pct = submitted ? Math.round(score/qs.length*100) : 0;
+    return h`<div style=${{maxWidth:700,margin:"0 auto"}}>
+      <!-- Header -->
+      <div style=${{display:"flex",alignItems:"center",gap:8,marginBottom:16,flexWrap:"wrap"}}>
+        <button class="btn btn-sm" onClick=${()=>setView("home")}>← Back</button>
+        <${QuizBadge} label=${activeQuiz.label}/>
+        <${DialectBadge} dialect=${activeQuiz.dialect}/>
+        ${activeQuiz.topic!=="General"&&h`<span style=${{fontSize:12,color:"#888",fontStyle:"italic"}}>${activeQuiz.topic}</span>`}
+        ${isRetake&&h`<span style=${{fontSize:11,color:"#888",marginLeft:"auto"}}>Retake — score not counted</span>`}
+      </div>
 
-        <!-- Question number + English text -->
-        <div style=${{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:"#888",marginBottom:6}}>${"Question "+(i+1)+" of "+questions.length}</div>
-        <div style=${{fontWeight:700,fontSize:15,marginBottom:q.ar?"10px":"16px",lineHeight:1.6,color:"#111"}}>${q.q}</div>
-
-        <!-- Arabic focal item (Amiri, with diacritics, centred) -->
-        ${q.ar&&h`<div style=${{
-          background:"linear-gradient(135deg,#fafafa,#f5f0e8)",
-          border:"1px solid #e8dcc8",borderRadius:10,
-          padding:"14px 20px",marginBottom:16,textAlign:"center"
-        }}>
+      <!-- Questions -->
+      ${qs.map((q,i)=>h`<div key=${i} style=${{background:"#fff",border:"1px solid #eee",borderRadius:12,padding:"20px 18px",marginBottom:14,boxShadow:"0 1px 4px rgba(0,0,0,0.06)"}}>
+        <div style=${{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:"#bbb",marginBottom:6}}>Question ${i+1} of ${qs.length}</div>
+        <div style=${{fontWeight:700,fontSize:15,marginBottom:q.ar&&q.show_ar!==false?"10px":"16px",lineHeight:1.6,color:"#111"}}>${q.q}</div>
+        ${q.ar&&q.show_ar!==false&&h`<div style=${{background:"linear-gradient(135deg,#fafafa,#f5f0e8)",border:"1px solid #e8dcc8",borderRadius:10,padding:"14px 20px",marginBottom:16,textAlign:"center"}}>
           <div class="qz-ar">${q.ar}</div>
         </div>`}
-
-        <!-- Options -->
         <div style=${{display:"flex",flexDirection:"column",gap:10}}>
           ${q.options.map((opt,j)=>{
-            let cls = "qz-opt";
-            if (submitted) {
-              if (j===q.answer) cls+=" qz-correct";
-              else if (answers[i]===j) cls+=" qz-wrong";
-            } else if (answers[i]===j) cls+=" qz-correct";
-            const arOpt = isArabic(opt);
+            let cls="qz-opt";
+            if(submitted){if(j===q.answer)cls+=" qz-correct";else if(answers[i]===j)cls+=" qz-wrong";}
+            else if(answers[i]===j)cls+=" qz-correct";
+            const arOpt=isArabic(opt);
             return h`<button key=${j} class=${cls+(arOpt?" qz-opt-ar":"")} onClick=${()=>{if(!submitted)setAnswers({...answers,[i]:j})}} disabled=${submitted}>
               <span style=${{display:"inline-flex",alignItems:"center",gap:10,width:"100%",justifyContent:arOpt?"flex-end":"flex-start"}}>
-                <span style=${{width:22,height:22,borderRadius:50,border:"2px solid currentColor",display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:900,flexShrink:0,fontFamily:"var(--fb)"}}>
-                  ${["A","B","C","D"][j]}
-                </span>
+                <span style=${{width:22,height:22,borderRadius:"50%",border:"2px solid currentColor",display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:900,flexShrink:0,fontFamily:"var(--fb)"}}>${["A","B","C","D"][j]}</span>
                 <span style=${{flex:1,textAlign:arOpt?"right":"left",fontSize:arOpt?"20px":"14px"}}>${opt}</span>
               </span>
             </button>`;
           })}
         </div>
-
-        <!-- Tip after submit -->
-        ${submitted&&h`<div style=${{marginTop:14,padding:"10px 14px",background:"#f0f7ff",border:"1px solid #bbdefb",borderRadius:8,fontSize:13,color:"#1565c0",lineHeight:1.7}}>
-          💡 ${q.tip}
-        </div>`}
+        ${submitted&&h`<div style=${{marginTop:12,padding:"10px 14px",background:"#f0f7ff",border:"1px solid #bbdefb",borderRadius:8,fontSize:13,color:"#1565c0",lineHeight:1.7}}>💡 ${q.tip}</div>`}
       </div>`)}
 
-      ${!submitted&&Object.keys(answers).length===questions.length&&h`<button class="btn btn-p" style=${{width:"100%",marginTop:4,padding:"14px"}} onClick=${()=>setSubmitted(true)}>Submit Quiz ✓</button>`}
-      ${!submitted&&Object.keys(answers).length<(questions?questions.length:0)&&h`<div style=${{textAlign:"center",fontSize:12,color:"#aaa",marginTop:8}}>${Object.keys(answers).length}/${questions.length} answered</div>`}
+      <!-- Submit / Progress -->
+      ${!submitted&&answeredCount===qs.length&&h`<button class="btn btn-p" style=${{width:"100%",padding:"14px",marginTop:4}} onClick=${submitQuiz}>Submit Quiz ✓</button>`}
+      ${!submitted&&answeredCount<qs.length&&h`<div style=${{textAlign:"center",fontSize:12,color:"#aaa",marginTop:8}}>${answeredCount}/${qs.length} answered</div>`}
 
-      ${submitted&&h`<div style=${{background:"#fff",border:"2px solid #111",borderRadius:12,padding:"24px 20px",textAlign:"center",marginTop:4}}>
-        <div style=${{fontSize:40,marginBottom:10}}>${score>=4?"🏆":score>=3?"👍":"📚"}</div>
-        <div style=${{fontFamily:"var(--fh)",fontSize:36,letterSpacing:2}}>${score}/5</div>
-        <div style=${{fontSize:14,color:"var(--g500)",marginTop:8}}>${score===5?"Perfect score! Excellent work!":score>=3?"Good job — keep practising!":"Review the tips above and try again!"}</div>
-        <div style=${{display:"flex",gap:10,marginTop:16,justifyContent:"center",flexWrap:"wrap"}}>
-          <button class="btn" onClick=${generate}>Try Another Quiz</button>
-          <button class="btn" onClick=${()=>exportQuizPDF(questions,answers,score,s.name)}>📥 Download Results</button>
+      <!-- Result card -->
+      ${submitted&&h`<div style=${{background:"#fff",border:"2px solid #111",borderRadius:14,padding:"28px 24px",textAlign:"center",marginTop:8}}>
+        <div style=${{fontSize:44,marginBottom:8}}>${pct===100?"🏆":pct>=60?"👍":"📚"}</div>
+        <div style=${{fontFamily:"var(--fh)",fontSize:44,letterSpacing:2,color:"#111"}}>${score}/${qs.length}</div>
+        <div style=${{fontSize:16,color:"#888",marginTop:4,marginBottom:16}}>${pct}% · ${pct===100?"Perfect!":pct>=80?"Excellent":pct>=60?"Good job":"Keep practising"}</div>
+        ${lastAttempt?.isFirst
+          ? h`<div style=${{background:"#e8f5e9",border:"1px solid #a5d6a7",borderRadius:10,padding:"10px 16px",fontSize:13,color:"#2e7d32",marginBottom:16}}>
+              ✅ First attempt scored! This counts toward your overall average.
+              <div style=${{marginTop:6,fontWeight:700,color:"#1b5e20"}}>⭐ +${(score*2)+(pct>=60?15:0)} XP earned${s.streakDays>=1?" · 🔥 Streak: "+s.streakDays+" days":""}</div>
+            </div>`
+          : h`<div style=${{background:"#f5f5f5",border:"1px solid #ddd",borderRadius:10,padding:"10px 16px",fontSize:13,color:"#888",marginBottom:16}}>Retake — score not counted toward your average.</div>`}
+        <div style=${{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
+          <button class="btn btn-sm" onClick=${()=>{setView("home");}}>← Back to Quizzes</button>
+          <button class="btn btn-sm" onClick=${()=>{startRetake(activeQuiz);}}>↺ Retake</button>
+          <button class="btn btn-sm" onClick=${()=>exportQuizPDF(qs,answers,score,s.name)}>📥 PDF</button>
         </div>
+        ${pct<80&&activeQuiz.topic&&activeQuiz.topic!=="General"&&onGoFlashcards&&h`<div style=${{marginTop:14,padding:"12px 16px",background:"#e3f2fd",border:"1px solid #90caf9",borderRadius:10,fontSize:13,color:"#1565c0"}}>
+          <strong>💡 Strengthen this topic:</strong> Create flashcards for <em>${activeQuiz.topic}</em> to review the vocabulary and concepts you missed.
+          <button onClick=${()=>onGoFlashcards(activeQuiz.topic)} style=${{display:"block",marginTop:8,background:"#1565c0",color:"#fff",border:"none",borderRadius:8,padding:"8px 16px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"var(--fb)"}}>🃏 Study "${activeQuiz.topic}" with Flashcards →</button>
+        </div>`}
       </div>`}
+    </div>`;
+  }
+
+  // ── Home view ─────────────────────────────────────────────────────────────────
+  // Weakness map: topics from first attempts scoring < 60%
+  const weakTopics = (() => {
+    const byTopic = {};
+    scoredQuizzes.forEach(qz => {
+      const t = qz.topic||"General";
+      const score = qz.attempts[0].score;
+      const total = qz.questions?.length||5;
+      const pct = Math.round(score/total*100);
+      if (!byTopic[t]) byTopic[t] = {scores:[], total};
+      byTopic[t].scores.push(pct);
+    });
+    return Object.entries(byTopic)
+      .map(([topic, {scores}]) => ({topic, avg: Math.round(scores.reduce((a,b)=>a+b,0)/scores.length)}))
+      .filter(({avg}) => avg < 60)
+      .sort((a,b) => a.avg - b.avg)
+      .slice(0, 5);
+  })();
+
+  return h`<div style=${{maxWidth:700,margin:"0 auto"}}>
+
+    ${initialTopic&&h`<div style=${{background:"#f3e5f5",border:"1px solid #ce93d8",borderRadius:10,padding:"10px 14px",marginBottom:16,fontSize:13,color:"#6a1b9a",display:"flex",alignItems:"center",gap:8}}>
+      <span style=${{fontSize:16}}>🧠</span>
+      <span>Quizzing on <strong>${initialTopic}</strong> — select the topic below and hit Generate!</span>
+    </div>`}
+
+    <!-- Weakness map -->
+    ${weakTopics.length>0&&h`<div style=${{background:"#fff8e1",border:"1px solid #ffe082",borderRadius:14,padding:"16px 18px",marginBottom:18}}>
+      <div style=${{fontWeight:700,fontSize:13,color:"#e65100",marginBottom:10}}>⚠️ Areas to Strengthen</div>
+      <div style=${{display:"flex",flexDirection:"column",gap:8}}>
+        ${weakTopics.map(({topic,avg})=>h`<div key=${topic} style=${{display:"flex",alignItems:"center",gap:10}}>
+          <div style=${{flex:1,fontSize:13,fontWeight:600,color:"#333"}}>${topic}</div>
+          <div style=${{width:80,height:6,background:"#f0f0f0",borderRadius:4,overflow:"hidden"}}>
+            <div style=${{height:"100%",width:avg+"%",background:avg<40?"#f44336":"#ff9800",borderRadius:4}}></div>
+          </div>
+          <div style=${{fontSize:12,fontWeight:700,color:avg<40?"#f44336":"#ff9800",minWidth:34,textAlign:"right"}}>${avg}%</div>
+        </div>`)}
+      </div>
+      <div style=${{fontSize:11,color:"#888",marginTop:10}}>Based on your first attempts. Generate quizzes for these topics to improve! 📈</div>
+    </div>`}
+
+    <!-- Overall stats -->
+    ${overallPct!==null&&h`<div style=${{background:"#fff",border:"2px solid #111",borderRadius:14,padding:"20px 24px",marginBottom:18,display:"flex",alignItems:"center",gap:20,flexWrap:"wrap"}}>
+      <div style=${{flex:1,minWidth:150}}>
+        <div style=${{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:"#aaa",marginBottom:4}}>Overall Quiz Score</div>
+        <div style=${{fontFamily:"var(--fh)",fontSize:42,letterSpacing:2,color:accent,lineHeight:1}}>${overallOf10}<span style=${{fontSize:16,color:"#bbb"}}>/10</span></div>
+        <div style=${{fontSize:12,color:"#888",marginTop:4}}>${scoredQuizzes.length} quiz${scoredQuizzes.length!==1?"zes":""} completed · first attempts only</div>
+      </div>
+      <div style=${{minWidth:120}}>
+        <div style=${{height:6,background:"#f0f0f0",borderRadius:6,overflow:"hidden",marginBottom:6}}>
+          <div style=${{height:"100%",width:overallPct+"%",background:overallPct>=80?"#4caf50":overallPct>=60?accent:"#ff9800",borderRadius:6,transition:"width 0.5s"}}></div>
+        </div>
+        <div style=${{fontSize:12,fontWeight:700,color:overallPct>=80?"#2e7d32":overallPct>=60?accent:"#e65100"}}>${overallPct}%</div>
+      </div>
+    </div>`}
+
+    <!-- Generator -->
+    <div style=${{background:"#fff",border:"1px solid #eee",borderRadius:14,padding:"20px",marginBottom:18,boxShadow:"0 1px 4px rgba(0,0,0,0.06)"}}>
+      <div style=${{fontWeight:700,fontSize:15,marginBottom:14,color:"#111"}}>🧠 Generate New Quiz</div>
+
+      <!-- Topic chips -->
+      <div style=${{marginBottom:14}}>
+        <div style=${{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:"#aaa",marginBottom:8}}>Topic</div>
+        <div style=${{display:"flex",flexWrap:"wrap",gap:6,marginBottom:8}}>
+          <button key="none" onClick=${()=>{setSelTopic("");setCustomTopic("");}} style=${{
+            padding:"6px 12px",borderRadius:20,border:"1.5px solid "+(selTopic===""&&!customTopic?"#111":"#e0e0e0"),
+            background:selTopic===""&&!customTopic?"#111":"transparent",color:selTopic===""&&!customTopic?"#fff":"#666",
+            fontSize:12,cursor:"pointer",fontFamily:"var(--fb)"
+          }}>No specific topic</button>
+          ${QUIZ_TOPICS.map(t=>h`<button key=${t} onClick=${()=>{setSelTopic(t);setCustomTopic("");}} style=${{
+            padding:"6px 12px",borderRadius:20,border:"1.5px solid "+(selTopic===t&&!customTopic?"#111":"#e0e0e0"),
+            background:selTopic===t&&!customTopic?"#111":"transparent",color:selTopic===t&&!customTopic?"#fff":"#666",
+            fontSize:12,cursor:"pointer",fontFamily:"var(--fb)"
+          }}>${t}</button>`)}
+        </div>
+        <input placeholder="Or type a custom topic..." value=${customTopic}
+          onInput=${e=>{setCustomTopic(e.target.value);setSelTopic("");}}
+          style=${{width:"100%",border:"1.5px solid "+(customTopic?"#111":"#e0e0e0"),borderRadius:9,padding:"8px 12px",fontSize:13,fontFamily:"var(--fb)",outline:"none",boxSizing:"border-box"}}/>
+      </div>
+
+      <!-- Level -->
+      <div style=${{marginBottom:16}}>
+        <div style=${{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:"#aaa",marginBottom:8}}>Difficulty Level</div>
+        <div style=${{display:"flex",gap:8}}>
+          ${[["beginner","Easy 🟢"],["intermediate","Intermediate 🟡"],["advanced","Hard 🔴"]].map(([lv,lbl])=>h`
+            <button key=${lv} onClick=${()=>setGenLevel(lv)} style=${{
+              flex:1,padding:"9px 4px",borderRadius:10,border:"2px solid "+(genLevel===lv?"#111":"#e0e0e0"),
+              background:genLevel===lv?"#111":"transparent",color:genLevel===lv?"#fff":"#666",
+              fontSize:12,fontWeight:genLevel===lv?700:500,cursor:"pointer",fontFamily:"var(--fb)"
+            }}>${lbl}</button>`)}
+        </div>
+      </div>
+
+      <button class="btn btn-p" onClick=${generate} disabled=${loading} style=${{width:"100%",padding:"12px"}}>
+        ${loading?"⏳ Generating...":"Generate Quiz →"}
+      </button>
+      ${error&&h`<div style=${{marginTop:10,color:"var(--bd)",fontSize:13,background:"#fff5f5",border:"1px solid #ffd0d0",borderRadius:8,padding:"8px 12px"}}>${error}</div>`}
+    </div>
+
+    <!-- Quiz history -->
+    ${quizHistory.length>0&&h`<div>
+      <div style=${{fontWeight:700,fontSize:13,color:"#aaa",textTransform:"uppercase",letterSpacing:1,marginBottom:10}}>Saved Quizzes (${quizHistory.length})</div>
+      ${[...quizHistory].reverse().map(qz=>{
+        const first = qz.attempts?.[0];
+        const best = qz.attempts?.length>0 ? Math.max(...qz.attempts.map(a=>a.score)) : null;
+        const total = qz.questions?.length||5;
+        return h`<div key=${qz.id} style=${{background:"#fff",border:"1px solid #eee",borderRadius:12,padding:"14px 16px",marginBottom:10,boxShadow:"0 1px 3px rgba(0,0,0,0.05)"}}>
+          <div style=${{display:"flex",alignItems:"flex-start",gap:8,flexWrap:"wrap",marginBottom:8}}>
+            <${QuizBadge} label=${qz.label}/>
+            <${DialectBadge} dialect=${qz.dialect}/>
+            <span style=${{fontSize:13,fontWeight:600,color:"#333",flex:1}}>${qz.topic==="General"?"General Quiz":qz.topic}</span>
+            <span style=${{fontSize:11,color:"#ccc"}}>${new Date(qz.savedAt).toLocaleDateString("en-GB",{day:"2-digit",month:"short"})}</span>
+          </div>
+          <div style=${{display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
+            ${first
+              ? h`<div style=${{fontSize:13,color:"#333"}}>
+                  <span style=${{fontWeight:700,color:first.score/total>=0.8?"#2e7d32":first.score/total>=0.6?accent:"#e65100"}}>${first.score}/${total}</span>
+                  <span style=${{color:"#bbb",fontSize:11}}> first attempt</span>
+                  ${best>first.score?h`<span style=${{fontSize:11,color:"#888"}}> · Best: ${best}/${total}</span>`:null}
+                </div>`
+              : h`<div style=${{fontSize:12,color:"#bbb",fontStyle:"italic"}}>Not attempted yet</div>`}
+            <div style=${{marginLeft:"auto",display:"flex",gap:6}}>
+              ${first&&h`<button class="btn btn-sm" onClick=${()=>startRetake(qz)}>↺ Retake</button>`}
+              <button class="btn btn-p btn-sm" onClick=${()=>startRetake(qz)}>${first?"Review":"Start →"}</button>
+            </div>
+          </div>
+          ${qz.attempts?.length>1&&h`<div style=${{fontSize:11,color:"#aaa",marginTop:6}}>${qz.attempts.length-1} retake${qz.attempts.length>2?"s":""}</div>`}
+        </div>`;
+      })}
+    </div>`}
+
+    ${quizHistory.length===0&&h`<div style=${{textAlign:"center",padding:"40px 20px",color:"#ccc"}}>
+      <div style=${{fontSize:40,marginBottom:12}}>🧠</div>
+      <div style=${{fontSize:14,fontWeight:600,color:"#aaa"}}>No quizzes yet</div>
+      <div style=${{fontSize:12,marginTop:4}}>Generate your first quiz above!</div>
     </div>`}
   </div>`;
 }
@@ -2994,22 +3533,215 @@ function StudentSettingsTab({student: s, data, setData, auth}) {
 // ════════════════════════════════════════
 // ARABIC FACTS — high-quality linguistic knowledge
 // ════════════════════════════════════════
-const ARABIC_FACTS = [
-  {icon:"🔢",title:"The number-gender paradox",fact:"In Arabic, numbers 3–10 take the OPPOSITE gender of what they're counting. Three girls (ثَلَاثُ بَنَاتٍ) uses the masculine form of 'three'. Three boys (ثَلَاثَةُ بَنِينَ) uses the feminine form. This rule — called مُخَالَفَةُ الْعَدَدِ لِلْمَعْدُودِ — is unique to Arabic and remains one of the most counterintuitive grammar rules in any human language."},
-  {icon:"🌳",title:"One root — endless words",fact:"The root ع-ل-م (knowledge) generates: عِلْمٌ (knowledge), عَالِمٌ (scholar), مَعْلُومٌ (known), عَلَّمَ (to teach), تَعَلَّمَ (to learn), مُعَلِّمٌ (teacher), عَلَامَةٌ (sign), مَعْلَمٌ (landmark), اِسْتَعْلَمَ (to inquire). One 3-letter root encodes an entire intellectual domain across 9+ words — a level of structural efficiency unmatched by European languages."},
-  {icon:"🔡",title:"Arabic gave the world algebra, algorithm, and zero",fact:"The word 'algebra' comes from الْجَبْر (al-jabr) from al-Khwarizmi's 820 CE book. 'Algorithm' is the Latinised version of al-Khwarizmi's own name. 'Zero' comes from صِفْرٌ (ṣifr). 'Alcohol' from الْكُحُولُ, 'chemistry' from كِيمِيَاءُ, 'cotton' from الْقُطْنُ, 'sugar' from السُّكَّرُ. Arabic didn't just preserve knowledge — it created the vocabulary modern science still runs on."},
-  {icon:"📖",title:"Arabic is read without vowels",fact:"The Arabic script is an abjad — it writes consonants only. Vowel marks (التَّشْكِيلُ) are optional diacritics rarely printed in books, newspapers, or websites. Fluent Arabic readers are constantly inferring vowels from grammatical context — effectively reading a hidden layer of information. A sentence with no vowels can have multiple valid readings, all grammatically correct but with different meanings."},
-  {icon:"⚖️",title:"The verb stays singular even with a plural subject",fact:"In Classical Arabic, when a verb PRECEDES its subject, the verb is always singular — even if the subject is plural. ذَهَبَ الرِّجَالُ means 'the men went' but ذَهَبَ is singular. This rule (الْفِعْلُ الْمُفْرَدُ مَعَ الْجَمْعِ) confuses even advanced students because it directly contradicts the subject-verb agreement logic of every European language."},
-  {icon:"🔤",title:"The dots were added later",fact:"Classical Arabic was originally written without vowel marks AND without the dots that distinguish letters like ب، ت، ث (which all share the same base shape). The dots (الإِعْجَامُ) and vowel marks (الشَّكْلُ) were added centuries after the Quran's revelation to help non-native speakers. The Quran was originally transmitted and understood without them — entirely through oral tradition."},
-  {icon:"🧮",title:"Arabic hid dates in poetry for 1,000 years",fact:"The Abjad system (أَبْجَد) assigns numbers to letters: ا=1, ب=2, ج=3, د=4... Classical poets used this to conceal dates inside verse — the sum of specific letters in a line equals the year of an event. This practice, called تَارِيخٌ (chronogram), was used across Islamic civilisation for a millennium to encode historical records in plain sight."},
-  {icon:"🪞",title:"The broken plural is an entirely new word",fact:"English plurals are predictable: book→books, cat→cats. Arabic broken plurals (جَمْعُ التَّكْسِيرِ) are not. كِتَابٌ→كُتُبٌ, رَجُلٌ→رِجَالٌ, بَيْتٌ→بُيُوتٌ, عَيْنٌ→أَعْيُنٌ. There is no rule that predicts which pattern a noun will follow — each plural is effectively a separate lexical item that must be memorised. Arabic has more than 30 recognised broken plural patterns."},
-  {icon:"🌐",title:"Two Arabics — mutually incomprehensible",fact:"Arabic is in a state of diglossia so extreme that Modern Standard Arabic (الْفُصْحَى) and regional dialects (العَامِّيَّة) are, in complex conversation, mutually incomprehensible across regions. A Moroccan and a Yemeni speaking their dialects may understand less than 30% of each other — yet both are called 'Arabic'. No other major world language has this level of internal linguistic divergence while maintaining a single unified classical standard."},
-  {icon:"🔣",title:"The hamza is not a letter",fact:"ء (hamza) is not counted among the 28 letters of the Arabic alphabet — it is a phoneme that can sit on ا، و، ي, or stand alone, depending on the surrounding vowels. Rules governing hamza placement are so complex that native Arabic speakers — including academics — frequently disagree on the 'correct' spelling of words in Modern Standard Arabic."},
-  {icon:"💡",title:"Arabic verbs have four grammatical moods",fact:"Unlike English (which uses auxiliary verbs: 'he goes' / 'that he go'), Arabic encodes mood directly in the verb ending. يَذْهَبُ (indicative: he goes), يَذْهَبَ (subjunctive: that he go), يَذْهَبْ (jussive: let him go). The fourth is imperative: اِذْهَبْ (go!). Four distinct grammatical realities — each expressed by changing just the final vowel or dropping it entirely."},
-  {icon:"🧬",title:"إِعْرَابٌ — the word that explains itself",fact:"The Arabic grammatical case system is called إِعْرَابٌ (i'rāb), from the root ع-ر-ب meaning 'to clarify' or 'to express'. The same root gives us عَرَبٌ (Arabs), عَرَبِيٌّ (Arabic language), and أَعْرَبَ (to express clearly). In Classical Arabic, every word ending was pronounced and carried grammatical meaning. Modern spoken Arabic has largely dropped these endings — meaning most Arabs today speak a grammatically compressed version of their own classical language."},
-  {icon:"🔁",title:"The dual is obligatory — and often redundant",fact:"Arabic is one of few languages that grammatically REQUIRES you to use a dual form (مُثَنَّى) when referring to exactly two of anything. The suffix ـَانِ / ـَيْنِ is non-optional. But when you say 'two books' (كِتَابَانِ اثْنَانِ), you are being technically redundant — the dual suffix already means 'two', making the number word اثْنَانِ grammatically unnecessary. Classical grammarians called this التَّوْكِيدُ — deliberate, honoured redundancy."},
-  {icon:"🎭",title:"The word for 'heart' means 'mind' in the Quran",fact:"The Quran uses قَلْبٌ (heart) over 130 times to refer to the seat of understanding, reasoning, and consciousness — not the organ of emotion. In ancient Semitic thought, the heart was the brain. This is why Arabic expressions like 'memorising by heart' (حَفِظَ عَنْ ظَهْرِ قَلْبٍ) literally mean 'from the back of the heart.' The entire Quranic model of human cognition is housed in a word modern medicine assigns to a muscle."},
-  {icon:"🔠",title:"One letter — five shapes",fact:"Arabic letters change shape depending on their position in the word: isolated, initial, medial, and final. The letter ع for example appears as ع، عـ، ـعـ، ـع depending on where it sits. This means learning Arabic requires mastering up to 4 forms of each of the 28 letters — plus the hamza variations. Yet native readers process these shape-shifts as invisibly as English speakers process upper and lowercase letters."},
+const ISLAMIC_QUOTES = [
+  // ── طلب العلم ──────────────────────────────────────────────────────────
+  {
+    ar:"طَلَبُ الْعِلْمِ فَرِيضَةٌ عَلَى كُلِّ مُسْلِمٍ",
+    en:"Seeking knowledge is an obligation upon every Muslim.",
+    source:"Prophet Muhammad ﷺ",
+    sourceAr:"النبي محمد ﷺ",
+    note:"Recorded by Ibn Majah. Education is not optional — it is a religious duty. The Prophet ﷺ said this at a time when most of Arabia was illiterate. Teaching Arabic is not just a career — it is an act of worship."
+  },
+  {
+    ar:"اطْلُبُوا الْعِلْمَ مِنَ الْمَهْدِ إِلَى اللَّحْدِ",
+    en:"Seek knowledge from the cradle to the grave.",
+    source:"Imam Ali AS",
+    sourceAr:"الإمام علي عليه السلام",
+    note:"Learning has no finish line. Every student you teach is continuing this timeless journey — and so are you. A teacher who stops learning stops growing."
+  },
+  {
+    ar:"مَنْ عَمِلَ بِمَا عَلِمَ وَرَّثَهُ اللَّهُ عِلْمَ مَا لَمْ يَعْلَمْ",
+    en:"Whoever acts upon what they know, Allah will grant them knowledge of what they do not know.",
+    source:"Imam Ali AS",
+    sourceAr:"الإمام علي عليه السلام",
+    note:"Apply what you know — then more opens up. This is why teaching is the fastest way to deepen your own understanding. Every lesson you give sharpens your own Arabic."
+  },
+  {
+    ar:"الْعِلْمُ نُورٌ يَقْذِفُهُ اللَّهُ فِي قَلْبِ مَنْ يَشَاءُ",
+    en:"Knowledge is a light that Allah casts into the heart of whoever He wills.",
+    source:"Imam Ali AS",
+    sourceAr:"الإمام علي عليه السلام",
+    note:"Imam Ali AS — known as Bab al-Ilm, the Gate of Knowledge — described knowledge as divine light placed in the heart, not just facts stored in the mind. Seek it with sincerity and it will find you."
+  },
+  {
+    ar:"خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ",
+    en:"The best of you are those who learn the Quran and teach it.",
+    source:"Prophet Muhammad ﷺ",
+    sourceAr:"النبي محمد ﷺ",
+    note:"Recorded in Bukhari. The Prophet ﷺ placed learning and teaching in the same breath — as if they are inseparable. Teaching Arabic is a direct path to being among the best."
+  },
+  {
+    ar:"مَنْ سَلَكَ طَرِيقًا يَلْتَمِسُ فِيهِ عِلْمًا سَهَّلَ اللَّهُ لَهُ طَرِيقًا إِلَى الْجَنَّةِ",
+    en:"Whoever travels a path seeking knowledge, Allah will make easy for them a path to Paradise.",
+    source:"Prophet Muhammad ﷺ",
+    sourceAr:"النبي محمد ﷺ",
+    note:"Recorded in Muslim. Every lesson, every study session, every moment of practice is a step on this path. The Arabic word سَلَكَ (traveled) was used for physical roads — the Prophet ﷺ made knowledge-seeking equally real."
+  },
+  // ── تزكية النفس — Soul Purification ────────────────────────────────────
+  {
+    ar:"أَشَدُّ الْجِهَادِ جِهَادُ النَّفْسِ",
+    en:"The greatest struggle is the struggle against one's own self.",
+    source:"Prophet Muhammad ﷺ",
+    sourceAr:"النبي محمد ﷺ",
+    note:"The Prophet ﷺ said this upon returning from a battle, calling the inner war more demanding than any external one. Disciplining your desires, your ego, your tongue — this is the real battlefield."
+  },
+  {
+    ar:"أَعْدَى عَدُوِّكَ نَفْسُكَ الَّتِي بَيْنَ جَنْبَيْكَ",
+    en:"Your greatest enemy is your own self — the one that lies between your two sides.",
+    source:"Imam Ali AS",
+    sourceAr:"الإمام علي عليه السلام",
+    note:"Imam Ali AS taught that the nafs (self) left unchecked becomes the source of all failure. The person who builds a business, a brand, or a legacy must first build self-mastery. No external success compensates for internal disorder."
+  },
+  {
+    ar:"مَنْ عَرَفَ نَفْسَهُ فَقَدْ عَرَفَ رَبَّهُ",
+    en:"Whoever knows themselves has known their Lord.",
+    source:"Imam Ali AS",
+    sourceAr:"الإمام علي عليه السلام",
+    note:"One of the most quoted sayings in Islamic philosophy. Self-knowledge — your strengths, your flaws, your purpose — is the beginning of spiritual understanding. Know why you teach. Know what you are building. The clarity will guide everything else."
+  },
+  {
+    ar:"حَاسِبُوا أَنْفُسَكُمْ قَبْلَ أَنْ تُحَاسَبُوا",
+    en:"Hold yourselves accountable before you are held accountable.",
+    source:"Imam Ali AS",
+    sourceAr:"الإمام علي عليه السلام",
+    note:"Imam Ali AS made daily self-review a practice. Before sleep: What did I do well? What did I waste? What did I say that I shouldn't have? This habit — muhasabat al-nafs — is one of the most powerful tools for personal growth."
+  },
+  {
+    ar:"إِنَّ نَفْسَكَ عَلَيْكَ بِالْمُطَالَبَةِ، فَكُنْ أَنْتَ لَهَا بِالرِّيَاضَةِ وَالتَّقْوِيمِ",
+    en:"Your soul will demand things from you — so discipline it and keep it upright.",
+    source:"Imam Ali AS",
+    sourceAr:"الإمام علي عليه السلام",
+    note:"The nafs has appetites — for comfort, for distraction, for shortcuts. Imam Ali AS taught that it must be trained like a horse: not broken, but guided. Discipline is an act of respect for your own potential."
+  },
+  {
+    ar:"طَهِّرْ قَلْبَكَ مِنَ الْحِقْدِ وَالْحَسَدِ وَالْبُغْضِ تَسْلَمْ فِي دِينِكَ وَدُنْيَاكَ",
+    en:"Purify your heart from resentment, envy, and hatred — and you will be safe in both your religion and your worldly life.",
+    source:"Imam Ali AS",
+    sourceAr:"الإمام علي عليه السلام",
+    note:"Envy and resentment cost the person who holds them more than anyone else. Imam Ali AS saw a clean heart as the foundation of both spiritual health and worldly success — they are not separate."
+  },
+  {
+    ar:"أَيُّهَا النَّاسُ، إِنَّ اللَّهَ أَعْطَاكُمُ الدُّنْيَا لِتَتَزَوَّدُوا مِنْهَا لِلْآخِرَةِ",
+    en:"O people, Allah gave you this world so that you may provision yourselves from it for the next.",
+    source:"Imam Ali AS",
+    sourceAr:"الإمام علي عليه السلام",
+    note:"Dunya is not the enemy — it is a vehicle. Build your business, earn your income, grow your platform — but let it all be fuel for something higher. The teacher who teaches for the sake of Allah earns in this world and the next."
+  },
+  // ── الصحة — Health & Body ──────────────────────────────────────────────
+  {
+    ar:"الصِّحَّةُ تَاجٌ عَلَى رُؤُوسِ الْأَصِحَّاءِ لَا يَرَاهُ إِلَّا الْمَرْضَى",
+    en:"Health is a crown on the heads of the healthy — seen only by the sick.",
+    source:"Imam Ali AS",
+    sourceAr:"الإمام علي عليه السلام",
+    note:"We take good health for granted until it is gone. Imam Ali AS — who survived countless battles — prioritised his body as a trust. Your energy, your focus, your voice as a teacher all depend on how well you care for your body."
+  },
+  {
+    ar:"مَا مَلَأَ آدَمِيٌّ وِعَاءً شَرًّا مِنْ بَطْنٍ، بِحَسْبِ ابْنِ آدَمَ لُقَيْمَاتٌ يُقِمْنَ صُلْبَهُ",
+    en:"No vessel is worse for a human to fill than the stomach. A few mouthfuls that keep the back straight are enough.",
+    source:"Prophet Muhammad ﷺ",
+    sourceAr:"النبي محمد ﷺ",
+    note:"Recorded in Tirmidhi. The Prophet ﷺ ate simply, in small portions, and often fasted. He remained one of the most energetic, focused, and sharp-minded people of his era. Overeating was, in his view, the root of many ailments — physical and spiritual."
+  },
+  {
+    ar:"الْمُؤْمِنُ الْقَوِيُّ خَيْرٌ وَأَحَبُّ إِلَى اللَّهِ مِنَ الْمُؤْمِنِ الضَّعِيفِ",
+    en:"A strong believer is better and more beloved to Allah than a weak believer.",
+    source:"Prophet Muhammad ﷺ",
+    sourceAr:"النبي محمد ﷺ",
+    note:"The Prophet ﷺ was a skilled wrestler, archer, and horseman. He encouraged physical fitness as part of faith. Strength — in body, mind, and character — makes you more capable of serving others and fulfilling your purpose."
+  },
+  {
+    ar:"نِعْمَتَانِ مَغْبُونٌ فِيهِمَا كَثِيرٌ مِنَ النَّاسِ: الصِّحَّةُ وَالْفَرَاغُ",
+    en:"Two blessings that most people squander: health and free time.",
+    source:"Prophet Muhammad ﷺ",
+    sourceAr:"النبي محمد ﷺ",
+    note:"Recorded in Bukhari. The Prophet ﷺ identified these two as the most under-valued gifts. Most people only appreciate health when it is lost, and only regret wasted time when it cannot be recovered. Use both now."
+  },
+  // ── الأخلاق — Character & Conduct ──────────────────────────────────────
+  {
+    ar:"لَيْسَ الشَّدِيدُ بِالصُّرَعَةِ، إِنَّمَا الشَّدِيدُ الَّذِي يَمْلِكُ نَفْسَهُ عِنْدَ الْغَضَبِ",
+    en:"The strong person is not the one who wrestles others down. The strong person controls themselves when angry.",
+    source:"Prophet Muhammad ﷺ",
+    sourceAr:"النبي محمد ﷺ",
+    note:"When a companion asked for advice three times, the Prophet ﷺ gave the same answer each time: 'Do not get angry.' Anger destroys relationships, reputation, and decisions. Self-mastery is the real measure of strength."
+  },
+  {
+    ar:"قِيمَةُ كُلِّ امْرِئٍ مَا يُحْسِنُهُ",
+    en:"The worth of every person is in what they do well.",
+    source:"Imam Ali AS",
+    sourceAr:"الإمام علي عليه السلام",
+    note:"Imam Ali AS was a scholar, warrior, poet, farmer, judge, and calligrapher — all done with mastery. He taught that excellence in your craft is itself a form of dignity. Do your work well. It speaks louder than any title."
+  },
+  {
+    ar:"الْكَلِمَةُ الطَّيِّبَةُ صَدَقَةٌ",
+    en:"A kind word is a form of charity.",
+    source:"Prophet Muhammad ﷺ",
+    sourceAr:"النبي محمد ﷺ",
+    note:"Every encouraging word to a student, every patient correction, every message of motivation — is counted as charity. You are giving sadaqah every single day through the work you do."
+  },
+  {
+    ar:"لَا تَنْظُرْ إِلَى مَنْ قَالَ، وَانْظُرْ إِلَى مَا قَالَ",
+    en:"Do not look at who said it — look at what was said.",
+    source:"Imam Ali AS",
+    sourceAr:"الإمام علي عليه السلام",
+    note:"Judge ideas on their merit. Take wisdom from wherever it comes. Islamic scholars preserved Greek philosophy, Persian medicine, and Indian mathematics — because truth belongs to no single tradition. Stay open."
+  },
+  {
+    ar:"إِنَّ اللَّهَ جَمِيلٌ يُحِبُّ الْجَمَالَ",
+    en:"Indeed Allah is beautiful and loves beauty.",
+    source:"Prophet Muhammad ﷺ",
+    sourceAr:"النبي محمد ﷺ",
+    note:"The Prophet ﷺ was known for his clean appearance, his fragrant scent, his beautiful speech. Beauty in how you present yourself, your work, your brand — is not vanity. It is a reflection of care and faith."
+  },
+  {
+    ar:"أَحِبَّ لِلنَّاسِ مَا تُحِبُّ لِنَفْسِكَ",
+    en:"Love for others what you love for yourself.",
+    source:"Prophet Muhammad ﷺ",
+    sourceAr:"النبي محمد ﷺ",
+    note:"The ethical foundation of Islam — and the heart of good teaching. Teach the way you wish you had been taught. Explain the way you wished someone had explained to you. Your students will feel the difference."
+  },
+  // ── الدنيا والبناء — Building & Purpose ────────────────────────────────
+  {
+    ar:"كُنْ فِي الدُّنْيَا كَأَنَّكَ غَرِيبٌ أَوْ عَابِرُ سَبِيلٍ",
+    en:"Be in this world as if you were a stranger or a traveller passing through.",
+    source:"Prophet Muhammad ﷺ",
+    sourceAr:"النبي محمد ﷺ",
+    note:"The Prophet ﷺ said this to Ibn Umar, placing his hand on his shoulder. A traveller packs light, focuses on the destination, and does not get attached to temporary comforts. Build in this world — but don't let it own you."
+  },
+  {
+    ar:"إِنَّمَا الصَّبْرُ عِنْدَ الصَّدْمَةِ الْأُولَى",
+    en:"True patience is at the first moment of a calamity.",
+    source:"Prophet Muhammad ﷺ",
+    sourceAr:"النبي محمد ﷺ",
+    note:"The Prophet ﷺ said this to a woman weeping at a grave. Real resilience shows at the moment of shock — not after you've had time to adjust. When a business hits a wall, a lesson goes wrong, or a plan fails — that first response is the test."
+  },
+  {
+    ar:"إِنَّ مَعَ الْعُسْرِ يُسْرًا",
+    en:"Indeed, with hardship comes ease.",
+    source:"القرآن الكريم — سورة الشرح",
+    sourceAr:"القرآن الكريم ٩٤:٦",
+    note:"Allah repeats this twice in the same surah. In Arabic: العُسْر (the hardship) has الـ — definite, one specific hardship. يُسْر (ease) has no الـ — indefinite, meaning new ease, fresh relief. One hardship. Multiple forms of relief. Always."
+  },
+  {
+    ar:"خَيْرُ جَلِيسٍ فِي الزَّمَانِ كِتَابٌ",
+    en:"The best companion in any age is a book.",
+    source:"Imam Ali AS",
+    sourceAr:"الإمام علي عليه السلام",
+    note:"Imam Ali AS lived in an era without printing. Books were precious, rare, and hand-copied. Yet he surrounded himself with them. In an age of endless distraction, choosing to read is a radical act of self-investment."
+  },
+  {
+    ar:"تَخَلَّقُوا بِأَخْلَاقِ اللَّهِ",
+    en:"Adorn yourselves with the character of Allah.",
+    source:"Imam Ali AS",
+    sourceAr:"الإمام علي عليه السلام",
+    note:"The divine names — الرحيم (The Merciful), الكريم (The Generous), العليم (The All-Knowing) — are not just descriptions of God. They are the standard Imam Ali AS invited every person to aspire toward in how they live and treat others."
+  },
+  {
+    ar:"النَّاسُ مَعَادِنُ كَمَعَادِنِ الذَّهَبِ وَالْفِضَّةِ",
+    en:"People are like minerals — like veins of gold and silver.",
+    source:"Prophet Muhammad ﷺ",
+    sourceAr:"النبي محمد ﷺ",
+    note:"The Prophet ﷺ saw potential in every person. As a teacher and mentor, your job is not to create ability in your students — it is to reveal what is already there. Every student carries something precious waiting to be drawn out."
+  },
 ];
 
 // Female colour palettes — rotate daily
@@ -3038,7 +3770,7 @@ function PrefSection({n,title,sub,children}) {
 // ════════════════════════════════════════
 // STUDENT PORTAL — PREFERENCES / LEARNING PROFILE
 // ════════════════════════════════════════
-function StudentPreferencesTab({student: s, data, setData}) {
+function StudentPreferencesTab({student: s, data, setData, auth}) {
   const p = s.learningProfile || {};
   const upd = patch => setData({...data, students: data.students.map(x=>x.id===s.id?{...x,learningProfile:{...(x.learningProfile||{}),...patch}}:x)});
   const toggleTopic = t => {
@@ -3047,8 +3779,53 @@ function StudentPreferencesTab({student: s, data, setData}) {
   };
   // Local state for the free-text goal so typing doesn't re-render the parent on every keystroke
   const [localGoal, setLocalGoal] = useState(p.personalGoal||"");
+  // Study schedule prefs
+  const sp = s.studyPrefs || {};
+  const [studyDays, setStudyDays] = useState(sp.days || []);
+  const [studyWindow, setStudyWindow] = useState(sp.timeWindow || "");
+  const [schedSaved, setSchedSaved] = useState(false);
   const [goalSaved, setGoalSaved] = useState(false);
   const saveGoal = () => { upd({personalGoal:localGoal}); setGoalSaved(true); setTimeout(()=>setGoalSaved(false),2500); };
+
+  const saveSchedule = () => {
+    const prefs = {days: studyDays, timeWindow: studyWindow};
+    setData({...data, students: data.students.map(x=>x.id===s.id?{...x,studyPrefs:prefs}:x)});
+    setSchedSaved(true); setTimeout(()=>setSchedSaved(false),3000);
+    // Check overlap with teacher availability and notify student
+    const avail = data.settings?.availability;
+    if (!avail || !studyDays.length || !studyWindow) return;
+    const DAY_NAMES = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    const WIN_HOURS = {morning:[6,12],afternoon:[12,17],evening:[17,22]};
+    const [wS, wE] = WIN_HOURS[studyWindow] || [0,24];
+    const matchedDays = [], teacherDays = [];
+    for (let d = 0; d <= 6; d++) {
+      const da = avail[d];
+      if (!da?.enabled || !da?.ranges?.length) continue;
+      teacherDays.push(DAY_NAMES[d]);
+      if (studyDays.includes(d)) {
+        const overlap = da.ranges.some(r => {
+          const rS = parseInt((r.from||"0:0").split(":")[0]);
+          const rE = parseInt((r.to||"23:0").split(":")[0]);
+          return rS < wE && rE > wS;
+        });
+        if (overlap) matchedDays.push(DAY_NAMES[d]);
+      }
+    }
+    if (!auth?.token || !s.email) return;
+    if (matchedDays.length > 0) {
+      notifyStudent(auth.token, s.email,
+        "🗓️ Great news! We match!",
+        "Your preferred study time overlaps with Hadi's availability on " + matchedDays.join(", ") + ". Tap to book your next lesson!",
+        "schedule-match"
+      );
+    } else if (teacherDays.length > 0) {
+      notifyStudent(auth.token, s.email,
+        "📅 Can you make time?",
+        "Hadi checked your preferences. He's available on " + teacherDays.join(", ") + ". Can you make time for Arabic this week?",
+        "schedule-mismatch"
+      );
+    }
+  };
 
   const WHY = [
     {v:"quran",e:"🕌",l:"Quran & Religion",d:"Understand Quranic Arabic and Islamic texts"},
@@ -3150,6 +3927,49 @@ function StudentPreferencesTab({student: s, data, setData}) {
       </div>
     <//>
 
+    <!-- Study Schedule Preferences -->
+    <div class="card" style=${{marginBottom:14,border:"2px solid "+(s.studentTheme||"#4a90d9")+"33"}}>
+      <div style=${{fontWeight:700,fontSize:14,marginBottom:4,color:"#111"}}>📅 When do you like to study?</div>
+      <div style=${{fontSize:12,color:"#888",marginBottom:14,lineHeight:1.6}}>Pick your preferred days and time of day. Hadi will be notified and you'll get a message if your schedule overlaps with his availability.</div>
+
+      <!-- Days -->
+      <div style=${{marginBottom:14}}>
+        <div style=${{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:"#aaa",marginBottom:8}}>Preferred Days</div>
+        <div style=${{display:"flex",flexWrap:"wrap",gap:6}}>
+          ${[1,2,3,4,5,6,0].map(d=>{
+            const DAY_SHORT = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+            const active = studyDays.includes(d);
+            return h`<button key=${d} onClick=${()=>setStudyDays(prev=>prev.includes(d)?prev.filter(x=>x!==d):[...prev,d])}
+              style=${{padding:"8px 14px",border:"2px solid "+(active?(s.studentTheme||"#4a90d9"):"#e0e0e0"),borderRadius:10,
+                background:active?(s.studentTheme||"#4a90d9")+"11":"#fafafa",
+                color:active?(s.studentTheme||"#4a90d9"):"#888",
+                fontWeight:active?700:500,cursor:"pointer",fontSize:13,fontFamily:"var(--fb)",transition:"all 0.15s"}}>${DAY_SHORT[d]}</button>`;
+          })}
+        </div>
+      </div>
+
+      <!-- Time window -->
+      <div style=${{marginBottom:16}}>
+        <div style=${{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:"#aaa",marginBottom:8}}>Preferred Time</div>
+        <div style=${{display:"flex",gap:8,flexWrap:"wrap"}}>
+          ${[["morning","🌅 Morning","6am – 12pm"],["afternoon","☀️ Afternoon","12pm – 5pm"],["evening","🌙 Evening","5pm – 10pm"]].map(([id,lbl,sub])=>h`
+            <button key=${id} onClick=${()=>setStudyWindow(studyWindow===id?"":id)} style=${{
+              flex:1,minWidth:100,padding:"10px 8px",border:"2px solid "+(studyWindow===id?(s.studentTheme||"#4a90d9"):"#e0e0e0"),
+              borderRadius:10,background:studyWindow===id?(s.studentTheme||"#4a90d9")+"11":"#fafafa",
+              cursor:"pointer",fontFamily:"var(--fb)",transition:"all 0.15s"
+            }}>
+              <div style=${{fontWeight:700,fontSize:13,color:studyWindow===id?(s.studentTheme||"#4a90d9"):"#555"}}>${lbl}</div>
+              <div style=${{fontSize:10,color:"#aaa",marginTop:2}}>${sub}</div>
+            </button>`)}
+        </div>
+      </div>
+
+      <div style=${{display:"flex",alignItems:"center",gap:10}}>
+        <button class="btn btn-p btn-sm" onClick=${saveSchedule} disabled=${!studyDays.length||!studyWindow}>${schedSaved?"✓ Saved & Sent!":"Save Schedule"}</button>
+        ${schedSaved&&h`<span style=${{fontSize:12,color:"var(--ok)",fontWeight:700}}>Hadi has been notified!</span>`}
+      </div>
+    </div>
+
     ${pct===100?h`<div style=${{background:"#e8f5e9",border:"2px solid #4caf50",borderRadius:12,padding:"14px 18px",textAlign:"center",fontWeight:700,color:"#2e7d32",fontSize:14}}>
       🎉 Profile complete! Your quizzes and AI tutor are now fully personalised to you.
     </div>`:h`<div style=${{background:"#fff8e1",border:"1px solid #ffcc02",borderRadius:10,padding:"12px 16px",fontSize:13,color:"#7a6000"}}>
@@ -3168,6 +3988,7 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
   });
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState("");
+  const [jumpTopic, setJumpTopic] = useState(null);
 
   // On mount: if permission already granted, silently refresh push subscription
   // (handles expired subscriptions, new devices, browser data cleared)
@@ -3185,6 +4006,8 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
     // Fire-and-forget immediate cloud sync
     apiPost("/api/data", {token: auth.token, action:"studentWrite", data}).catch(()=>{});
   };
+  const goToFlashcards = (topic) => { setJumpTopic(topic); switchTab("library"); };
+  const goToQuiz = (topic) => { setJumpTopic(topic); switchTab("quiz"); };
   // Match student by email or phone
   const s = data.students.find(st =>
     (user.email && st.email && st.email.toLowerCase() === user.email.toLowerCase()) ||
@@ -3238,7 +4061,9 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
   // Female palette — rotate daily
   const isFemale = s.gender === "female";
   const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(),0,0))/86400000);
-  const pal = isFemale ? FEMALE_PALETTES[dayOfYear % FEMALE_PALETTES.length] : null;
+  // Use a hash of the student's ID so each female student has a consistent, personalized palette
+  const idHash = (s.id||"").split("").reduce((acc,c)=>acc+c.charCodeAt(0),0);
+  const pal = isFemale ? FEMALE_PALETTES[idHash % FEMALE_PALETTES.length] : null;
   const flower = pal ? pal.flower : "";
 
   // Accent colour: female palette overrides student theme, which overrides default black
@@ -3247,8 +4072,8 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
   // Nickname display
   const nicknameDisplay = s.nickname ? ` ${s.nicknameEmoji||""} ${s.nickname}` : "";
 
-  // Daily Arabic fact
-  const todayFact = ARABIC_FACTS[dayOfYear % ARABIC_FACTS.length];
+  // Daily Islamic quote
+  const todayQuote = ISLAMIC_QUOTES[dayOfYear % ISLAMIC_QUOTES.length];
 
   const doRefresh = async () => {
     setSyncing(true); setSyncMsg("");
@@ -3369,12 +4194,12 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
 
     <div class="sp-content" style=${{padding:"14px 12px",maxWidth:1400,margin:"0 auto"}}>
     ${spTab==="schedule"&&h`<div style=${{maxWidth:680,margin:"0 auto"}}><${StudentScheduler} student=${s} data=${data} setData=${setData} auth=${auth}/></div>`}
-    ${spTab==="curriculum"&&h`<${StudentCurriculumTab} student=${s} data=${data} setData=${setData}/>`}
-    ${spTab==="library"&&h`<${StudentLibraryTab} student=${s} data=${data} setData=${setData}/>`}
-    ${spTab==="quiz"&&h`<${StudentQuizTab} student=${s} data=${data}/>`}
+    ${spTab==="curriculum"&&h`<${StudentCurriculumTab} student=${s} data=${data} setData=${setData} onGoFlashcards=${goToFlashcards} onGoQuiz=${goToQuiz}/>`}
+    ${spTab==="library"&&h`<${StudentLibraryTab} student=${s} data=${data} setData=${setData} initialTopic=${jumpTopic}/>`}
+    ${spTab==="quiz"&&h`<${StudentQuizTab} student=${s} data=${data} setData=${setData} initialTopic=${jumpTopic} onGoFlashcards=${goToFlashcards}/>`}
     ${spTab==="practice"&&h`<${SentenceLabTab} student=${s} data=${data}/>`}
     ${spTab==="settings"&&h`<${StudentSettingsTab} student=${s} data=${data} setData=${setData} auth=${auth}/>`}
-    ${spTab==="preferences"&&h`<${StudentPreferencesTab} student=${s} data=${data} setData=${setData}/>`}
+    ${spTab==="preferences"&&h`<${StudentPreferencesTab} student=${s} data=${data} setData=${setData} auth=${auth}/>`}
     ${spTab==="home"&&h`<div class="portal-grid"><div>
 
       <!-- Notification nudge banner -->
@@ -3382,28 +4207,47 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
 
       <!-- Daily Arabic Fact -->
       <div style=${{
-        background: pal ? "linear-gradient(135deg,"+pal.hdr.match(/#[a-f0-9]{6}/gi)?.[0]+"22,"+pal.hdr.match(/#[a-f0-9]{6}/gi)?.[1]+"33)" : "#fff",
-        border: pal ? "2px solid "+pal.border+"55" : "2px solid "+(s.studentTheme||"#4a90d9")+"55",
-        borderLeft: pal ? "5px solid "+pal.border : "5px solid "+(s.studentTheme||"#4a90d9"),
+        background: pal ? "linear-gradient(135deg,"+pal.hdr.match(/#[a-f0-9]{6}/gi)?.[0]+"22,"+pal.hdr.match(/#[a-f0-9]{6}/gi)?.[1]+"33)" : "linear-gradient(135deg,#fffdf5,#fff8e6)",
+        border: pal ? "2px solid "+pal.border+"55" : "2px solid #d4a85555",
+        borderLeft: pal ? "5px solid "+pal.border : "5px solid #c9922a",
         borderRadius:14,padding:"18px 20px",marginBottom:16,
         boxShadow:"0 2px 12px rgba(0,0,0,0.06)"
       }}>
-        <div style=${{display:"flex",gap:10,alignItems:"flex-start"}}>
-          <div style=${{fontSize:28,flexShrink:0,lineHeight:1}}>${todayFact.icon}</div>
-          <div>
-            <div style=${{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:1.5,color:pal?pal.border:"#c9922a",marginBottom:4}}>💎 Did You Know? — Linguistic Fact of the Day</div>
-            <div style=${{fontSize:13,fontWeight:800,color:"#111",marginBottom:6,fontFamily:"var(--fh)",letterSpacing:.5}}>${todayFact.title}</div>
-            <div style=${{fontSize:13,lineHeight:1.75,color:"#444"}}>${todayFact.fact}</div>
-          </div>
+        <div style=${{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:1.5,color:pal?pal.border:"#c9922a",marginBottom:10,display:"flex",alignItems:"center",gap:6}}>
+          <span>☪️</span><span>Quote of the Day — طَلَبُ الْعِلْمِ</span>
         </div>
+        <!-- Arabic text -->
+        <div style=${{
+          fontFamily:"'Amiri','Noto Naskh Arabic',serif",
+          fontSize:20,lineHeight:1.9,textAlign:"right",direction:"rtl",
+          color:"#1a1a1a",marginBottom:12,fontWeight:700,
+          borderBottom:"1px solid rgba(0,0,0,0.08)",paddingBottom:10
+        }}>${todayQuote.ar}</div>
+        <!-- English translation -->
+        <div style=${{fontSize:14,lineHeight:1.7,color:"#222",fontStyle:"italic",marginBottom:8,fontWeight:500}}>
+          "${todayQuote.en}"
+        </div>
+        <!-- Source -->
+        <div style=${{display:"flex",alignItems:"center",gap:8,marginBottom: todayQuote.note ? 10 : 0}}>
+          <span style=${{fontSize:11,fontWeight:700,color:pal?pal.border:"#c9922a",background:pal?pal.border+"15":"#c9922a18",padding:"2px 10px",borderRadius:20}}>
+            ${todayQuote.source}
+          </span>
+          <span style=${{
+            fontFamily:"'Amiri','Noto Naskh Arabic',serif",
+            fontSize:12,color:"#888",direction:"rtl"
+          }}>${todayQuote.sourceAr}</span>
+        </div>
+        ${todayQuote.note ? h`<div style=${{fontSize:12,lineHeight:1.65,color:"#666",borderTop:"1px solid rgba(0,0,0,0.06)",paddingTop:8,marginTop:4}}>
+          📖 ${todayQuote.note}
+        </div>` : null}
       </div>
 
       <!-- Stats row -->
-      <div class="sp-stats" style=${{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:16}}>
+      <div class="sp-stats" style=${{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:12}}>
         ${[
           ["📚","Lessons Done",s.lessonsTaken,accent],
           ["📅","Attendance",att.rate+"%",att.rate>=80?"var(--ok)":att.rate>=60?"var(--wn)":"var(--bd)"],
-          ["🔥","Streak",att.streak+" lessons","#ff6b35"],
+          ["🔥","Study Streak",(s.streakDays||0)+" days","#ff6b35"],
           ["📖","Topics",doneCount+"/"+assigned.length,accent]
         ].map(([icon,label,val,color])=>h`<div style=${{background:"#fff",borderRadius:12,padding:"14px 12px",textAlign:"center",boxShadow:"0 1px 4px rgba(0,0,0,0.06)",border:"1px solid #eee",borderTop:"3px solid "+accent}}>
           <div style=${{fontSize:20,marginBottom:4}}>${icon}</div>
@@ -3411,6 +4255,30 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
           <div style=${{fontSize:10,color:"var(--g500)",textTransform:"uppercase",letterSpacing:1,marginTop:2}}>${label}</div>
         </div>`)}
       </div>
+
+      <!-- XP bar -->
+      ${(()=>{
+        const xp = s.xp||0;
+        const level = Math.floor(xp/100)+1;
+        const pct = xp%100;
+        const streak = s.streakDays||0;
+        return h`<div style=${{background:"#fff",borderRadius:12,padding:"12px 16px",marginBottom:16,boxShadow:"0 1px 4px rgba(0,0,0,0.06)",border:"1px solid #eee",display:"flex",alignItems:"center",gap:14}}>
+          <div style=${{background:accent+"15",borderRadius:10,padding:"8px 12px",textAlign:"center",minWidth:56,flexShrink:0}}>
+            <div style=${{fontSize:11,fontWeight:700,color:accent,textTransform:"uppercase",letterSpacing:1}}>Level</div>
+            <div style=${{fontSize:26,fontWeight:900,fontFamily:"var(--fh)",color:accent,lineHeight:1.1}}>${level}</div>
+          </div>
+          <div style=${{flex:1}}>
+            <div style=${{display:"flex",justifyContent:"space-between",marginBottom:5}}>
+              <span style=${{fontSize:12,fontWeight:700,color:"#333"}}>⭐ ${xp} XP total</span>
+              <span style=${{fontSize:11,color:"#aaa"}}>${pct}/100 to level ${level+1}</span>
+            </div>
+            <div style=${{height:8,background:"#f0f0f0",borderRadius:8,overflow:"hidden"}}>
+              <div style=${{height:"100%",width:pct+"%",background:"linear-gradient(90deg,"+accent+","+accent+"cc)",borderRadius:8,transition:"width 0.5s ease"}}></div>
+            </div>
+            ${streak>=3?h`<div style=${{marginTop:6,fontSize:11,color:"#ff6b35",fontWeight:700}}>🔥 ${streak}-day streak! Keep going!</div>`:null}
+          </div>
+        </div>`;
+      })()}
 
       <!-- Study skills spider charts — one per active learning type -->
       ${(()=>{
@@ -3448,21 +4316,27 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
         </div>`;
       })()}
 
-      <!-- Teacher message / summary -->
-      ${(s.teacherSummary||s.goals||s.nextSteps)&&h`<div style=${{background:"#fff",borderRadius:12,padding:"18px 20px",marginBottom:16,boxShadow:"0 1px 4px rgba(0,0,0,0.06)",border:"1px solid #eee"}}>
-        ${s.teacherSummary&&h`<div style=${{marginBottom:14,padding:"12px 14px",background:"linear-gradient(135deg,#f0fff4,#e8f5e9)",borderRadius:10,borderLeft:"4px solid var(--ok)"}}>
-          <div style=${{fontSize:10,fontWeight:700,textTransform:"uppercase",color:"var(--ok)",marginBottom:6,letterSpacing:1}}>📋 Message from Hadi</div>
-          <p style=${{fontSize:13,lineHeight:1.8,color:"#333",margin:0}}>${s.teacherSummary}</p>
-        </div>`}
-        ${s.goals&&h`<div style=${{marginBottom:12}}>
-          <div style=${{fontSize:10,fontWeight:700,textTransform:"uppercase",color:accent,marginBottom:6,letterSpacing:1}}>🎯 Your Goals</div>
-          <p style=${{fontSize:13,lineHeight:1.7,color:"var(--g600)",margin:0}}>${s.goals}</p>
-        </div>`}
-        ${s.nextSteps&&h`<div>
-          <div style=${{fontSize:10,fontWeight:700,textTransform:"uppercase",color:"var(--wn)",marginBottom:6,letterSpacing:1}}>⚡ Next Steps</div>
-          <p style=${{fontSize:13,lineHeight:1.7,color:"var(--g600)",margin:0}}>${s.nextSteps}</p>
-        </div>`}
-      </div>`}
+      <!-- Learning Plan — latest lesson log + goals + next steps -->
+      ${(()=>{
+        const latestLog = (data.lessonLogs||[]).filter(l=>l.studentId===s.id).sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
+        const hasContent = latestLog?.aiStudentSummary || s.goals || s.nextSteps;
+        if (!hasContent) return null;
+        return h`<div style=${{background:"#fff",borderRadius:14,padding:"18px 20px",marginBottom:16,boxShadow:"0 2px 10px rgba(0,0,0,0.07)",border:"1px solid #eee",borderTop:"4px solid "+accent}}>
+          <div style=${{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1.5,color:accent,marginBottom:14}}>🗺️ Your Learning Plan</div>
+          ${latestLog?.aiStudentSummary&&h`<div style=${{marginBottom:14,padding:"12px 14px",background:"linear-gradient(135deg,#f0fff4,#e8f5e9)",borderRadius:10,borderLeft:"4px solid var(--ok)"}}>
+            <div style=${{fontSize:10,fontWeight:700,textTransform:"uppercase",color:"var(--ok)",marginBottom:6,letterSpacing:1}}>💬 After Your Last Lesson (${fmt(latestLog.date)})</div>
+            <p style=${{fontSize:13,lineHeight:1.8,color:"#333",margin:0}}>${latestLog.aiStudentSummary}</p>
+          </div>`}
+          ${s.goals&&h`<div style=${{marginBottom:12}}>
+            <div style=${{fontSize:10,fontWeight:700,textTransform:"uppercase",color:accent,marginBottom:6,letterSpacing:1}}>🎯 Your Goals</div>
+            <p style=${{fontSize:13,lineHeight:1.7,color:"var(--g600)",margin:0}}>${s.goals}</p>
+          </div>`}
+          ${s.nextSteps&&h`<div>
+            <div style=${{fontSize:10,fontWeight:700,textTransform:"uppercase",color:"var(--wn)",marginBottom:6,letterSpacing:1}}>⚡ What's Next</div>
+            <p style=${{fontSize:13,lineHeight:1.7,color:"var(--g600)",margin:0}}>${s.nextSteps}</p>
+          </div>`}
+        </div>`;
+      })()}
 
       <!-- Last lesson note -->
       ${(()=>{const ll=sLessons.find(l=>l.status==="Completed"&&l.notes); return ll&&h`<div style=${{background:"#fff",borderRadius:12,padding:"18px 20px",marginBottom:16,boxShadow:"0 1px 4px rgba(0,0,0,0.06)",border:"1px solid #eee",borderLeft:"4px solid "+accent}}>
@@ -3527,8 +4401,14 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
       <!-- Weekly Tasks -->
       <${StudentWeeklyTasks} student=${s} data=${data} setData=${setData} auth=${auth}/>
 
-      <!-- Lesson request -->
-      <${StudentLessonRequest} student=${s} data=${data} setData=${setData} auth=${auth}/>
+      <!-- Book a lesson — direct to the Book tab -->
+      <div style=${{background:"#fff",borderRadius:14,padding:"18px 20px",marginBottom:16,boxShadow:"0 2px 8px rgba(0,0,0,0.07)",border:"2px solid "+accent+"33",borderLeft:"5px solid "+accent}}>
+        <div style=${{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1.5,color:accent,marginBottom:10}}>📅 Ready for your next lesson?</div>
+        <p style=${{fontSize:13,color:"var(--g600)",marginBottom:14,lineHeight:1.6}}>Pick a day and time that works for you — Hadi's availability is shown in real time.</p>
+        <button onClick=${()=>switchTab("schedule")} style=${{width:"100%",padding:"13px",background:accent,color:"#fff",border:"none",borderRadius:10,fontWeight:800,fontSize:14,cursor:"pointer",fontFamily:"var(--fb)"}}>
+          📅 See Available Times →
+        </button>
+      </div>
 
       <!-- Note to teacher -->
       <${StudentNoteToTeacher} student=${s} data=${data} setData=${setData} auth=${auth}/>
@@ -3571,7 +4451,7 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
           </div>
         </div>`;
       })()}
-      <${StudentAIPanel} student=${s} data=${data}/>
+      <${StudentAIPanel} student=${s} data=${data} setData=${setData} auth=${auth}/>
     </div>
     </div>`}
     </div>
@@ -3968,6 +4848,7 @@ function SentenceLabTab({student: s}) {
           <span style=${{background:accent,color:'#fff',borderRadius:20,padding:'2px 9px',fontSize:11,fontWeight:700}}>${saved.length}</span>
         </div>
         <div style=${{display:'flex',alignItems:'center',gap:10}}>
+          <button onClick=${e=>{e.stopPropagation();exportSentenceLabPDF(saved,s.name);}} style=${{fontSize:12,color:'#1976d2',background:'none',border:'none',cursor:'pointer',fontFamily:'inherit',padding:'4px 8px',borderRadius:6}}>📥 PDF</button>
           <button onClick=${e=>{e.stopPropagation();if(confirm('Clear all saved sentences?'))setSaved([]);}} style=${{fontSize:12,color:'#e53935',background:'none',border:'none',cursor:'pointer',fontFamily:'inherit',padding:'4px 8px',borderRadius:6}}>Clear All</button>
           <span style=${{fontSize:11,color:'#ccc',transition:'transform 0.3s',display:'inline-block',transform:savedOpen?'rotate(180deg)':'rotate(0deg)'}}>▼</span>
         </div>
@@ -3997,6 +4878,10 @@ function StudentProfile({data, setData, profileId, auth}) {
   const [showHwForm, setShowHwForm] = useState(false);
   const [hwForm, setHwForm] = useState(null);
   const [savedCard, setSavedCard] = useState("");
+  const [showLogModal, setShowLogModal] = useState(false);
+  const [logForm, setLogForm] = useState(null);
+  const [logLoading, setLogLoading] = useState(false);
+  const [logSaved, setLogSaved] = useState(false);
   const S = data.settings;
 
   if (!s) return h`<div style=${{padding:40,textAlign:"center",color:"var(--g400)"}}>Student not found.</div>`;
@@ -4024,17 +4909,54 @@ function StudentProfile({data, setData, profileId, auth}) {
   };
   const sLessons = data.lessons.filter(l=>l.studentId===s.id).sort((a,b)=>new Date(b.date)-new Date(a.date));
   const sHomework = (data.homework||[]).filter(hw=>hw.studentId===s.id).sort((a,b)=>new Date(b.assignedDate)-new Date(a.assignedDate));
+  const sLessonLogs = (data.lessonLogs||[]).filter(l=>l.studentId===s.id).sort((a,b)=>new Date(b.date)-new Date(a.date));
   const att = attendanceStats(s.id, data.lessons);
 
   const runAI = async () => {
     setAiLoading(true); setAiResult("");
     try {
-      const res = await fetch("/api/ai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"student_analysis",context:{name:s.name,level:s.level,type:s.type,lessonsTaken:s.lessonsTaken,attendance:att.rate,skillReading:s.skillReading||3,skillWriting:s.skillWriting||3,skillListening:s.skillListening||3,skillSpeaking:s.skillSpeaking||3,goals:s.goals||"",nextSteps:s.nextSteps||"",teacherNotes:s.teacherPrivateNotes||"",homeworkNotes:s.homeworkNotes||""}})});
+      const res = await fetch("/api/ai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:auth?.token,type:"student_analysis",context:{name:s.name,level:s.level,type:s.type,lessonsTaken:s.lessonsTaken,attendance:att.rate,skillReading:s.skillReading||3,skillWriting:s.skillWriting||3,skillListening:s.skillListening||3,skillSpeaking:s.skillSpeaking||3,goals:s.goals||"",nextSteps:s.nextSteps||"",teacherNotes:s.teacherPrivateNotes||"",homeworkNotes:s.homeworkNotes||""}})});
       const d = await res.json();
       setAiResult(d.result||d.error||"No response from AI.");
     } catch(e) { setAiResult("Error: "+e.message); }
     setAiLoading(false);
   };
+
+  const saveLog = async (withAI) => {
+    if (!logForm || !logForm.coveredTopics.trim()) return alert("Please fill in what was covered.");
+    setLogLoading(true);
+    let finalLog = {...logForm};
+    if (withAI) {
+      try {
+        const res = await fetch("/api/ai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"lesson_feedback",context:{
+          name:s.name,level:s.level,type:s.type,lessonsTaken:s.lessonsTaken,
+          goals:s.goals||"",currentNextSteps:s.nextSteps||"",
+          skillReading:s.skillReading||3,skillWriting:s.skillWriting||3,skillListening:s.skillListening||3,skillSpeaking:s.skillSpeaking||3,
+          date:logForm.date,coveredTopics:logForm.coveredTopics,performance:logForm.performance,teacherNotes:logForm.teacherNotes
+        }})});
+        const d = await res.json();
+        if (d.result) {
+          try {
+            const parsed = JSON.parse(d.result);
+            finalLog = {...finalLog, aiNextSteps:parsed.nextSteps||"", aiWeeklyTasks:parsed.weeklyTasks||[], aiStudentSummary:parsed.studentSummary||"", aiTeacherSummary:parsed.teacherSummary||""};
+            // Auto-update student nextSteps and weeklyTasks
+            const newTasks = (parsed.weeklyTasks||[]).map(t=>({id:uid(),text:t,doneAt:null,addedAt:today()}));
+            updMany({nextSteps:parsed.nextSteps||s.nextSteps, teacherSummary:parsed.teacherSummary||s.teacherSummary, weeklyTasks:[...(s.weeklyTasks||[]),...newTasks]});
+          } catch {}
+        }
+      } catch(e) { alert("AI error: "+e.message); }
+    }
+    const isNew = !(data.lessonLogs||[]).find(x=>x.id===finalLog.id);
+    const nLogs = isNew ? [...(data.lessonLogs||[]),finalLog] : (data.lessonLogs||[]).map(x=>x.id===finalLog.id?finalLog:x);
+    setData({...data, lessonLogs:nLogs});
+    setLogLoading(false); setShowLogModal(false); setLogForm(null);
+    setLogSaved(true); setTimeout(()=>setLogSaved(false),3000);
+    if (auth?.token) { try { await apiPost("/api/data",{token:auth.token,action:"backup",data:{...data,lessonLogs:nLogs}}); } catch {} }
+    // Notify student
+    if (s.email && auth?.token) { try { await apiPost("/api/push",{token:auth.token,email:s.email,title:"📝 Lesson feedback from Hadi",body:"Check your home screen for your updated learning plan.",tag:"lesson-log"}); } catch {} }
+  };
+
+  const deleteLog = id => { if(confirm("Delete this lesson log?")) setData({...data,lessonLogs:(data.lessonLogs||[]).filter(x=>x.id!==id)}); };
 
   const saveHw = async () => {
     if (!hwForm||!hwForm.title.trim()) return;
@@ -4060,7 +4982,7 @@ function StudentProfile({data, setData, profileId, auth}) {
     if (!hw.submissionText) return alert("No submission to give feedback on.");
     const btn = document.activeElement; if(btn) btn.textContent="Loading...";
     try {
-      const res = await fetch("/api/ai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"homework_feedback",context:{title:hw.title,description:hw.description,submission:hw.submissionText}})});
+      const res = await fetch("/api/ai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:auth?.token,type:"homework_feedback",context:{title:hw.title,description:hw.description,submission:hw.submissionText}})});
       const d = await res.json();
       const comment = d.result||d.error||"";
       setData({...data,homework:data.homework.map(x=>x.id===hw.id?{...x,teacherComment:comment}:x)});
@@ -4070,7 +4992,7 @@ function StudentProfile({data, setData, profileId, auth}) {
 
   const markReviewed = hw => setData({...data,homework:data.homework.map(x=>x.id===hw.id?{...x,status:"reviewed",reviewedAt:today()}:x)});
 
-  const tabs = [["overview","Overview"],["homework","Homework ("+sHomework.length+")"],["ai","AI Analysis"]];
+  const tabs = [["overview","Overview"],["logs","Lesson Logs"+(sLessonLogs.length?" ("+sLessonLogs.length+")":" ")],["homework","Homework ("+sHomework.length+")"],["ai","AI Analysis"]];
 
   return h`<div>
     <div class="prof-hd" style=${{marginBottom:20}}>
@@ -4081,6 +5003,7 @@ function StudentProfile({data, setData, profileId, auth}) {
         ${s.email&&h`<div style=${{fontSize:12,color:"var(--g500)",marginTop:4}}>${s.email}${s.phone?" · "+s.phone:""}</div>`}
       </div>
       <div style=${{display:"flex",flexDirection:"column",gap:6,alignItems:"flex-end"}}>
+        <button class="btn btn-p btn-sm" onClick=${()=>{setLogForm(mkLessonLog(s.id));setShowLogModal(true);setTab("logs");}}>📝 Log Lesson</button>
         <button class="btn btn-sm" onClick=${()=>exportProfilePDF(s,data,false)}>${ic('pdf')} PDF</button>
         ${s.whatsapp&&h`<button class="btn btn-sm btn-share" onClick=${()=>exportProfilePDF(s,data,true)}>${ic('wa')} Share</button>`}
       </div>
@@ -4207,6 +5130,70 @@ function StudentProfile({data, setData, profileId, auth}) {
           ${sLessons.slice(0,15).map(l=>h`<tr key=${l.id}><td>${fmt(l.date)}</td><td>${l.time}</td><td><span class="tg">${l.type}</span></td><td><span class=${"bg "+(l.status==="Completed"?"bg-ok":"bg-n")}>${l.status}</span></td><td style=${{fontSize:12,color:"var(--g500)",maxWidth:200}}>${l.notes||"—"}</td></tr>`)}
         </tbody></table>`}
       </div>
+    </div>`}
+
+    ${tab==="logs" && h`<div>
+      <div style=${{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+        <div>
+          <div style=${{fontFamily:"var(--fh)",fontSize:18,letterSpacing:1}}>LESSON LOGS</div>
+          <div style=${{fontSize:12,color:"var(--g500)",marginTop:2}}>Post-lesson notes + AI-updated plan</div>
+        </div>
+        <button class="btn btn-p" onClick=${()=>{setLogForm(mkLessonLog(s.id));setShowLogModal(true);}}>
+          ${ic('plus')} Log a Lesson
+        </button>
+      </div>
+      ${logSaved&&h`<div style=${{padding:"10px 14px",background:"#f0fff4",border:"1px solid var(--ok)",borderRadius:8,marginBottom:14,fontSize:13,color:"var(--ok)",fontWeight:700}}>✓ Lesson logged & plan updated!</div>`}
+      ${sLessonLogs.length===0 ? h`<div class="empty"><h3>NO LOGS YET</h3><p>Log your first lesson to start tracking ${s.name}'s progress and let AI update their plan.</p></div>` :
+      h`<div>${sLessonLogs.map(log=>h`<div key=${log.id} style=${{background:"#fff",border:"2px solid var(--bk)",borderLeft:"5px solid #2196f3",padding:"18px 20px",marginBottom:14,borderRadius:4,position:"relative"}}>
+        <div style=${{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10,marginBottom:12}}>
+          <div>
+            <div style=${{fontFamily:"var(--fh)",fontSize:16,letterSpacing:1}}>${fmt(log.date)}</div>
+            <div style=${{fontSize:11,color:"var(--g500)",marginTop:2}}>Logged ${fmt(log.createdAt)}</div>
+          </div>
+          <button class="bi" style=${{color:"var(--bd)"}} onClick=${()=>deleteLog(log.id)}>${ic('del')}</button>
+        </div>
+        <div style=${{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
+          <div>
+            <div style=${{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:"#1976d2",marginBottom:4}}>Topics Covered</div>
+            <div style=${{fontSize:13,lineHeight:1.7,whiteSpace:"pre-wrap"}}>${log.coveredTopics}</div>
+          </div>
+          ${log.performance&&h`<div>
+            <div style=${{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:"#7b1fa2",marginBottom:4}}>Student Performance</div>
+            <div style=${{fontSize:13,lineHeight:1.7,whiteSpace:"pre-wrap"}}>${log.performance}</div>
+          </div>`}
+        </div>
+        ${log.teacherNotes&&h`<div style=${{padding:"10px 12px",background:"#fffde7",border:"1px solid #ffd54f",borderRadius:8,marginBottom:12}}>
+          <div style=${{fontSize:10,fontWeight:700,textTransform:"uppercase",color:"#f57f17",marginBottom:4}}>🔒 Private Notes</div>
+          <div style=${{fontSize:13,lineHeight:1.7,whiteSpace:"pre-wrap"}}>${log.teacherNotes}</div>
+        </div>`}
+        ${log.aiNextSteps&&h`<div style=${{padding:"12px 14px",background:"linear-gradient(135deg,#f0fff4,#e8f5e9)",border:"1px solid #a5d6a7",borderRadius:8,marginBottom:8}}>
+          <div style=${{fontSize:10,fontWeight:700,textTransform:"uppercase",color:"var(--ok)",marginBottom:6}}>⚡ AI-Updated Next Steps</div>
+          <div style=${{fontSize:13,lineHeight:1.8}}>${log.aiNextSteps}</div>
+        </div>`}
+        ${(log.aiWeeklyTasks||[]).length>0&&h`<div style=${{padding:"12px 14px",background:"#f8f9fb",borderRadius:8,marginBottom:8}}>
+          <div style=${{fontSize:10,fontWeight:700,textTransform:"uppercase",color:"var(--g500)",marginBottom:8}}>📋 AI-Generated Weekly Tasks</div>
+          ${log.aiWeeklyTasks.map((t,i)=>h`<div key=${i} style=${{fontSize:13,lineHeight:1.7,padding:"4px 0",borderBottom:"1px solid #eee",display:"flex",gap:8}}>
+            <span style=${{color:"#aaa",fontWeight:700,flexShrink:0}}>${i+1}.</span><span>${t}</span>
+          </div>`)}
+        </div>`}
+        ${log.aiTeacherSummary&&h`<div style=${{fontSize:12,color:"var(--g500)",fontStyle:"italic",borderTop:"1px solid #eee",paddingTop:8,marginTop:4}}>
+          💡 ${log.aiTeacherSummary}
+        </div>`}
+      </div>`)}</div>`}
+
+      ${showLogModal&&h`<${Modal} title="LOG LESSON FEEDBACK" onClose=${()=>{setShowLogModal(false);setLogForm(null);}} footer=${h`
+        <button class="btn" onClick=${()=>{setShowLogModal(false);setLogForm(null);}}>Cancel</button>
+        <button class="btn" onClick=${()=>saveLog(false)} disabled=${logLoading}>Save Only</button>
+        <button class="btn btn-p" onClick=${()=>saveLog(true)} disabled=${logLoading}>${logLoading?"🤖 Updating Plan...":"🤖 Save & Update Plan with AI"}</button>
+      `}>
+        <div style=${{marginBottom:14,padding:"10px 12px",background:"#f0f7ff",border:"1px solid #c3d9f5",borderRadius:8,fontSize:12,lineHeight:1.6,color:"#1976d2"}}>
+          Fill in what happened in the lesson. Hit <b>"Save & Update Plan with AI"</b> and Claude will rewrite ${s.name}'s next steps and add new weekly tasks automatically.
+        </div>
+        <div class="fg"><label>Lesson Date</label><input type="date" value=${logForm?.date||today()} onInput=${e=>setLogForm({...logForm,date:e.target.value})}/></div>
+        <div class="fg"><label>Topics Covered *</label><textarea value=${logForm?.coveredTopics||""} onInput=${e=>setLogForm({...logForm,coveredTopics:e.target.value})} placeholder="What did you teach? e.g. Past tense verbs, vocab around family, pronunciation of ع and غ..." style=${{minHeight:90}}/></div>
+        <div class="fg"><label>Student Performance</label><textarea value=${logForm?.performance||""} onInput=${e=>setLogForm({...logForm,performance:e.target.value})} placeholder="How did they do? Strengths, struggles, effort, energy..."/></div>
+        <div class="fg"><label>Private Notes (not shown to student)</label><textarea value=${logForm?.teacherNotes||""} onInput=${e=>setLogForm({...logForm,teacherNotes:e.target.value})} placeholder="Anything you want to remember — context, personal notes, patterns you noticed..."/></div>
+      <//>`}
     </div>`}
 
     ${tab==="homework" && h`<div>
@@ -4355,7 +5342,50 @@ function Dashboard({data, setData, auth}) {
     setData({...data, lessonRequests:updated});
   };
 
+  const dayOfYearAdmin = (()=>{ const n=new Date(); return Math.floor((n - new Date(n.getFullYear(),0,0)) / 86400000); })();
+  const todayQuoteAdmin = ISLAMIC_QUOTES[dayOfYearAdmin % ISLAMIC_QUOTES.length];
+
   return h`<div>
+
+    <!-- ── Daily Reminder (top priority) ───────────────────────────────────── -->
+    <div style=${{
+      background:"linear-gradient(135deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%)",
+      borderRadius:16,padding:"20px 22px",marginBottom:20,
+      boxShadow:"0 4px 20px rgba(0,0,0,0.25)",
+      border:"1px solid rgba(255,255,255,0.08)",
+      position:"relative",overflow:"hidden"
+    }}>
+      <!-- subtle decorative crescent -->
+      <div style=${{position:"absolute",top:-18,right:-18,fontSize:80,opacity:0.06,lineHeight:1,userSelect:"none"}}>☪️</div>
+      <!-- label -->
+      <div style=${{fontSize:10,fontWeight:700,letterSpacing:2,textTransform:"uppercase",color:"#c9922a",marginBottom:12,display:"flex",alignItems:"center",gap:6}}>
+        <span>✦</span><span>Today's Reminder — تذكرة اليوم</span>
+      </div>
+      <!-- Arabic -->
+      <div style=${{
+        fontFamily:"'Amiri','Noto Naskh Arabic',serif",
+        fontSize:22,lineHeight:2,textAlign:"right",direction:"rtl",
+        color:"#f5e6c8",fontWeight:700,marginBottom:14,
+        borderBottom:"1px solid rgba(255,255,255,0.1)",paddingBottom:12
+      }}>${todayQuoteAdmin.ar}</div>
+      <!-- English -->
+      <div style=${{fontSize:14,lineHeight:1.75,color:"#e8dcc8",fontStyle:"italic",marginBottom:10,fontWeight:400}}>
+        "${todayQuoteAdmin.en}"
+      </div>
+      <!-- source -->
+      <div style=${{display:"flex",alignItems:"center",gap:8,marginBottom: todayQuoteAdmin.note ? 12 : 0}}>
+        <span style=${{fontSize:11,fontWeight:700,color:"#1a1a2e",background:"#c9922a",padding:"3px 12px",borderRadius:20}}>
+          ${todayQuoteAdmin.source}
+        </span>
+        <span style=${{fontFamily:"'Amiri','Noto Naskh Arabic',serif",fontSize:12,color:"#a09070",direction:"rtl"}}>
+          ${todayQuoteAdmin.sourceAr}
+        </span>
+      </div>
+      ${todayQuoteAdmin.note ? h`<div style=${{fontSize:12,lineHeight:1.7,color:"#9a8c78",borderTop:"1px solid rgba(255,255,255,0.07)",paddingTop:10}}>
+        📖 ${todayQuoteAdmin.note}
+      </div>` : null}
+    </div>
+
     <div class="stats">
       <div class="stat"><div class="lb">Active Students</div><div class="vl">${active.length}</div></div>
       <div class="stat"><div class="lb">This Month (Paid)</div><div class="vl">${fm(mRev, CUR)}</div><div class="su">${mPay.filter(p=>p.status==="Paid").length} payments</div></div>
@@ -4363,6 +5393,67 @@ function Dashboard({data, setData, auth}) {
       <div class="stat"><div class="lb">No Lesson This Week</div><div class="vl" style=${{color:noL.length?"var(--bd)":"var(--ok)"}}>${noL.length}</div></div>
       <div class="stat"><div class="lb">Avg Attendance</div><div class="vl" style=${{color:(() => { const rates=active.map(s=>attendanceStats(s.id,lessons).rate); const avg=rates.length?Math.round(rates.reduce((a,b)=>a+b,0)/rates.length):0; return avg>=80?"var(--ok)":avg>=60?"var(--wn)":"var(--bd)"; })()}}>${(() => { const rates=active.map(s=>attendanceStats(s.id,lessons).rate); return rates.length?Math.round(rates.reduce((a,b)=>a+b,0)/rates.length):0; })()}%</div><div class="su">across all students</div></div>
     </div>
+
+    ${(()=>{
+      if (!active.length) return null;
+      const engRows = active.map(s => {
+        // Last completed lesson
+        const done = lessons.filter(l=>l.studentId===s.id&&l.status==="Completed").sort((a,b)=>new Date(b.date)-new Date(a.date));
+        const lastL = done[0];
+        const daysSince = lastL ? Math.floor((now - new Date(lastL.date)) / 86400000) : null;
+        // Quiz avg
+        const scored = (s.quizHistory||[]).filter(q=>q.attempts&&q.attempts[0]);
+        const quizAvg = scored.length ? Math.round(scored.reduce((a,q)=>{
+          const qs = q.questions?.length||5;
+          return a + (q.attempts[0].score/qs*100);
+        },0)/scored.length) : null;
+        // Homework
+        const myHw = (data.homework||[]).filter(hw=>hw.studentId===s.id);
+        const hwDone = myHw.filter(hw=>hw.status==="graded"||hw.status==="completed").length;
+        // Status
+        let status, statusColor;
+        if (daysSince===null || daysSince > 14) { status="Inactive"; statusColor="#d32f2f"; }
+        else if (daysSince > 7) { status="At Risk"; statusColor="#f57c00"; }
+        else { status="Active"; statusColor="#388e3c"; }
+        return {s, lastL, daysSince, quizAvg, hwDone, hwTotal:myHw.length, status, statusColor};
+      }).sort((a,b) => (a.daysSince===null?9999:a.daysSince)-(b.daysSince===null?9999:b.daysSince));
+
+      return h`<div class="card" style=${{marginBottom:14}}>
+        <h3 style=${{marginBottom:10}}>📊 STUDENT ENGAGEMENT</h3>
+        <div style=${{overflowX:"auto"}}>
+          <table style=${{width:"100%",fontSize:12}}>
+            <thead><tr>
+              <th style=${{textAlign:"left",padding:"6px 8px",background:"var(--g50)",borderBottom:"2px solid var(--g200)"}}>Student</th>
+              <th style=${{textAlign:"center",padding:"6px 8px",background:"var(--g50)",borderBottom:"2px solid var(--g200)"}}>Last Lesson</th>
+              <th style=${{textAlign:"center",padding:"6px 8px",background:"var(--g50)",borderBottom:"2px solid var(--g200)"}}>Days Since</th>
+              <th style=${{textAlign:"center",padding:"6px 8px",background:"var(--g50)",borderBottom:"2px solid var(--g200)"}}>Quiz Avg</th>
+              <th style=${{textAlign:"center",padding:"6px 8px",background:"var(--g50)",borderBottom:"2px solid var(--g200)"}}>Homework</th>
+              <th style=${{textAlign:"center",padding:"6px 8px",background:"var(--g50)",borderBottom:"2px solid var(--g200)"}}>Status</th>
+            </tr></thead>
+            <tbody>
+              ${engRows.map(({s,lastL,daysSince,quizAvg,hwDone,hwTotal,status,statusColor})=>h`
+                <tr key=${s.id} style=${{borderBottom:"1px solid var(--g100)"}}>
+                  <td style=${{padding:"7px 8px",fontWeight:600}}>${s.name}</td>
+                  <td style=${{padding:"7px 8px",textAlign:"center",color:"var(--g600)"}}>${lastL ? fmt(lastL.date) : "—"}</td>
+                  <td style=${{padding:"7px 8px",textAlign:"center",fontWeight:daysSince!==null&&daysSince>7?700:400,color:daysSince===null||daysSince>14?"var(--bd)":daysSince>7?"var(--wn)":"var(--g700)"}}>
+                    ${daysSince===null ? "Never" : daysSince===0 ? "Today" : daysSince+"d"}
+                  </td>
+                  <td style=${{padding:"7px 8px",textAlign:"center",color:quizAvg===null?"var(--g400)":quizAvg>=70?"var(--ok)":quizAvg>=50?"var(--wn)":"var(--bd)",fontWeight:quizAvg!==null?600:400}}>
+                    ${quizAvg===null ? "—" : quizAvg+"%"}
+                  </td>
+                  <td style=${{padding:"7px 8px",textAlign:"center",color:"var(--g600)"}}>
+                    ${hwTotal===0 ? "—" : hwDone+"/"+hwTotal}
+                  </td>
+                  <td style=${{padding:"7px 8px",textAlign:"center"}}>
+                    <span style=${{background:statusColor+"18",color:statusColor,fontWeight:700,fontSize:11,padding:"3px 9px",borderRadius:20,display:"inline-block"}}>${status}</span>
+                  </td>
+                </tr>
+              `)}
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+    })()}
 
     ${pendingReqs.length>0&&h`<div class="card" style=${{borderColor:"#1976d2",marginBottom:14}}>
       <h3 style=${{color:"#1976d2"}}>📅 LESSON REQUESTS (${pendingReqs.length})</h3>
@@ -4470,7 +5561,7 @@ function Students({data, setData, onProfile}) {
   const S = data.settings;
   const CUR = S.currency || "$";
 
-  const sorted = [...data.students].sort((a,b) => { if(a.active!==b.active) return a.active?-1:1; return a.name.localeCompare(b.name); });
+  const sorted = [...data.students].sort((a,b) => { if(a.active!==b.active) return a.active?-1:1; return (a.studentNumber||0)-(b.studentNumber||0); });
   const list = sorted.filter(s => s.name.toLowerCase().includes(search.toLowerCase()));
 
   const [payStatus, setPayStatus] = useState("Pending");
@@ -4493,7 +5584,7 @@ function Students({data, setData, onProfile}) {
     } else {
       const amount = form.lessonsTotal * form.lessonRate;
       const newPayment = {id:uid(),studentId:form.id,amount,date:today(),method:"Cash",notes:"Initial enrollment — "+form.lessonsTotal+" lessons",lessonsAdded:form.lessonsTotal,status:payStatus};
-      setData({...data, students:[...data.students,{...form}], payments: amount>0 ? [...data.payments,newPayment] : data.payments});
+      setData({...data, students:[...data.students,{...form, studentNumber: nextStudentNumber(data.students)}], payments: amount>0 ? [...data.payments,newPayment] : data.payments});
     }
     setShow(false); setForm(mkStudent(S)); setPayStatus("Pending");
   };
@@ -4549,7 +5640,7 @@ function Students({data, setData, onProfile}) {
             <div onClick=${()=>onProfile(s.id)} style=${{cursor:"pointer",flex:1,display:"flex",alignItems:"center",gap:10}}>
               ${s.avatar ? h`<img src=${s.avatar} style=${{width:40,height:40,borderRadius:8,objectFit:"cover",flexShrink:0,border:"1.5px solid var(--g200)"}}/>` : h`<div style=${{width:40,height:40,borderRadius:8,background:"var(--g100)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:18}}>👤</div>`}
               <div>
-              <div style=${{display:"flex",alignItems:"center"}}><span class="sc-num">#${i+1}</span><span class="sc-name">${s.name}</span>${noL && h`<span class="rd"></span>`}</div>
+              <div style=${{display:"flex",alignItems:"center"}}><span class="sc-num">#${s.studentNumber||i+1}</span><span class="sc-name">${s.name}</span>${noL && h`<span class="rd"></span>`}</div>
               <div class="sc-row"><span class="tg">${s.type}</span><span class="tg" style=${{background:"transparent",color:"var(--bk)",border:"1.5px solid var(--g300)"}}>${s.level}</span><span class=${"bg "+(s.active?"bg-ok":"bg-n")}>${s.active?"Active":"Off"}</span>${s.enrollmentStatus==="pending"&&h`<span class="bg bg-wn" style=${{fontSize:10}}>Pending Setup</span>`}</div>
             </div></div>
             <div style=${{display:"flex",gap:2}}><button class="bi" onClick=${()=>{setForm({...s});setShow(true);}}>${ic('edt')}</button><button class="bi" style=${{color:"var(--bd)"}} onClick=${()=>doDelete(s.id)}>${ic('del')}</button></div>
@@ -6071,7 +7162,7 @@ function UserManagement({auth, data, setData}) {
       const exists = (data.students||[]).find(s => s.email === email);
       if (!exists) {
         const S = data.settings;
-        const newStudent = {...mkStudent(S), name: name||email, email, gender: gender||"", enrollmentStatus:"pending"};
+        const newStudent = {...mkStudent(S), studentNumber: nextStudentNumber(data.students), name: name||email, email, gender: gender||"", enrollmentStatus:"pending"};
         setData({...data, students:[...data.students, newStudent]});
       }
     }
@@ -6214,6 +7305,7 @@ function RequestsInbox({auth, data, setData, onProfile}) {
     if (!exists) {
       const newStudent = {
         ...mkStudent(data.settings),
+        studentNumber: nextStudentNumber(data.students),
         name: name || email,
         email: email.toLowerCase(),
         phone: phone || "",
@@ -6248,6 +7340,7 @@ function RequestsInbox({auth, data, setData, onProfile}) {
       if (!exists) {
         const newStudent = {
           ...mkStudent(data.settings),
+          studentNumber: nextStudentNumber(data.students),
           name: createForm.name,
           email: createForm.email.toLowerCase(),
           active: true,
@@ -6433,12 +7526,49 @@ function RequestsInbox({auth, data, setData, onProfile}) {
 }
 
 // ════════════════════════════════════════
+// LESSONS ADMIN — Calendar + Scheduling merged
+// ════════════════════════════════════════
+function LessonsAdmin({data, setData, auth}) {
+  const [tab, setTab] = useState("calendar");
+  return h`<div>
+    <div class="auth-tabs" style=${{marginBottom:0,borderRadius:0,borderBottom:"2px solid var(--g200)"}}>
+      <div class=${"auth-tab "+(tab==="calendar"?"on":"")} onClick=${()=>setTab("calendar")}>📅 Calendar</div>
+      <div class=${"auth-tab "+(tab==="scheduling"?"on":"")} onClick=${()=>setTab("scheduling")}>📋 Scheduling & Slots</div>
+    </div>
+    ${tab==="calendar" && h`<${Calendar} data=${data} setData=${setData}/>`}
+    ${tab==="scheduling" && h`<${Scheduling} data=${data} setData=${setData} auth=${auth}/>`}
+  </div>`;
+}
+
+// ════════════════════════════════════════
+// MATERIALS ADMIN — Curriculum + Resources merged
+// ════════════════════════════════════════
+function MaterialsAdmin({data, setData, auth}) {
+  const [tab, setTab] = useState("curriculum");
+  return h`<div>
+    <div class="auth-tabs" style=${{marginBottom:0,borderRadius:0,borderBottom:"2px solid var(--g200)"}}>
+      <div class=${"auth-tab "+(tab==="curriculum"?"on":"")} onClick=${()=>setTab("curriculum")}>📚 Curriculum</div>
+      <div class=${"auth-tab "+(tab==="resources"?"on":"")} onClick=${()=>setTab("resources")}>🔗 Resources</div>
+    </div>
+    ${tab==="curriculum" && h`<${Curriculum} data=${data} setData=${setData}/>`}
+    ${tab==="resources" && h`<${Resources} data=${data} setData=${setData} auth=${auth}/>`}
+  </div>`;
+}
+
+// ════════════════════════════════════════
 // MAIN APP with Auth
 // ════════════════════════════════════════
 function App() {
   const [data, setData] = useState(null);
   const [view, setView] = useState(() => {
-    try { const s = localStorage.getItem('ae_view'); return (s && s !== 'profile') ? s : 'dashboard'; } catch { return 'dashboard'; }
+    try {
+      const s = localStorage.getItem('ae_view');
+      if (!s || s === 'profile') return 'dashboard';
+      // Remap old view names after merge
+      if (s === 'scheduling' || s === 'calendar') return 'lessons';
+      if (s === 'curriculum' || s === 'resources') return 'materials';
+      return s;
+    } catch { return 'dashboard'; }
   });
   const [profileId, setProfileId] = useState(null);
   const [auth, setAuth] = useState(null); // {user, role}
@@ -6576,12 +7706,21 @@ function App() {
   const badges = {
     students: 0,
     homework: submittedHw,
-    requests: totalRequestsBadge,
-    messages: studentNoteCount,
+    lessons: pendingLessonReqs,
   };
 
-  const nav = [["dashboard","Dashboard","dash"],["students","Students","stu"],["scheduling","Scheduling","cal"],["calendar","Calendar","cal"],["payments","Payments","pay"],["curriculum","Curriculum","cur"],["resources","Resources","lnk"],["homework","Homework","hw"],["requests","Requests","stu"],["settings","Settings","set"]];
-  const activeNav = view === "profile" ? "students" : view;
+  const nav = [
+    ["dashboard","Dashboard","dash"],
+    ["students","Students","stu"],
+    ["lessons","Lessons","cal"],
+    ["payments","Payments","pay"],
+    ["materials","Materials","cur"],
+    ["homework","Homework","hw"],
+    ["settings","Settings","set"]
+  ];
+  // Remap old view names for activeNav highlight
+  const navViewMap = {scheduling:"lessons", calendar:"lessons", curriculum:"materials", resources:"materials", requests:"dashboard"};
+  const activeNav = view === "profile" ? "students" : (navViewMap[view] || view);
 
   // Apply theme CSS vars
   const accent         = S.themeAccent||"#c9922a";
@@ -6693,6 +7832,10 @@ function App() {
           <button style=${{background:"none",border:"1px solid var(--g300)",borderRadius:6,padding:"4px 9px",cursor:"pointer",fontSize:11,fontWeight:700,color:syncStatus==="ok"?"var(--ok)":syncStatus==="err"?"var(--bd)":"var(--g500)"}} onClick=${manualSync}>
             ${syncStatus==="syncing"?"⏳":syncStatus==="ok"?"✓ Synced":syncStatus==="err"?"✗ Fail":"☁️ Sync"}
           </button>
+          <button onClick=${()=>setView("requests")} style=${{position:"relative",background:view==="requests"?"var(--bk)":"none",border:"1px solid var(--g300)",borderRadius:6,padding:"4px 10px",cursor:"pointer",fontSize:16,color:view==="requests"?"#fff":"var(--g500)"}}>
+            🔔
+            ${totalRequestsBadge>0&&h`<span style=${{position:"absolute",top:-4,right:-4,background:"#e53935",color:"#fff",borderRadius:10,padding:"1px 5px",fontSize:9,fontWeight:800,lineHeight:"14px",display:"inline-block",minWidth:14,textAlign:"center"}}>${totalRequestsBadge}</span>`}
+          </button>
           <button style=${{background:"none",border:"1px solid var(--g300)",borderRadius:6,padding:"4px 9px",cursor:"pointer",fontSize:11,fontWeight:700,color:"var(--g500)"}} onClick=${handleLogout}>Log Out</button>
         </div>
       </div>
@@ -6700,11 +7843,9 @@ function App() {
         ${view==="dashboard" && h`<${Dashboard} data=${data} setData=${update} auth=${auth}/>`}
         ${view==="students" && h`<${StudentsAndGroups} data=${data} setData=${update} onProfile=${openProfile}/>`}
         ${view==="profile" && h`<${StudentProfile} data=${data} setData=${update} profileId=${profileId} auth=${auth}/>`}
-        ${view==="scheduling" && h`<${Scheduling} data=${data} setData=${update} auth=${auth}/>`}
-        ${view==="calendar" && h`<${Calendar} data=${data} setData=${update}/>`}
+        ${view==="lessons" && h`<${LessonsAdmin} data=${data} setData=${update} auth=${auth}/>`}
         ${view==="payments" && h`<${Payments} data=${data} setData=${update}/>`}
-        ${view==="curriculum" && h`<${Curriculum} data=${data} setData=${update}/>`}
-        ${view==="resources" && h`<${Resources} data=${data} setData=${update} auth=${auth}/>`}
+        ${view==="materials" && h`<${MaterialsAdmin} data=${data} setData=${update} auth=${auth}/>`}
         ${view==="homework" && h`<${HomeworkView} data=${data} onProfile=${openProfile}/>`}
         ${view==="requests" && h`<${RequestsInbox} auth=${auth} data=${data} setData=${update} onProfile=${openProfile}/>`}
         ${view==="settings" && h`<${Settings} data=${data} setData=${update}/>`}

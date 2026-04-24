@@ -4,6 +4,7 @@ const KV = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
 const KV_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
 
 async function kv(cmd) {
+  if (!KV || !KV_TOKEN) throw new Error('KV_NOT_CONFIGURED');
   const r = await fetch(KV, {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${KV_TOKEN}`, 'Content-Type': 'application/json' },
@@ -111,6 +112,9 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Unknown action' });
 
   } catch (err) {
+    if (err.message === 'KV_NOT_CONFIGURED') {
+      return res.status(503).json({ error: 'kv_not_configured' });
+    }
     return res.status(500).json({ error: err.message });
   }
 }

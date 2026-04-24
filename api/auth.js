@@ -1,7 +1,10 @@
 import { createHash, randomBytes } from 'crypto';
+import bcrypt from 'bcryptjs';
 
 const KV = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
 const KV_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+
+const SESSION_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 async function kv(cmd) {
   if (!KV || !KV_TOKEN) throw new Error('KV_NOT_CONFIGURED');
@@ -26,12 +29,42 @@ async function getSessions() {
 }
 async function saveSessions(s) { await kv(['SET', 'sessions', JSON.stringify(s)]); }
 
-function hashPw(pw, salt) {
-  if (!salt) salt = randomBytes(16).toString('hex');
-  return { hash: createHash('sha256').update(pw + salt).digest('hex'), salt };
+// Hash with bcrypt (new standard)
+async function hashPw(pw) {
+  const hash = await bcrypt.hash(pw, 12);
+  return { hash, salt: null, hashType: 'bcrypt' };
 }
-function checkPw(pw, hash, salt) {
-  return createHash('sha256').update(pw + salt).digest('hex') === hash;
+
+// Verify password — handles both old SHA-256 and new bcrypt hashes
+async function checkPw(pw, user) {
+  if (user.hashType === 'bcrypt') {
+    return bcrypt.compare(pw, user.passwordHash);
+  }
+  // Legacy SHA-256 check
+  const legacyHash = createHash('sha256').update(pw + user.passwordSalt).digest('hex');
+  return legacyHash === user.passwordHash;
+}
+
+// Prune expired sessions (older than 30 days) — fall back to oldest-50 if none are expired
+function pruneSessions(sessions) {
+  const now = Date.now();
+  const keys = Object.keys(sessions);
+  // Remove expired sessions
+  const expired = keys.filter(k => {
+    const s = sessions[k];
+    if (!s.createdAt) return false;
+    return (now - new Date(s.createdAt).getTime()) > SESSION_MAX_AGE_MS;
+  });
+  expired.forEach(k => delete sessions[k]);
+  // If still too many (edge case: all sessions are recent), prune oldest 50
+  const remaining = Object.keys(sessions);
+  if (remaining.length > 200) {
+    remaining
+      .sort((a, b) => new Date(sessions[a].createdAt || 0) - new Date(sessions[b].createdAt || 0))
+      .slice(0, 50)
+      .forEach(k => delete sessions[k]);
+  }
+  return sessions;
 }
 
 export default async function handler(req, res) {
@@ -53,13 +86,22 @@ export default async function handler(req, res) {
       if (!user) return res.status(401).json({ error: 'Invalid email or password' });
       if (user.status === 'pending') return res.status(403).json({ error: 'pending' });
       if (user.status === 'rejected') return res.status(403).json({ error: 'rejected' });
-      if (!checkPw(password, user.passwordHash, user.passwordSalt)) return res.status(401).json({ error: 'Invalid email or password' });
+
+      const valid = await checkPw(password, user);
+      if (!valid) return res.status(401).json({ error: 'Invalid email or password' });
+
+      // Upgrade SHA-256 → bcrypt on successful login (transparent migration)
+      if (user.hashType !== 'bcrypt') {
+        const { hash } = await hashPw(password);
+        user.passwordHash = hash;
+        user.passwordSalt = null;
+        user.hashType = 'bcrypt';
+        await saveUsers(users);
+      }
 
       const token = randomBytes(32).toString('hex');
-      const sessions = await getSessions();
-      // Prune old sessions if too many
-      const keys = Object.keys(sessions);
-      if (keys.length > 200) { keys.slice(0, 50).forEach(k => delete sessions[k]); }
+      let sessions = await getSessions();
+      sessions = pruneSessions(sessions);
       sessions[token] = { email: user.email, role: user.role, name: user.name, createdAt: new Date().toISOString() };
       await saveSessions(sessions);
       return res.json({ token, role: user.role, name: user.name, email: user.email });
@@ -72,6 +114,10 @@ export default async function handler(req, res) {
       const sessions = await getSessions();
       const s = sessions[token];
       if (!s) return res.json({ valid: false });
+      // Reject sessions older than 30 days
+      if (s.createdAt && (Date.now() - new Date(s.createdAt).getTime()) > SESSION_MAX_AGE_MS) {
+        return res.json({ valid: false });
+      }
       return res.json({ valid: true, ...s });
     }
 
@@ -88,19 +134,21 @@ export default async function handler(req, res) {
 
     // ── REQUEST ACCESS (student signup) ────────────────────
     if (action === 'request') {
-      const { name, email, password, message, gender } = req.body;
+      const { name, email, password, message, gender, phone } = req.body;
       if (!name || !email || !password) return res.status(400).json({ error: 'Name, email and password are required' });
       const users = await getUsers();
       if (users.find(u => u.email === email.toLowerCase().trim())) {
         return res.status(409).json({ error: 'An account with this email already exists or is awaiting approval' });
       }
-      const { hash, salt } = hashPw(password);
+      const { hash } = await hashPw(password);
       users.push({
         id: randomBytes(8).toString('hex'),
         name: name.trim(),
         email: email.toLowerCase().trim(),
+        phone: (phone || '').trim(),
         passwordHash: hash,
-        passwordSalt: salt,
+        passwordSalt: null,
+        hashType: 'bcrypt',
         role: 'student',
         status: 'pending',
         gender: gender || '',
@@ -117,13 +165,14 @@ export default async function handler(req, res) {
       const users = await getUsers();
       if (users.find(u => u.role === 'tutor')) return res.status(409).json({ error: 'Tutor account already exists. Log in instead.' });
       if (users.find(u => u.email === email.toLowerCase().trim())) return res.status(409).json({ error: 'Email already in use' });
-      const { hash, salt } = hashPw(password);
+      const { hash } = await hashPw(password);
       users.push({
         id: randomBytes(8).toString('hex'),
         name: name.trim(),
         email: email.toLowerCase().trim(),
         passwordHash: hash,
-        passwordSalt: salt,
+        passwordSalt: null,
+        hashType: 'bcrypt',
         role: 'tutor',
         status: 'approved',
         createdAt: new Date().toISOString()
