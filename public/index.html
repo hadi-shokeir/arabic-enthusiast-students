@@ -3507,7 +3507,7 @@ function StudentSettingsTab({student: s, data, setData, auth}) {
       <select value=${s.timezone||""} onChange=${e=>upd("timezone",e.target.value)} style=${{width:"100%",padding:"9px 11px",border:"2px solid var(--g200)",fontFamily:"var(--fb)",fontSize:13}}>
         <option value="">— Auto-detect (browser default) —</option>
         <optgroup label="🌎 USA">
-          <option value="America/New_York">🇺🇸 Eastern (ET) — New York / Miami</option>
+          <option value="America/New_York">🇺🇸 Eastern (EST/EDT) — New York / Miami / Toronto</option>
           <option value="America/Chicago">🇺🇸 Central (CT) — Chicago / Dallas</option>
           <option value="America/Denver">🇺🇸 Mountain (MT) — Denver / Salt Lake</option>
           <option value="America/Los_Angeles">🇺🇸 Pacific (PT) — LA / San Francisco</option>
