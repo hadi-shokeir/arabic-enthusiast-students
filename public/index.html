@@ -7471,7 +7471,7 @@ function StudentsAndGroups({data, setData, onProfile}) {
 function RequestsInbox({auth, data, setData, onProfile}) {
   const [users, setUsers] = useState([]);
   const [tab, setTab] = useState("all");
-  const [createForm, setCreateForm] = useState({name:"",email:"",password:"",role:"student"});
+  const [createForm, setCreateForm] = useState({name:"",email:"",password:"",role:"student",phone:"",gender:"female",timezone:"",learnType:"Levantine"});
   const [pwForm, setPwForm] = useState({email:"",password:""});
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
@@ -7520,7 +7520,8 @@ function RequestsInbox({auth, data, setData, onProfile}) {
   const reject = async email => { await call({action:"reject", email}); setMsg("Rejected."); load(); };
   const create = async () => {
     if (!createForm.name||!createForm.email||!createForm.password) return setErr("Fill all fields");
-    const d = await call({action:"create",...createForm});
+    if (createForm.password.length < 6) return setErr("Password must be at least 6 characters");
+    const d = await call({action:"create", name:createForm.name, email:createForm.email, password:createForm.password, role:createForm.role, phone:createForm.phone});
     if (d.error) return setErr(d.error);
 
     // If creating a student, also add their profile to data.students
@@ -7532,6 +7533,10 @@ function RequestsInbox({auth, data, setData, onProfile}) {
           studentNumber: nextStudentNumber(data.students),
           name: createForm.name,
           email: createForm.email.toLowerCase(),
+          whatsapp: createForm.phone || "",
+          gender: createForm.gender || "",
+          timezone: createForm.timezone || "",
+          learnType: createForm.learnType || "",
           active: true,
           enrollmentStatus: "pending"
         };
@@ -7543,8 +7548,8 @@ function RequestsInbox({auth, data, setData, onProfile}) {
         return;
       }
     }
-    setMsg("Account created for "+createForm.email);
-    setCreateForm({name:"",email:"",password:"",role:"student"}); load();
+    setMsg("Account created! Share email + password with the student via WhatsApp.");
+    setCreateForm({name:"",email:"",password:"",role:"student",phone:"",gender:"female",timezone:"",learnType:"Levantine"}); load();
   };
   const resetPw = async () => {
     if (!pwForm.password||pwForm.password.length<6) return setErr("Min 6 chars");
@@ -7702,14 +7707,43 @@ function RequestsInbox({auth, data, setData, onProfile}) {
       </div>`}
     </div>`}
 
-    ${tab==="create" && h`<div class="card">
-      <h3>CREATE ACCOUNT</h3>
-      <div class="fg"><label>Name</label><input value=${createForm.name} onInput=${e=>setCreateForm({...createForm,name:e.target.value})} placeholder="Student's full name"/></div>
-      <div class="fg"><label>Email</label><input type="email" value=${createForm.email} onInput=${e=>setCreateForm({...createForm,email:e.target.value})}/></div>
-      <div class="fg"><label>Password</label><input type="password" value=${createForm.password} onInput=${e=>setCreateForm({...createForm,password:e.target.value})} placeholder="Min 6 characters"/></div>
-      <div class="fg"><label>Role</label><select value=${createForm.role} onChange=${e=>setCreateForm({...createForm,role:e.target.value})}><option value="student">Student</option><option value="tutor">Tutor</option></select></div>
-      <button class="btn btn-p" onClick=${create}>Create Account</button>
-      <div style=${{marginTop:10,fontSize:11,color:"var(--g500)",lineHeight:1.6}}>Share the email and password with the student. They can log in immediately.</div>
+    ${tab==="create" && h`<div class="card" style=${{maxWidth:520}}>
+      <h3 style=${{marginBottom:16}}>CREATE ACCOUNT</h3>
+      <div style=${{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0 14px"}}>
+        <div class="fg"><label>Full Name *</label><input value=${createForm.name} onInput=${e=>setCreateForm({...createForm,name:e.target.value})} placeholder="e.g. Sara Ahmed"/></div>
+        <div class="fg"><label>Gender</label>
+          <div style=${{display:"flex",gap:12,marginTop:6}}>
+            ${[["female","👩 Female"],["male","👨 Male"]].map(([v,l])=>h`<label key=${v} style=${{display:"flex",alignItems:"center",gap:6,cursor:"pointer",fontSize:13,fontWeight:createForm.gender===v?700:400}}>
+              <input type="radio" name="ri_gender" value=${v} checked=${createForm.gender===v} onChange=${()=>setCreateForm({...createForm,gender:v})} style=${{accentColor:"#111"}}/>
+              ${l}
+            </label>`)}
+          </div>
+        </div>
+        <div class="fg"><label>Email *</label><input type="email" value=${createForm.email} onInput=${e=>setCreateForm({...createForm,email:e.target.value})} placeholder="student@email.com"/></div>
+        <div class="fg"><label>WhatsApp Number</label><input type="tel" value=${createForm.phone} onInput=${e=>setCreateForm({...createForm,phone:e.target.value})} placeholder="+961 70 123 456"/></div>
+        <div class="fg"><label>Password *</label><input type="password" value=${createForm.password} onInput=${e=>setCreateForm({...createForm,password:e.target.value})} placeholder="Min 6 characters"/></div>
+        <div class="fg"><label>Role</label><select value=${createForm.role} onChange=${e=>setCreateForm({...createForm,role:e.target.value})}><option value="student">Student</option><option value="tutor">Tutor</option></select></div>
+      </div>
+      <div class="fg"><label>What they want to learn</label>
+        <select value=${createForm.learnType} onChange=${e=>setCreateForm({...createForm,learnType:e.target.value})}>
+          <option value="Levantine">🗣 Levantine Arabic (Lebanese dialect)</option>
+          <option value="Classical">📜 Classical / Modern Standard Arabic (MSA)</option>
+          <option value="Quranic">🕌 Quranic Arabic</option>
+          <option value="General Dialect">💬 General Arabic Dialect</option>
+          <option value="Quranic + Dialect">🕌💬 Quranic + Dialect</option>
+        </select>
+      </div>
+      <div class="fg"><label>Timezone</label>
+        <select value=${createForm.timezone} onChange=${e=>setCreateForm({...createForm,timezone:e.target.value})}>
+          <option value="">— Not set —</option>
+          <optgroup label="🌎 USA"><option value="America/New_York">🇺🇸 Eastern (EST/EDT) — New York / Miami</option><option value="America/Chicago">🇺🇸 Central (CT)</option><option value="America/Denver">🇺🇸 Mountain (MT)</option><option value="America/Los_Angeles">🇺🇸 Pacific (PT)</option></optgroup>
+          <optgroup label="🌍 Europe"><option value="Europe/London">🇬🇧 London (GMT/BST)</option><option value="Europe/Paris">🇫🇷 Paris (CET)</option><option value="Europe/Berlin">🇩🇪 Berlin (CET)</option></optgroup>
+          <optgroup label="🌍 Middle East"><option value="Asia/Beirut">🇱🇧 Lebanon (Beirut)</option><option value="Asia/Riyadh">🇸🇦 Saudi Arabia</option><option value="Asia/Dubai">🇦🇪 Dubai / UAE</option><option value="Africa/Cairo">🇪🇬 Egypt</option></optgroup>
+          <optgroup label="🌏 Asia & Pacific"><option value="Asia/Kolkata">🇮🇳 India (IST)</option><option value="Asia/Singapore">🇸🇬 Singapore</option><option value="Asia/Tokyo">🇯🇵 Tokyo</option><option value="Australia/Sydney">🇦🇺 Sydney</option></optgroup>
+        </select>
+      </div>
+      <button class="btn btn-p" style=${{marginTop:4}} onClick=${create}>Create Account</button>
+      <div style=${{marginTop:10,fontSize:11,color:"var(--g500)",lineHeight:1.6}}>Share the email + password with the student via WhatsApp. They can log in immediately.</div>
     </div>`}
   </div>`;
 }
