@@ -737,8 +737,20 @@ function downloadFile(fileName, dataUrl) {
   }
 }
 
-function gcalUrl(l,name){const s=new Date(l.date+"T"+(l.time||"10:00")+":00"),e=new Date(s.getTime()+(l.duration||60)*6e4),p=n=>String(n).padStart(2,"0"),f=d=>d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+"T"+p(d.getHours())+p(d.getMinutes())+"00";return"https://calendar.google.com/calendar/render?action=TEMPLATE&text="+encodeURIComponent("Arabic Lesson — "+(name||"Group"))+"&dates="+f(s)+"/"+f(e)+"&details="+encodeURIComponent("Type: "+l.type+(l.notes?"\nNotes: "+l.notes:""));}
-function openGcal(l,sts){const s=sts.find(x=>x.id===l.studentId);window.open(gcalUrl(l,s?.name||"Group"),"_blank");}
+function gcalUrl(l, name, guestEmail) {
+  const s = new Date(l.date+"T"+(l.time||"10:00")+":00");
+  const e = new Date(s.getTime()+(l.duration||60)*6e4);
+  const p = n => String(n).padStart(2,"0");
+  const f = d => d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+"T"+p(d.getHours())+p(d.getMinutes())+"00";
+  const details = "Type: "+(l.type||"Arabic")+(l.notes?"\nNotes: "+l.notes:"")+(guestEmail?"\nStudent: "+guestEmail:"");
+  let url = "https://calendar.google.com/calendar/render?action=TEMPLATE"
+    +"&text="+encodeURIComponent("Arabic Lesson — "+(name||"Group"))
+    +"&dates="+f(s)+"/"+f(e)
+    +"&details="+encodeURIComponent(details);
+  if (guestEmail) url += "&add="+encodeURIComponent(guestEmail);
+  return url;
+}
+function openGcal(l,sts){const s=sts.find(x=>x.id===l.studentId);window.open(gcalUrl(l,s?.name||"Group",s?.email||""),"_blank");}
 function waMsg(ph,msg){if(!ph)return alert("No WhatsApp number for this student.");window.open("https://wa.me/"+ph.replace(/[^0-9+]/g,"")+"?text="+encodeURIComponent(msg),"_blank");}
 function fillMsg(t,s,l){return(t||"").replace(/\{name\}/g,s?.name||"").replace(/\{date\}/g,l?fmt(l.date):"").replace(/\{time\}/g,l?.time||"").replace(/\{type\}/g,l?.type||"");}
 
@@ -5388,15 +5400,18 @@ function Dashboard({data, setData, auth}) {
     };
     setData({...data, lessons:[...lessons, newLesson]});
     setScheduleInput(""); setScheduleResult(null);
-    alert("Lesson scheduled for " + (st?.name || scheduleResult.studentName) + " on " + scheduleResult.date + " at " + scheduleResult.time);
+    // Open Google Calendar pre-filled with student as guest
+    window.open(gcalUrl(newLesson, st?.name||scheduleResult.studentName, st?.email||""), "_blank");
   };
 
   // Confirm a lesson request
   const confirmRequest = async (req) => {
     const st = students.find(s=>s.id===req.studentId);
-    const newLesson = {id:uid(),studentId:req.studentId,groupId:"",date:req.preferredDate||today(),time:req.preferredTime||"10:00",duration:60,type:st?.type||(S.types||[])[0]||"Levantine",status:"Scheduled",notes:"Requested by student"};
+    const newLesson = {id:uid(),studentId:req.studentId,groupId:"",date:req.preferredDate||today(),time:req.preferredTime||"10:00",duration:req.duration||60,type:st?.type||(S.types||[])[0]||"Levantine",status:"Scheduled",notes:"Requested by student"};
     const updated = (data.lessonRequests||[]).map(r=>r.id===req.id?{...r,status:"confirmed"}:r);
     setData({...data, lessons:[...lessons,newLesson], lessonRequests:updated});
+    // Open Google Calendar pre-filled with student as guest
+    window.open(gcalUrl(newLesson, st?.name||"Student", st?.email||""), "_blank");
     if (st?.whatsapp) {
       const msg = "Hi " + st.name + "! Your lesson request has been confirmed for " + (req.preferredDate||"TBD") + " at " + (req.preferredTime||"TBD") + ". See you then! 🎓";
       waMsg(st.whatsapp, msg);
@@ -7469,8 +7484,8 @@ function RequestsInbox({auth, data, setData, onProfile}) {
       ? {...s, lessonsTaken: Math.max(0, (s.lessonsTaken||0))} // lessonsTaken only increments on Completed; just add lesson
       : s);
     setData({...data, lessons:[...data.lessons,newLesson], lessonRequests:updated, students:updatedStudents});
-    // Open Google Calendar for Hadi
-    window.open(gcalUrl(newLesson, st?.name||"Student"), "_blank");
+    // Open Google Calendar pre-filled with student as guest
+    window.open(gcalUrl(newLesson, st?.name||"Student", st?.email||""), "_blank");
     if (st?.whatsapp) {
       waMsg(st.whatsapp, "✅ Hi " + (st.name.split(" ")[0]) + "! Your Arabic lesson is confirmed for " + (req.preferredDate||today()) + " at " + (req.preferredTime||"10:00") + ". See you then! 🎓");
     }
