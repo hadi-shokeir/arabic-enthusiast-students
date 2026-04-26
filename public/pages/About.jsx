@@ -27,10 +27,29 @@ function AboutPage({ setPage }) {
               {instructor.name}
             </h1>
             <div style={{ fontFamily: 'Amiri, serif', fontSize: '1.6rem', color: 'rgba(255,255,255,0.7)', marginBottom: 28, direction: 'rtl', textAlign: 'right', textShadow: '0 0 30px rgba(255,255,255,0.3)' }}>مدرّس اللغة العربية</div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 36 }}>
               {['Classical Arabic', 'Conversational Arabic', 'Quranic Arabic'].map(s => (
                 <span key={s} style={{ padding: '6px 14px', border: '1px solid rgba(255,255,255,0.2)', fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{s}</span>
               ))}
+            </div>
+
+            {/* Bio */}
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 32, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <p style={{ color: 'rgba(240,240,240,0.7)', fontSize: '1rem', lineHeight: 1.85, margin: 0 }}>
+                Hadi Shokeir is a <strong style={{ color: '#f0f0f0', fontWeight: 500 }}>linguist, translator, and Arabic language instructor</strong> with over seven years of teaching experience. His background spans Classical Arabic, Levantine dialect, and Quranic studies — giving students a rare instructor who is equally at home in the sacred text and in everyday conversation.
+              </p>
+              <p style={{ color: 'rgba(240,240,240,0.5)', fontSize: '0.92rem', lineHeight: 1.85, margin: 0 }}>
+                As a student of Islamic studies, Hadi's relationship with Arabic goes beyond the academic — it is personal, devotional, and deeply rooted in tradition. He brings that same depth to every lesson, combining linguistic rigour with the patience and warmth that makes the language truly accessible.
+              </p>
+              {/* Credential row */}
+              <div style={{ display: 'flex', gap: 32, marginTop: 8 }}>
+                {[['7+', 'Years teaching'], ['3', 'Specialisations'], ['1:1', 'Private lessons']].map(([num, label]) => (
+                  <div key={label}>
+                    <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.6rem', color: '#ffffff', fontWeight: 600, lineHeight: 1 }}>{num}</div>
+                    <div style={{ fontSize: '0.65rem', color: 'rgba(240,240,240,0.4)', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: 4 }}>{label}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           </Reveal>
 
