@@ -21,7 +21,7 @@ window.AE.DATA = {
       arabic: "أساسيات العربية",
       subtitle: "Script, sounds & first words",
       desc: "Master all 28 letters, their positional forms, and begin reading real Arabic words. The essential first step for every learner.",
-      color: "#c9922a",
+      color: "#ffffff",
       topics: ["The Arabic alphabet", "Letter forms (isolated, initial, medial, final)", "Short & long vowels", "Sun & moon letters"],
       featured: true
     },
@@ -33,7 +33,7 @@ window.AE.DATA = {
       arabic: "العامية الشامية",
       subtitle: "Conversational Arabic",
       desc: "Speak naturally with Levantine speakers. Learn conversational Arabic as it's truly spoken — not just in textbooks.",
-      color: "#5a8a6a",
+      color: "#cccccc",
       topics: ["Everyday conversation", "Levantine pronunciation", "Common expressions", "Family & daily life"],
       featured: true
     },
@@ -45,7 +45,7 @@ window.AE.DATA = {
       arabic: "العربية القرآنية",
       subtitle: "Read & understand the Quran",
       desc: "Learn to read and understand the language of the Quran directly. Structured around the most frequent Quranic vocabulary and grammar.",
-      color: "#6a5a8a",
+      color: "#aaaaaa",
       topics: ["Quranic script & tajweed basics", "High-frequency vocabulary", "Verb patterns", "Surah-based study"],
       featured: true
     }
