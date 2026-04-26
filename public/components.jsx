@@ -81,7 +81,7 @@ function Nav({ page, setPage }) {
           <button onClick={goPortal} style={btnStyle} className="nav-desktop"
             onMouseEnter={e => { e.target.style.background = '#ffffff'; e.target.style.color = '#080808'; }}
             onMouseLeave={e => { e.target.style.background = 'transparent'; e.target.style.color = '#f0f0f0'; }}
-          >Student Login</button>
+          >Login</button>
 
           {/* Hamburger — mobile only */}
           <button onClick={() => setMenuOpen(o => !o)} className="nav-mobile" style={{
@@ -124,7 +124,7 @@ function Nav({ page, setPage }) {
           <button onClick={goPortal} style={{
             ...btnStyle, marginTop: 16, width: '100%', justifyContent: 'center',
             padding: '14px', fontSize: '0.85rem',
-          }}>Student Login</button>
+          }}>Login</button>
         </div>
       )}
     </nav>
