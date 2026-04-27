@@ -107,12 +107,36 @@ Lessons completed: ${context.lessonsTaken} | Attendance: ${context.attendance}%`
 
       case 'lesson_plan':
         model = 'claude-sonnet-4-6';
-        systemPrompt = `You are Hadi, a structured Arabic language tutor. Generate a 4-week lesson plan for this student. Format it as 4 numbered weeks, each with 3-4 bullet points covering: topic, what to practice, and one speaking/confidence exercise. Keep it practical, specific, and motivating. No fluff.`;
+        systemPrompt = `You are Hadi, a structured Arabic language tutor. Generate a superbly practical 4-week plan for one private student.
+
+Use the evidence provided: active Arabic tracks, skill ratings, recent lesson logs, homework, open tasks, goals, teacher notes, attendance, and weaknesses.
+
+Format:
+1. Start with a one-paragraph level diagnosis.
+2. Then give Week 1 to Week 4.
+3. Each week must include: lesson focus, review focus, new language, speaking/drill task, homework, and what Hadi should watch for.
+4. End with 5 concrete weekly tasks.
+
+Keep it specific, actionable, and realistic. Do not write generic advice.`;
         userMessage = `Student: ${context.name}
-Level: ${context.level} | Dialect: ${context.type}
+Level: ${context.level} | Arabic type: ${context.type}
+Active tracks: ${context.studyTypes || 'Not specified'}
+Attendance: ${context.attendance || 'N/A'}%
 Skills (1-5): Reading ${context.skillReading}, Writing ${context.skillWriting}, Listening ${context.skillListening}, Speaking ${context.skillSpeaking}
+Detailed assessment:
+${context.trackSummary || 'No detailed track ratings provided'}
 Goals: ${context.goals || 'general improvement'}
 Next focus: ${context.nextSteps || 'not specified'}
+Strengths: ${context.strengths || 'Not specified'}
+Areas to improve: ${context.improve || 'Not specified'}
+Teacher notes: ${context.teacherNotes || 'None'}
+Homework notes: ${context.homeworkNotes || 'None'}
+Recent lesson logs:
+${context.recentLessons || 'No lesson logs yet'}
+Recent homework:
+${context.homeworkSummary || 'No homework history yet'}
+Open weekly tasks:
+${context.openTasks || 'None'}
 Lessons completed: ${context.lessonsTaken}`;
         break;
 
@@ -267,6 +291,7 @@ IMPORTANT: Generate ACTUAL correct forms for the requested word — do not copy 
     const maxTokens = type === 'conjugation'       ? 2500
                     : type === 'flashcard_generate' ? 4096
                     : type === 'student_quiz'       ? 4096
+                    : type === 'lesson_plan'        ? 2500
                     : 1024;
 
     // student_chat uses multi-turn messages built from history
