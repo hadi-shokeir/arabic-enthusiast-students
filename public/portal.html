@@ -7895,6 +7895,7 @@ function App() {
   const [auth, setAuth] = useState(null); // {user, role}
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [pendingUsers, setPendingUsers] = useState(0);
+  const [tutorTheme, setTutorTheme] = useState(() => { try { return localStorage.getItem('ae_tutor_theme') || 'dark'; } catch { return 'dark'; } });
 
   // Check existing session from localStorage token
   useEffect(() => {
@@ -8004,6 +8005,11 @@ function App() {
 
   const update = useCallback(d => setData(d), []);
   const openProfile = id => { setProfileId(id); setView("profile"); };
+  const toggleTutorTheme = () => {
+    const next = tutorTheme === "dark" ? "light" : "dark";
+    setTutorTheme(next);
+    try { localStorage.setItem('ae_tutor_theme', next); } catch {}
+  };
   const handleLogout = async () => {
     const stored = getAuth();
     if (stored?.token) apiPost("/api/auth", {action:"logout", token: stored.token}).catch(()=>{});
@@ -8154,13 +8160,14 @@ function App() {
     ${view==="settings" && h`<${Settings} data=${data} setData=${update}/>`}
   `;
 
-  return h`<div class="sp2-root tutor-root" data-theme="dark">
+  return h`<div class="sp2-root tutor-root" data-theme=${tutorTheme}>
     <style>${themeCSS}</style>
     <div class="sp2-hdr">
       ${view==="profile"&&h`<button class="sp2-btn sp2-btn-g sp2-btn-sm" onClick=${()=>goNav("students")}>${icb('back')} Back</button>`}
       <img src=${S.tutorAvatar||"/logo.jpeg"} alt="" style=${{width:34,height:34,borderRadius:10,objectFit:"cover",border:"1px solid var(--sp-border)"}}/>
       <span class="sp2-logo">${S.brand||"Arabic Enthusiast"}</span>
       <div style=${{flex:1}}></div>
+      <button class="sp2-btn sp2-btn-g sp2-btn-sm" onClick=${toggleTutorTheme}>${tutorTheme==="dark"?"Light":"Dark"}</button>
       <button class="sp2-btn sp2-btn-g sp2-btn-sm" onClick=${manualSync}>${syncStatus==="syncing"?"Syncing":syncStatus==="ok"?"Synced":syncStatus==="err"?"Sync failed":"Sync"}</button>
       <button class="sp2-btn sp2-btn-g sp2-btn-sm" onClick=${()=>setView("requests")} style=${{position:"relative"}}>
         Inbox
