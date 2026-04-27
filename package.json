@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "dev": "npx serve public -l 3000",
-    "start": "npx serve public"
+    "start": "npx serve public",
+    "vercel-build": "node -e \"console.log('Static app: no build step needed')\""
   },
   "dependencies": {
     "web-push": "^3.6.7"
