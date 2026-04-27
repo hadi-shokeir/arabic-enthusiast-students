@@ -1,4 +1,4 @@
-const CACHE = 'arabic-enthusiast-v5';
+const CACHE = 'arabic-enthusiast-v6';
 
 self.addEventListener('install', e => {
   e.waitUntil(
@@ -41,7 +41,7 @@ self.addEventListener('push', e => {
       icon: '/logo.jpeg',
       badge: '/logo.jpeg',
       tag: data.tag || 'arabic-notif',
-      data: { url: data.url || '/' },
+      data: { url: data.url || '/portal' },
       vibrate: [200, 100, 200]
     })
   );
@@ -54,7 +54,7 @@ self.addEventListener('notificationclick', e => {
       for (const c of list) {
         if (c.url.includes(self.location.origin)) return c.focus();
       }
-      return clients.openWindow(e.notification.data?.url || '/');
+      return clients.openWindow(e.notification.data?.url || '/portal');
     })
   );
 });

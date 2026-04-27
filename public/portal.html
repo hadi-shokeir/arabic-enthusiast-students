@@ -3667,37 +3667,61 @@ function StudentQuizTab({student: s, data, setData, initialTopic, onGoFlashcards
 
 // ════════════════════════════════════════
 // ════════════════════════════════════════
-// NOTIFICATION NUDGE — shown on student home tab
+// NOTIFICATION NUDGE — shared by student and tutor portals
 // ════════════════════════════════════════
-function NotificationNudge({auth}) {
+function getPushUiStatus() {
   const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
   const isStandalone = (() => { try { return window.matchMedia?.('(display-mode: standalone)').matches || !!navigator.standalone; } catch { return false; } })();
-  const supportsWebPush = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+  if (isIOS && !isStandalone) return 'ios-browser';
+  if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) return 'unsupported';
+  return Notification.permission || 'default';
+}
+
+function pushNeedsSetup() {
+  const status = getPushUiStatus();
+  return status !== 'granted' && status !== 'unsupported';
+}
+
+function NotificationNudge({auth, audience}) {
+  const role = audience || "student";
+  const copy = role === "tutor"
+    ? {
+      title:"Turn on tutor alerts",
+      body:"Get notified when students request lessons, submit homework, complete tasks, or send you notes.",
+      action:"Enable tutor alerts",
+      ios:"iPhone: tap Share, Add to Home Screen, then open the portal from the app icon to enable tutor alerts."
+    }
+    : {
+      title:"Stay in the loop",
+      body:"Get alerts when Hadi assigns homework, confirms lessons, or adds learning content for you.",
+      action:"Enable alerts",
+      ios:"iPhone: tap Share, Add to Home Screen, then open the portal from the app icon to enable lesson alerts."
+    };
 
   const [status, setStatus] = useState(() => {
-    if (!supportsWebPush) return 'unsupported';
-    if (isIOS && !isStandalone) return 'ios-browser';
-    return Notification.permission;
+    return getPushUiStatus();
   });
   const [loading, setLoading] = useState(false);
   const [dismissed, setDismissed] = useState(() => {
-    try { return sessionStorage.getItem('ae_notif_dismissed') === '1'; } catch { return false; }
+    try { return sessionStorage.getItem('ae_notif_dismissed_'+role) === '1'; } catch { return false; }
   });
 
   const enable = async () => {
     if (!auth?.token) return;
+    const current = getPushUiStatus();
+    if (current === 'ios-browser' || current === 'unsupported') { setStatus(current); return; }
     setLoading(true);
     try {
       const perm = await Notification.requestPermission();
       if (perm !== 'granted') { setStatus(perm); setLoading(false); return; }
       const result = await window.registerPushNotifications?.(auth.token);
-      setStatus(result === 'ok' ? 'granted' : result || 'error');
+      setStatus(result === 'ok' ? 'granted' : 'error');
     } catch { setStatus('error'); }
     setLoading(false);
   };
 
   const dismiss = () => {
-    try { sessionStorage.setItem('ae_notif_dismissed', '1'); } catch {}
+    try { sessionStorage.setItem('ae_notif_dismissed_'+role, '1'); } catch {}
     setDismissed(true);
   };
 
@@ -3736,11 +3760,11 @@ function NotificationNudge({auth}) {
   return h`<div style=${{background:"linear-gradient(135deg,#e8f5e9,#c8e6c9)",border:"2px solid #66bb6a",borderRadius:12,padding:"14px 16px",marginBottom:14,display:"flex",gap:12,alignItems:"center",flexWrap:"wrap"}}>
     <div style=${{fontSize:24,flexShrink:0}}>🔔</div>
     <div style=${{flex:1,minWidth:180}}>
-      <div style=${{fontWeight:700,fontSize:13,color:"#1b5e20",marginBottom:2}}>Stay in the loop</div>
-      <div style=${{fontSize:12,color:"#2e7d32",lineHeight:1.5}}>Get instant alerts when Hadi assigns homework, confirms lessons, or adds new content for you.</div>
+      <div style=${{fontWeight:700,fontSize:13,color:"#1b5e20",marginBottom:2}}>${copy.title}</div>
+      <div style=${{fontSize:12,color:"#2e7d32",lineHeight:1.5}}>${copy.body}</div>
     </div>
     <div style=${{display:"flex",gap:6,alignItems:"center",flexShrink:0}}>
-      <button style=${{background:"#2e7d32",color:"#fff",border:"none",borderRadius:8,padding:"9px 18px",fontWeight:700,cursor:"pointer",fontFamily:"var(--fb)",fontSize:13,whiteSpace:"nowrap",opacity:loading?0.7:1}} onClick=${enable} disabled=${loading}>${loading?"Setting up...":"Enable 🔔"}</button>
+      <button style=${{background:"#2e7d32",color:"#fff",border:"none",borderRadius:8,padding:"9px 18px",fontWeight:700,cursor:"pointer",fontFamily:"var(--fb)",fontSize:13,whiteSpace:"nowrap",opacity:loading?0.7:1}} onClick=${enable} disabled=${loading}>${loading?"Setting up...":copy.action}</button>
       <button style=${{background:"none",border:"none",fontSize:12,cursor:"pointer",color:"#888",fontFamily:"var(--fb)",textDecoration:"underline",whiteSpace:"nowrap"}} onClick=${dismiss}>Not now</button>
     </div>
   </div>`;
@@ -3751,8 +3775,7 @@ function NotificationNudge({auth}) {
 function StudentSettingsTab({student: s, data, setData, auth}) {
   const upd = (k,v) => setData({...data,students:data.students.map(x=>x.id===s.id?{...x,[k]:v}:x)});
   const [pushStatus, setPushStatus] = useState(() => {
-    if (!('Notification' in window)) return 'unsupported';
-    return Notification.permission;
+    return getPushUiStatus();
   });
   const [pushLoading, setPushLoading] = useState(false);
   const [phoneDraft, setPhoneDraft] = useState(s.whatsapp||s.phone||"");
@@ -3761,11 +3784,13 @@ function StudentSettingsTab({student: s, data, setData, auth}) {
   const savePhone = () => { upd("whatsapp", phoneDraft.trim()); setPhoneSaved(true); setTimeout(()=>setPhoneSaved(false),2500); };
   const enablePush = async () => {
     if (!auth?.token) return;
+    const current = getPushUiStatus();
+    if (current === 'ios-browser' || current === 'unsupported') { setPushStatus(current); return; }
     setPushLoading(true);
     const perm = await Notification.requestPermission();
     if (perm !== 'granted') { setPushStatus(perm); setPushLoading(false); return; }
     const result = await window.registerPushNotifications?.(auth.token);
-    setPushStatus(result === 'ok' ? 'granted' : result || 'error');
+    setPushStatus(result === 'ok' ? 'granted' : 'error');
     setPushLoading(false);
   };
 
@@ -3893,12 +3918,23 @@ function StudentSettingsTab({student: s, data, setData, auth}) {
 
     <div class="sp2-card">
       <div style=${{fontSize:13,fontWeight:700,color:"var(--sp-txt)",marginBottom:10}}>🔔 Notifications</div>
-      ${pushStatus==='unsupported'
+      ${pushStatus==='ios-browser'
+        ? h`<div>
+            <p style=${{fontSize:13,color:"var(--sp-amber)",fontWeight:700,marginBottom:8}}>Add this portal to your iPhone Home Screen first.</p>
+            <p style=${{fontSize:12,color:"var(--sp-txt2)",lineHeight:1.7}}>In Safari, tap Share, choose Add to Home Screen, then open Arabic Enthusiast from the app icon and enable notifications here.</p>
+          </div>`
+        : pushStatus==='unsupported'
         ? h`<p style=${{fontSize:13,color:"var(--sp-txt2)"}}>Push notifications are not supported on this browser.</p>`
         : pushStatus==='denied'
         ? h`<div>
             <p style=${{fontSize:13,color:"var(--sp-red)",marginBottom:8}}>🚫 Notifications are blocked on this device.</p>
             <p style=${{fontSize:12,color:"var(--sp-txt2)",lineHeight:1.7}}>To fix on iPhone: <b>Settings → Safari → arabic-enthusiast.vercel.app → Notifications → Allow</b>. On Android: tap the lock icon in the address bar → Notifications → Allow.</p>
+          </div>`
+        : pushStatus==='error'
+        ? h`<div>
+            <p style=${{fontSize:13,color:"var(--sp-red)",fontWeight:700,marginBottom:8}}>Notification setup failed.</p>
+            <p style=${{fontSize:12,color:"var(--sp-txt2)",lineHeight:1.7,marginBottom:10}}>Refresh the page and try again. If this continues, push keys may need to be checked in Vercel.</p>
+            <button class="sp2-btn sp2-btn-g sp2-btn-sm" onClick=${enablePush} disabled=${pushLoading}>${pushLoading?"Retrying...":"Retry setup"}</button>
           </div>`
         : pushStatus==='granted'
         ? h`<div>
@@ -4686,7 +4722,8 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
   const isOverdue = hw => hw.status==="assigned" && hw.dueDate && new Date(hw.dueDate)<now2;
   const nextLesson = sLessons.find(l=>l.status==="Scheduled"&&new Date(l.date+"T"+(l.time||"10:00"))>=now2);
   const lv = s.level||"A2"; const lt = s.learnType||s.type||"Levantine";
-  const settingsBadge = [!s.timezone,!s.gender].filter(Boolean).length;
+  const notifBadge = pushNeedsSetup() ? 1 : 0;
+  const settingsBadge = [!s.timezone,!s.gender].filter(Boolean).length + notifBadge;
   const lp = s.learningProfile||{};
   const prefFilled = [lp.why,lp.style,lp.time,(lp.topics||[]).length>0,lp.challenge,lp.personalGoal].filter(Boolean).length;
   const prefBadge = 6-prefFilled;
@@ -5121,6 +5158,7 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
         })}
       </nav>
       <main class="sp2-content">
+        <${NotificationNudge} auth=${auth} audience="student"/>
         ${renderContent()}
       </main>
     </div>
@@ -7082,7 +7120,7 @@ function Settings({data, setData}) {
         </div>
       </div>
     </div>
-    <div class="card"><h3>🎨 THEME COLORS</h3>
+    <div class="card" style=${{display:"none"}}><h3>🎨 THEME COLORS</h3>
       <p style=${{fontSize:12,color:"var(--g500)",marginBottom:16}}>Pick a preset — one click applies all colors at once.</p>
       ${(()=>{
         const presets = [
@@ -7115,7 +7153,7 @@ function Settings({data, setData}) {
         </div>`;
       })()}
     </div>
-    <div class="card"><h3>🔤 FONTS</h3>
+    <div class="card" style=${{display:"none"}}><h3>🔤 FONTS</h3>
       <p style=${{fontSize:12,color:"var(--g500)",marginBottom:14}}>Pick fonts for headings and body text across the whole dashboard.</p>
       <div class="fr">
         <div class="fg">
@@ -7297,7 +7335,7 @@ function Settings({data, setData}) {
       })()}
     </div>
 
-    <div class="card"><h3>🖼 BACKGROUND IMAGES</h3>
+    <div class="card" style=${{display:"none"}}><h3>🖼 BACKGROUND IMAGES</h3>
       <p style=${{fontSize:12,color:"var(--g500)",marginBottom:18}}>Upload images for each area. They overlay the color settings above.</p>
       <div style=${{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:16}}>
         ${[
@@ -7483,25 +7521,35 @@ function Settings({data, setData}) {
 // ════════════════════════════════════════
 function TutorPushSettings() {
   const [status, setStatus] = useState(() => {
-    if (!('Notification' in window)) return 'unsupported';
-    return Notification.permission; // 'default' | 'granted' | 'denied'
+    return getPushUiStatus();
   });
   const [loading, setLoading] = useState(false);
 
   const enable = async () => {
+    const current = getPushUiStatus();
+    if (current === 'ios-browser' || current === 'unsupported') { setStatus(current); return; }
     setLoading(true);
     const perm = await Notification.requestPermission();
     if (perm !== 'granted') { setStatus(perm); setLoading(false); return; }
     const auth = getAuth();
     const result = await window.registerPushNotifications?.(auth?.token);
-    setStatus(result === 'ok' ? 'granted' : result || 'error');
+    setStatus(result === 'ok' ? 'granted' : 'error');
     setLoading(false);
   };
 
+  if (status === 'ios-browser') return h`<div>
+    <p style=${{fontSize:13,color:"var(--wn)",fontWeight:700,marginBottom:8}}>Add this portal to your iPhone Home Screen first.</p>
+    <p style=${{fontSize:12,color:"var(--g500)",lineHeight:1.7}}>In Safari, tap Share, choose Add to Home Screen, then open Arabic Enthusiast from the app icon and enable tutor alerts here.</p>
+  </div>`;
   if (status === 'unsupported') return h`<p style=${{fontSize:13,color:"var(--g500)"}}>Push notifications are not supported on this browser.</p>`;
   if (status === 'denied') return h`<div>
     <p style=${{fontSize:13,color:"var(--bd)",marginBottom:8}}>🚫 Notifications are blocked on this device.</p>
     <p style=${{fontSize:12,color:"var(--g500)",lineHeight:1.7}}>To fix on iPhone: <b>Settings → Safari → arabic-enthusiast.vercel.app → Notifications → Allow</b>.<br/>On Android/Chrome: click the lock icon in the address bar → Notifications → Allow.</p>
+  </div>`;
+  if (status === 'error') return h`<div>
+    <p style=${{fontSize:13,color:"var(--bd)",fontWeight:700,marginBottom:8}}>Notification setup failed.</p>
+    <p style=${{fontSize:12,color:"var(--g500)",lineHeight:1.7,marginBottom:10}}>Refresh and try again. If it still fails, check the Vercel VAPID push keys.</p>
+    <button class="btn btn-sm" onClick=${enable} disabled=${loading}>${loading?"Retrying...":"Retry setup"}</button>
   </div>`;
   if (status === 'granted') return h`<div>
     <p style=${{fontSize:13,color:"var(--ok)",fontWeight:700,marginBottom:6}}>✅ Notifications enabled on this device.</p>
@@ -8305,6 +8353,7 @@ function App() {
     students: 0,
     homework: submittedHw,
     lessons: pendingLessonReqs,
+    settings: pushNeedsSetup() ? 1 : 0,
   };
 
   const nav = [
@@ -8322,87 +8371,10 @@ function App() {
   const navViewMap = {scheduling:"lessons", calendar:"lessons", curriculum:"materials", resources:"materials", library:"materials", "learning-studio":"studio", games:"practice", quizzes:"practice", exercises:"practice", requests:"dashboard"};
   const activeNav = view === "profile" ? "students" : (navViewMap[view] || view);
 
-  // Apply theme CSS vars
-  const useUnifiedDefault = (S.themeAccent === "#ffffff" && S.themeSidebar === "#000000" && S.themeBackground === "#fafafa");
-  const accent         = useUnifiedDefault ? "#c9a24a" : (S.themeAccent||"#c9a24a");
-  const sidebarBg      = useUnifiedDefault ? "#0b0907" : (S.themeSidebar||"#0b0907");
-  const sidebarText    = useUnifiedDefault ? "#d8c9a3" : (S.themeSidebarText||"#d8c9a3");
-  const pageBg         = useUnifiedDefault ? "#f4f1e9" : (S.themeBackground||"#f4f1e9");
-  const topbarBg       = useUnifiedDefault ? "#fffdf8" : (S.themeTopbar||"#fffdf8");
-  const topbarBorder   = useUnifiedDefault ? "#eadfca" : (S.themeTopbarBorder||"#eadfca");
-  const cardBg         = useUnifiedDefault ? "#fffdf8" : (S.themeCardBg||"#fffdf8");
-  const cardBorder     = useUnifiedDefault ? "#eadfca" : (S.themeCardBorder||"#eadfca");
-  const statBg         = useUnifiedDefault ? "#fffdf8" : (S.themeStatBg||"#fffdf8");
-  const statBorder     = useUnifiedDefault ? "#eadfca" : (S.themeStatBorder||"#eadfca");
-  const tblHdrBg       = useUnifiedDefault ? "#17130c" : (S.themeTableHeader||"#17130c");
-  const tblHdrText     = useUnifiedDefault ? "#f7efe0" : (S.themeTableHeaderText||"#f7efe0");
-  const calHdrBg       = useUnifiedDefault ? "#17130c" : (S.themeCalHeader||"#17130c");
-  const calHdrText     = useUnifiedDefault ? "#f7efe0" : (S.themeCalHeaderText||"#f7efe0");
-  const primBtn        = useUnifiedDefault ? "#c9a24a" : (S.themePrimaryBtn||"#c9a24a");
-  const primBtnText    = useUnifiedDefault ? "#17130c" : (S.themePrimaryBtnText||"#17130c");
-  const textMain       = useUnifiedDefault ? "#17130c" : (S.themeTextMain||"#17130c");
-  const fontH          = useUnifiedDefault ? "Playfair Display" : (S.themeFontHeading||"Playfair Display");
-  const fontB          = S.themeFontBody||"DM Sans";
-  const fontBrand      = useUnifiedDefault ? "Cinzel" : (S.themeFontBrand||"Cinzel");
-  const fontSizeH      = useUnifiedDefault ? 25 : (S.themeFontSizeHeading||25);
-  const fontSizeB      = S.themeFontSizeBody||14;
-  const fontSizeBrand  = S.themeFontSizeBrand||24;
-  const bgImage        = S.themeBackgroundImage||"";
-  const bgImageX       = S.themeBackgroundImageX !== undefined ? S.themeBackgroundImageX : 50;
-  const bgImageY       = S.themeBackgroundImageY !== undefined ? S.themeBackgroundImageY : 50;
-  const sidebarImage   = S.themeSidebarImage||"";
-  const sbImageX       = S.themeSidebarImageX !== undefined ? S.themeSidebarImageX : 50;
-  const sbImageY       = S.themeSidebarImageY !== undefined ? S.themeSidebarImageY : 50;
-  const sbHdImage      = S.themeSidebarHeaderImage||"";
-  const sbHdImageX     = S.themeSidebarHeaderImageX !== undefined ? S.themeSidebarHeaderImageX : 50;
-  const sbHdImageY     = S.themeSidebarHeaderImageY !== undefined ? S.themeSidebarHeaderImageY : 50;
-  const sbHdOvColor    = S.themeSidebarHeaderOverlayColor||"#000000";
-  const sbHdOvOpacity  = S.themeSidebarHeaderOverlayOpacity !== undefined ? S.themeSidebarHeaderOverlayOpacity : 50;
-  const _hr = parseInt(sbHdOvColor.slice(1,3),16)||0;
-  const _hg = parseInt(sbHdOvColor.slice(3,5),16)||0;
-  const _hb = parseInt(sbHdOvColor.slice(5,7),16)||0;
-  const sbHdOverlay    = "rgba("+_hr+","+_hg+","+_hb+","+(sbHdOvOpacity/100)+")";
-  const sbHdZoom       = S.themeSidebarHeaderImageZoom;
-  const sbHdSz         = sbHdZoom !== undefined ? sbHdZoom+"%" : "cover";
-  const sbHdImageCSS   = sbHdImage
-    ? "background:"+sbHdOverlay+",url("+sbHdImage+") "+sbHdImageX+"% "+sbHdImageY+"% / "+sbHdSz+"!important"
-    : (sbHdOvOpacity > 0 ? "background-color:"+sbHdOverlay+"!important" : "");
-  const cardImage      = S.themeCardImage||"";
-  const cardImageX     = S.themeCardImageX !== undefined ? S.themeCardImageX : 50;
-  const cardImageY     = S.themeCardImageY !== undefined ? S.themeCardImageY : 50;
-  const bgZoom         = S.themeBackgroundImageZoom;
-  const sbZoom         = S.themeSidebarImageZoom;
-  const cardZoom       = S.themeCardImageZoom;
-  const bgSz           = bgZoom !== undefined ? bgZoom+"%" : "cover";
-  const sbSz           = sbZoom !== undefined ? sbZoom+"%" : "cover";
-  const cardSz         = cardZoom !== undefined ? cardZoom+"%" : "cover";
-  // Inline styles for images — applied directly on elements (avoids browser CSSOM issues with large base64 in style tags)
-  const sbInlineStyle  = sidebarImage ? {backgroundImage:"url("+sidebarImage+")",backgroundSize:sbSz,backgroundPosition:sbImageX+"% "+sbImageY+"%"} : {};
-  const pageInlineStyle= bgImage ? {backgroundImage:"url("+bgImage+")",backgroundSize:bgSz,backgroundPosition:bgImageX+"% "+bgImageY+"%",backgroundAttachment:"fixed"} : {};
-  const sbHdInlineStyle= sbHdImage
-    ? {backgroundImage:"linear-gradient("+sbHdOverlay+","+sbHdOverlay+"),url("+sbHdImage+")",backgroundSize:"100% 100%,"+sbHdSz,backgroundPosition:"0 0,"+sbHdImageX+"% "+sbHdImageY+"%",backgroundRepeat:"no-repeat,no-repeat"}
-    : (sbHdOvOpacity > 0 ? {backgroundColor:sbHdOverlay} : {});
-  // Card image: stays in CSS (cards are spread across many components; image is smaller so style tag is fine)
-  const cardImageCSS   = cardImage ? ".card,.assess-card,.mo,.stu-card{background-image:url("+cardImage+")!important;background-size:"+cardSz+"!important;background-position:"+cardImageX+"% "+cardImageY+"%!important}" : "";
-
-  const themeCSS = (
-    ".app{color:"+textMain+";font-family:'"+fontB+"',sans-serif;font-size:"+fontSizeB+"px}" +
-    ".sb{background-color:"+sidebarBg+"}" +
-    ".sb-it{color:"+sidebarText+"!important}" +
-    ".sb-it:hover{color:#fff!important}" +
-    ".sb-hd h1{color:"+accent+"!important;font-family:'"+fontBrand+"',sans-serif!important;font-size:"+fontSizeBrand+"px!important}" +
-    ".sb-hd small{color:"+accent+"99!important}" +
-    ".sb-it.on{background:rgba(201,162,74,0.16)!important;color:"+accent+"!important;border-left-color:"+accent+"!important}" +
-    ".page{background-color:"+pageBg+"}" +
-    ".topbar{background:"+topbarBg+"!important;border-bottom-color:"+topbarBorder+"!important}" +
-    ".topbar h2,.card h3,.mo-hd h3,.assess-card h4,.stat .vl,.ll,.auth-box h1,.prof-info h2{font-family:'"+fontH+"',sans-serif!important;font-size:"+fontSizeH+"px!important}" +
-    ".card,.assess-card,.mo,.stu-card{background-color:"+cardBg+";border-color:"+cardBorder+"!important;border-radius:16px!important}" +
-    cardImageCSS +
-    ".stat{background:"+statBg+"!important;border-color:"+statBorder+"!important}" +
-    "th{background:"+tblHdrBg+"!important;color:"+tblHdrText+"!important;border-bottom-color:"+tblHdrBg+"!important}" +
-    ".cal-h{background:"+calHdrBg+"!important;color:"+calHdrText+"!important}" +
-    ".btn-p{background:"+primBtn+"!important;color:"+primBtnText+"!important;border-color:"+primBtn+"!important}"
-  );
+  const themeCSS = "";
+  const pageInlineStyle = {};
+  const sbInlineStyle = {};
+  const sbHdInlineStyle = {};
 
   const goNav = k => { try{localStorage.setItem('ae_view',k);}catch{} setView(k); setProfileId(null); };
   const pageTitle = view==="profile" ? "Student Profile" : (nav.find(([k])=>k===activeNav)?.[1]||"Dashboard");
@@ -8449,6 +8421,7 @@ function App() {
         </div>
       </nav>
       <main class="sp2-content tutor-content" style=${pageInlineStyle}>
+        <${NotificationNudge} auth=${auth} audience="tutor"/>
         <div class="tutor-page-head">
           <div>
             <div class="sp2-nav-grp" style=${{padding:0,marginBottom:6}}>Arabic Enthusiast</div>
@@ -8566,9 +8539,11 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 async function registerPush(token) {
-  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return 'unsupported';
+  const uiStatus = getPushUiStatus();
+  if (uiStatus === 'ios-browser' || uiStatus === 'unsupported') return uiStatus;
   if (Notification.permission === 'denied') return 'denied';
   try {
+    await navigator.serviceWorker.register('/sw.js').catch(()=>{});
     // Ensure SW is active — with 10s timeout so it never hangs
     const reg = await Promise.race([
       navigator.serviceWorker.ready,
