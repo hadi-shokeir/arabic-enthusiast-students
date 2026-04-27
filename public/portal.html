@@ -1877,6 +1877,11 @@ function StudentWeeklyTasks({student, data, setData, auth}) {
   const tasks = student.weeklyTasks || [];
   const pending = tasks.filter(t => !t.doneAt);
   const done = tasks.filter(t => t.doneAt);
+  const taskDaysOld = (task) => {
+    const assigned = task.assignedAt || task.addedAt || task.createdAt || today();
+    const time = new Date(assigned).getTime();
+    return Number.isFinite(time) ? Math.floor((Date.now() - time) / 86400000) : 0;
+  };
 
   const markDone = async (id) => {
     const task = tasks.find(t => t.id === id);
@@ -1886,7 +1891,7 @@ function StudentWeeklyTasks({student, data, setData, auth}) {
   };
 
   const urgencyStyle = (task) => {
-    const days = Math.floor((Date.now() - new Date(task.assignedAt)) / 86400000);
+    const days = taskDaysOld(task);
     if (days <= 1) return {
       fontSize:13, padding:"14px 16px", background:"#fff", border:"2px solid #e0e0e0",
       borderRadius:12, marginBottom:10, display:"flex", alignItems:"center", gap:12, cursor:"pointer"
@@ -1907,7 +1912,7 @@ function StudentWeeklyTasks({student, data, setData, auth}) {
   };
 
   const urgencyLabel = (task) => {
-    const days = Math.floor((Date.now() - new Date(task.assignedAt)) / 86400000);
+    const days = taskDaysOld(task);
     if (days <= 1) return null;
     if (days <= 3) return h`<span style=${{fontSize:10,background:"#ff9800",color:"#fff",padding:"2px 7px",borderRadius:20,fontWeight:700,flexShrink:0}}>${days}d</span>`;
     if (days <= 5) return h`<span style=${{fontSize:10,background:"#f44336",color:"#fff",padding:"2px 7px",borderRadius:20,fontWeight:700,flexShrink:0}}>⚠️ ${days}d overdue</span>`;
@@ -1941,6 +1946,86 @@ function StudentWeeklyTasks({student, data, setData, auth}) {
 // ════════════════════════════════════════
 // AUTH SCREEN — login + request access + first setup
 // ════════════════════════════════════════
+// Tutor-side weekly task manager used inside a student profile.
+function TeacherWeeklyTasks({student, upd, auth}) {
+  const [taskText, setTaskText] = useState("");
+  const tasks = student.weeklyTasks || [];
+  const pendingCount = tasks.filter(t => !t.doneAt).length;
+  const completedCount = tasks.length - pendingCount;
+
+  const setTasks = (next) => upd("weeklyTasks", next);
+  const taskDate = (task) => task.assignedAt || task.addedAt || task.createdAt || today();
+
+  const addTask = async () => {
+    const text = taskText.trim();
+    if (!text) return;
+    const task = {id:uid(), text, doneAt:null, assignedAt:today(), addedAt:today()};
+    setTasks([...tasks, task]);
+    setTaskText("");
+    if (auth?.token && student.email) {
+      try {
+        await apiPost("/api/push", {
+          token:auth.token,
+          email:student.email,
+          title:"New task from Hadi",
+          body:text,
+          tag:"weekly-task"
+        });
+      } catch {}
+    }
+  };
+
+  const updateTask = (id, patch) => setTasks(tasks.map(t => t.id===id ? {...t, ...patch} : t));
+  const toggleTask = (task) => updateTask(task.id, {doneAt:task.doneAt ? null : new Date().toISOString()});
+  const deleteTask = (id) => {
+    if (confirm("Delete this weekly task?")) setTasks(tasks.filter(t => t.id !== id));
+  };
+  const clearDone = () => setTasks(tasks.filter(t => !t.doneAt));
+
+  return h`<div class="assess-card">
+    <div style=${{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:12,flexWrap:"wrap",marginBottom:12}}>
+      <div>
+        <h4 style=${{marginBottom:4}}>Weekly Tasks</h4>
+        <div style=${{fontSize:12,color:"var(--g500)",lineHeight:1.6}}>Assign small actions for this student to complete between lessons.</div>
+      </div>
+      <div style=${{display:"flex",gap:8,flexWrap:"wrap"}}>
+        <span class="bg bg-n">${pendingCount} open</span>
+        <span class="bg bg-ok">${completedCount} done</span>
+      </div>
+    </div>
+
+    <div style=${{display:"flex",gap:8,alignItems:"stretch",marginBottom:14,flexWrap:"wrap"}}>
+      <input
+        style=${{flex:"1 1 260px"}}
+        value=${taskText}
+        placeholder="Add a task, e.g. Practice the new dialogue twice"
+        onInput=${e=>setTaskText(e.target.value)}
+        onKeyDown=${e=>{if(e.key==="Enter"){e.preventDefault();addTask();}}}
+      />
+      <button class="btn btn-p" onClick=${addTask}>Add Task</button>
+    </div>
+
+    ${tasks.length===0 ? h`<div style=${{padding:"16px 0",fontSize:13,color:"var(--g400)"}}>No weekly tasks yet.</div>` : h`<div style=${{display:"grid",gap:10}}>
+      ${tasks.map(task=>h`<div key=${task.id} style=${{display:"grid",gridTemplateColumns:"auto minmax(0,1fr) auto",gap:10,alignItems:"center",padding:"10px 12px",border:"1.5px solid var(--g200)",borderRadius:8,background:task.doneAt?"#f7fbf7":"#fff"}}>
+        <button class="bi" title=${task.doneAt?"Mark open":"Mark done"} onClick=${()=>toggleTask(task)} style=${{color:task.doneAt?"var(--ok)":"var(--g400)"}}>${task.doneAt?"OK":"--"}</button>
+        <div style=${{minWidth:0}}>
+          <input
+            value=${task.text||""}
+            onInput=${e=>updateTask(task.id,{text:e.target.value})}
+            style=${{width:"100%",border:"0",borderBottom:"1px solid var(--g200)",borderRadius:0,padding:"4px 0",fontSize:13,textDecoration:task.doneAt?"line-through":"none",color:task.doneAt?"var(--g400)":"var(--g800)",background:"transparent"}}
+          />
+          <div style=${{fontSize:11,color:"var(--g400)",marginTop:4}}>Assigned ${fmt(taskDate(task))}${task.doneAt?" / completed "+fmt(task.doneAt):""}</div>
+        </div>
+        <button class="bi" title="Delete task" onClick=${()=>deleteTask(task.id)} style=${{color:"var(--bd)"}}>${ic('del')}</button>
+      </div>`)}
+    </div>`}
+
+    ${completedCount>0&&h`<div style=${{marginTop:12}}>
+      <button class="btn btn-sm" onClick=${clearDone}>Clear completed</button>
+    </div>`}
+  </div>`;
+}
+
 function AuthScreen({onAuth}) {
   const [mode, setMode] = useState("login"); // login | request | verify | setup
   const [email, setEmail] = useState("");
@@ -5298,7 +5383,7 @@ function StudentProfile({data, setData, profileId, auth}) {
             const parsed = JSON.parse(d.result);
             finalLog = {...finalLog, aiNextSteps:parsed.nextSteps||"", aiWeeklyTasks:parsed.weeklyTasks||[], aiStudentSummary:parsed.studentSummary||"", aiTeacherSummary:parsed.teacherSummary||""};
             // Auto-update student nextSteps and weeklyTasks
-            const newTasks = (parsed.weeklyTasks||[]).map(t=>({id:uid(),text:t,doneAt:null,addedAt:today()}));
+            const newTasks = (parsed.weeklyTasks||[]).map(t=>({id:uid(),text:t,doneAt:null,assignedAt:today(),addedAt:today()}));
             updMany({nextSteps:parsed.nextSteps||s.nextSteps, teacherSummary:parsed.teacherSummary||s.teacherSummary, weeklyTasks:[...(s.weeklyTasks||[]),...newTasks]});
           } catch {}
         }
