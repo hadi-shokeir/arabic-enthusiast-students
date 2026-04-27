@@ -118,30 +118,31 @@ export default function StudentManagePage({ params }: PageProps) {
       const TUTOR_EMAILS = ['hadishokeir@gmail.com', 'hadishkeir123@gmail.com']
       if (!user || !TUTOR_EMAILS.includes(user.email ?? '')) { router.push('/portal'); return }
 
+      // Fetch profile via admin API (bypasses RLS so tutor can read any student)
       const [profileRes, hwRes] = await Promise.all([
-        supabase.from('profiles').select('*').eq('id', studentId).single(),
+        fetch(`/api/tutor/student-profile?id=${studentId}`).then(r => r.json()),
         supabase.from('homework').select('id, title, due_date, created_at')
           .eq('student_id', studentId).order('created_at', { ascending: false }),
       ])
 
-      if (profileRes.data) {
-        const p = profileRes.data as Profile
+      if (profileRes.profile) {
+        const p = profileRes.profile as Profile
         setProfile(p)
         setEnrolled(p.enrolled_courses ?? [])
         setEditName(p.full_name ?? '')
+        setEmail(profileRes.email ?? '')
       }
       setHwList(hwRes.data ?? [])
-
-      try {
-        const r = await fetch(`/api/tutor/student-email?id=${studentId}`)
-        const d = await r.json()
-        setEmail(d.email ?? '')
-      } catch { /* noop */ }
-
       setLoading(false)
     }
     load()
   }, [studentId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Helper: patch via admin API (bypasses RLS)
+  const adminPatch = (body: Partial<Profile>) =>
+    fetch(`/api/tutor/student-profile?id=${studentId}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+    })
 
   const updateSkill = (field: keyof Profile, value: number) => {
     setProfile(prev => prev ? { ...prev, [field]: value } : prev)
@@ -150,7 +151,7 @@ export default function StudentManagePage({ params }: PageProps) {
   const saveSkills = async () => {
     if (!profile) return
     setSaving(true)
-    await supabase.from('profiles').update({
+    await adminPatch({
       skill_reading:           profile.skill_reading,
       skill_writing:           profile.skill_writing,
       skill_listening:         profile.skill_listening,
@@ -161,7 +162,7 @@ export default function StudentManagePage({ params }: PageProps) {
       skill_makharij:          profile.skill_makharij,
       skill_hifz:              profile.skill_hifz,
       skill_tarteel:           profile.skill_tarteel,
-    }).eq('id', studentId)
+    })
     setSaving(false)
     setSkillsSaved(true)
     setTimeout(() => setSkillsSaved(false), 2500)
@@ -170,7 +171,7 @@ export default function StudentManagePage({ params }: PageProps) {
   const saveName = async () => {
     if (!editName.trim()) return
     setNameSaving(true)
-    await supabase.from('profiles').update({ full_name: editName.trim() }).eq('id', studentId)
+    await adminPatch({ full_name: editName.trim() })
     setProfile(prev => prev ? { ...prev, full_name: editName.trim() } : prev)
     setNameSaving(false)
     setNameSaved(true)
@@ -183,7 +184,7 @@ export default function StudentManagePage({ params }: PageProps) {
 
   const saveEnrolment = async () => {
     setSaving(true)
-    await supabase.from('profiles').update({ enrolled_courses: enrolled }).eq('id', studentId)
+    await adminPatch({ enrolled_courses: enrolled })
     setSaving(false)
     setSaved(true)
     setTimeout(() => setSaved(false), 2500)
@@ -191,7 +192,7 @@ export default function StudentManagePage({ params }: PageProps) {
 
   const saveNote = async () => {
     if (!note.trim()) return
-    await supabase.from('profiles').update({ notes_from_tutor: note.trim() }).eq('id', studentId)
+    await adminPatch({ notes_from_tutor: note.trim() })
     setProfile(prev => prev ? { ...prev, notes_from_tutor: note.trim() } : prev)
     setNotesSaved(true)
     setTimeout(() => setNotesSaved(false), 2500)
@@ -202,7 +203,7 @@ export default function StudentManagePage({ params }: PageProps) {
     setTaskSaving(true)
     const task = { id: Math.random().toString(36).slice(2), text: newTask.trim(), assignedAt: new Date().toISOString(), doneAt: null }
     const tasks = [...(profile.weekly_tasks ?? []), task]
-    await supabase.from('profiles').update({ weekly_tasks: tasks }).eq('id', studentId)
+    await adminPatch({ weekly_tasks: tasks as unknown as Profile['weekly_tasks'] })
     setProfile(prev => prev ? { ...prev, weekly_tasks: tasks } : prev)
     setNewTask('')
     setTaskSaving(false)
@@ -213,7 +214,7 @@ export default function StudentManagePage({ params }: PageProps) {
     const tasks = (profile.weekly_tasks ?? []).map(t =>
       t.id === taskId ? { ...t, doneAt: t.doneAt ? null : new Date().toISOString() } : t
     )
-    await supabase.from('profiles').update({ weekly_tasks: tasks }).eq('id', studentId)
+    await adminPatch({ weekly_tasks: tasks as unknown as Profile['weekly_tasks'] })
     setProfile(prev => prev ? { ...prev, weekly_tasks: tasks } : prev)
   }
 
@@ -222,7 +223,7 @@ export default function StudentManagePage({ params }: PageProps) {
     setLessonSaving(true)
     const newTotal     = (profile.lessons_total ?? 0) + lessonDelta
     const newRemaining = Math.max(0, (profile.remaining_classes ?? 0) + lessonDelta)
-    await supabase.from('profiles').update({ lessons_total: newTotal, remaining_classes: newRemaining }).eq('id', studentId)
+    await adminPatch({ lessons_total: newTotal, remaining_classes: newRemaining })
     setProfile(prev => prev ? { ...prev, lessons_total: newTotal, remaining_classes: newRemaining } : prev)
     setLessonDelta(0)
     setLessonSaving(false)
@@ -234,7 +235,7 @@ export default function StudentManagePage({ params }: PageProps) {
     if (!profile) return
     const taken     = (profile.lessons_taken ?? 0) + 1
     const remaining = Math.max(0, (profile.remaining_classes ?? 0) - 1)
-    await supabase.from('profiles').update({ lessons_taken: taken, remaining_classes: remaining }).eq('id', studentId)
+    await adminPatch({ lessons_taken: taken, remaining_classes: remaining })
     setProfile(prev => prev ? { ...prev, lessons_taken: taken, remaining_classes: remaining } : prev)
   }
 
