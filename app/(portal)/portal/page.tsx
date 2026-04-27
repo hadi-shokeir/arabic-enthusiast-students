@@ -1,7 +1,8 @@
-import { redirect }     from 'next/navigation'
-import Link             from 'next/link'
-import { createClient } from '@/lib/supabase/server'
-import { courses }      from '@/data/courses'
+import { redirect }          from 'next/navigation'
+import Link                  from 'next/link'
+import { createClient }      from '@/lib/supabase/server'
+import { courses }           from '@/data/courses'
+import { DashboardCharts }   from '@/components/DashboardCharts'
 import type { Profile, Streak, UserProgress } from '@/types'
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -14,10 +15,14 @@ export default async function PortalDashboard() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: profile }, { data: streak }, { data: progressRows }] = await Promise.all([
+  const [{ data: profile }, { data: streak }, { data: progressRows }, { data: practiceRows }] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', user.id).single(),
     supabase.from('streaks').select('*').eq('user_id', user.id).single(),
     supabase.from('user_progress').select('*').eq('user_id', user.id),
+    supabase.from('practice_events').select('exercise_type,correct,created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(200),
   ])
 
   const p  = profile  as Profile      | null
@@ -40,6 +45,57 @@ export default async function PortalDashboard() {
   // Build progress map
   const progressMap: Record<string, UserProgress> = {}
   pr.forEach(row => { progressMap[row.course_id] = row })
+
+  // ── Chart data ─────────────────────────────────────────────────
+
+  // Bar chart: completed vs total lessons per enrolled course
+  const courseBars = enrolledCourses.map(c => ({
+    name:      c.title.split(' ')[0],          // first word keeps labels short
+    completed: progressMap[c.id]?.completed_lessons?.length ?? 0,
+    total:     c.lessons.length,
+    color:     c.color,
+  }))
+
+  // Radar: derive skill scores from practice history
+  const practice = (practiceRows ?? []) as { exercise_type: string; correct: boolean | null; created_at: string }[]
+  const correctByType = (type: string) => {
+    const rows = practice.filter(r => r.exercise_type === type)
+    if (!rows.length) return 0
+    const correct = rows.filter(r => r.correct === true).length
+    return Math.round((correct / rows.length) * 100)
+  }
+  const quizScores = pr.flatMap(row => Object.values(row.quiz_scores ?? {}) as number[])
+  const avgQuiz    = quizScores.length ? Math.round(quizScores.reduce((a, b) => a + b, 0) / quizScores.length) : 0
+
+  const skills = [
+    { skill: 'Vocab',     score: correctByType('flashcard'),        fullMark: 100 as const },
+    { skill: 'Grammar',   score: correctByType('cloze'),            fullMark: 100 as const },
+    { skill: 'Reading',   score: avgQuiz,                           fullMark: 100 as const },
+    { skill: 'Writing',   score: correctByType('sentence_builder'), fullMark: 100 as const },
+    { skill: 'Listening', score: correctByType('harakat_dash'),     fullMark: 100 as const },
+  ]
+  const hasAnyData = skills.some(s => s.score > 0) || courseBars.some(c => c.completed > 0)
+
+  // Line chart: XP per day for the last 7 days (estimated from lesson events)
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date()
+    d.setDate(d.getDate() - (6 - i))
+    return d.toISOString().slice(0, 10)
+  })
+  // Each completed lesson ~ 50 XP; each practice event ~ 5 XP
+  const lessonEventDates = pr.flatMap(row =>
+    (row.completed_lessons ?? []).map(() => row.last_accessed?.slice(0, 10) ?? '')
+  ).filter(Boolean)
+  const practiceEventDates = practice.map(r => r.created_at.slice(0, 10))
+
+  const activity = days.map(date => {
+    const lessonXp   = lessonEventDates.filter(d => d === date).length * 50
+    const practiceXp = practiceEventDates.filter(d => d === date).length * 5
+    return {
+      day: new Date(date).toLocaleDateString('en-GB', { weekday: 'short' }),
+      xp:  lessonXp + practiceXp,
+    }
+  })
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto' }}>
@@ -135,6 +191,14 @@ export default async function PortalDashboard() {
           />
         </div>
       </div>
+
+      {/* ── Charts ─────────────────────────────────────────────────────────── */}
+      <DashboardCharts
+        courseBars={courseBars}
+        skills={skills}
+        activity={activity}
+        hasAnyData={hasAnyData}
+      />
 
       {/* ── Enrolled courses ───────────────────────────────────────────────── */}
       <div style={{ marginBottom: 36 }}>

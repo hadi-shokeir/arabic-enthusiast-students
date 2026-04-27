@@ -36,6 +36,14 @@ export default function StudentManagePage({ params }: PageProps) {
   const [analysis,   setAnalysis]   = useState('')
   const [analyzing,  setAnalyzing]  = useState(false)
 
+  // Homework
+  const [hwTitle,    setHwTitle]    = useState('')
+  const [hwInstr,    setHwInstr]    = useState('')
+  const [hwDue,      setHwDue]      = useState('')
+  const [hwSaving,   setHwSaving]   = useState(false)
+  const [hwSaved,    setHwSaved]    = useState(false)
+  const [hwList,     setHwList]     = useState<{ id: string; title: string; due_date: string | null; created_at: string }[]>([])
+
   useEffect(() => {
     async function load() {
       // Verify tutor
@@ -67,10 +75,37 @@ export default function StudentManagePage({ params }: PageProps) {
         setEmail(d.email ?? '')
       } catch { /* noop */ }
 
+      // Load homework assignments for this student
+      const { data: hw } = await supabase.from('homework')
+        .select('id, title, due_date, created_at')
+        .eq('student_id', studentId)
+        .order('created_at', { ascending: false })
+      setHwList(hw ?? [])
+
       setLoading(false)
     }
     load()
   }, [studentId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const assignHomework = async () => {
+    if (!hwTitle.trim() || !hwInstr.trim()) return
+    setHwSaving(true)
+    const res = await fetch('/api/tutor/assign-homework', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ studentId, title: hwTitle.trim(), instructions: hwInstr.trim(), due_date: hwDue || null }),
+    })
+    const data = await res.json()
+    if (res.ok && data.homework) {
+      setHwList(prev => [data.homework, ...prev])
+      setHwTitle('')
+      setHwInstr('')
+      setHwDue('')
+      setHwSaved(true)
+      setTimeout(() => setHwSaved(false), 2500)
+    }
+    setHwSaving(false)
+  }
 
   const toggleCourse = (id: string) => {
     setEnrolled(prev =>
@@ -231,6 +266,79 @@ export default function StudentManagePage({ params }: PageProps) {
         >
           {notesSaved ? 'Saved ✓' : 'Save note'}
         </button>
+      </div>
+
+      {/* Homework */}
+      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 3, padding: '20px 24px', marginBottom: 24 }}>
+        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1rem', color: 'var(--text)', marginBottom: 4 }}>
+          Assign Homework
+        </h2>
+        <p style={{ fontSize: '0.78rem', color: 'var(--text3)', marginBottom: 12 }}>
+          Student will see this in their portal and receive AI feedback on submission.
+        </p>
+        <input
+          type="text"
+          value={hwTitle}
+          onChange={e => setHwTitle(e.target.value)}
+          placeholder="Title — e.g. Write 5 sentences using past tense"
+          style={{
+            width: '100%', background: 'var(--bg)', border: '1px solid var(--border)',
+            borderRadius: 2, padding: '9px 14px', fontSize: '0.85rem', color: 'var(--text)',
+            outline: 'none', marginBottom: 10, boxSizing: 'border-box',
+          }}
+        />
+        <textarea
+          value={hwInstr}
+          onChange={e => setHwInstr(e.target.value)}
+          rows={3}
+          placeholder="Full instructions — what exactly should the student do?"
+          style={{
+            width: '100%', background: 'var(--bg)', border: '1px solid var(--border)',
+            borderRadius: 2, padding: '10px 14px', fontSize: '0.85rem', color: 'var(--text)',
+            resize: 'vertical', outline: 'none', fontFamily: 'var(--font-body)', boxSizing: 'border-box', marginBottom: 10,
+          }}
+        />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <input
+            type="date"
+            value={hwDue}
+            onChange={e => setHwDue(e.target.value)}
+            style={{
+              background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 2,
+              padding: '8px 12px', fontSize: '0.82rem', color: 'var(--text3)', outline: 'none',
+            }}
+          />
+          <button
+            onClick={assignHomework}
+            disabled={!hwTitle.trim() || !hwInstr.trim() || hwSaving}
+            style={{
+              padding: '8px 20px', background: 'var(--gold)', color: '#000',
+              border: 'none', borderRadius: 2, cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
+              opacity: (!hwTitle.trim() || !hwInstr.trim() || hwSaving) ? 0.5 : 1,
+            }}
+          >
+            {hwSaving ? 'Assigning…' : hwSaved ? 'Assigned ✓' : 'Assign homework'}
+          </button>
+        </div>
+
+        {/* Past assignments */}
+        {hwList.length > 0 && (
+          <div style={{ marginTop: 20, borderTop: '1px solid var(--border)', paddingTop: 16 }}>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text3)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10 }}>
+              Assigned ({hwList.length})
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {hwList.map(hw => (
+                <div key={hw.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: 'var(--bg2)', borderRadius: 2, fontSize: '0.82rem' }}>
+                  <span style={{ color: 'var(--text2)' }}>{hw.title}</span>
+                  <span style={{ color: 'var(--text3)', fontSize: '0.72rem' }}>
+                    {hw.due_date ? `Due ${new Date(hw.due_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}` : 'No due date'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* AI Analysis */}

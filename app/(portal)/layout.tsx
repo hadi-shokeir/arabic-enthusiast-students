@@ -2,6 +2,7 @@ import { redirect }          from 'next/navigation'
 import Link                  from 'next/link'
 import { createClient }      from '@/lib/supabase/server'
 import { AiChatWidget }      from '@/components/AiChatWidget'
+import { ThemeToggle }       from '@/components/ThemeToggle'
 import type { ReactNode }    from 'react'
 import type { Profile, Streak } from '@/types'
 
@@ -13,6 +14,7 @@ import type { Profile, Streak } from '@/types'
 const NAV_LINKS = [
   { href: '/portal',             label: 'Dashboard',  ar: 'لوحة التحكم' },
   { href: '/portal/courses',     label: 'My Courses', ar: 'دروسي'       },
+  { href: '/portal/homework',    label: 'Homework',   ar: 'الواجبات'    },
   { href: '/portal/practice',    label: 'Practice',   ar: 'تدريب'       },
   { href: '/portal/flashcards',  label: 'Flashcards', ar: 'بطاقات'      },
   { href: '/portal/settings',    label: 'Settings',   ar: 'الإعدادات'   },
@@ -100,6 +102,9 @@ export default async function PortalLayout({ children }: { children: ReactNode }
               <span style={{ color: 'var(--text3)' }}>day streak</span>
             </div>
           )}
+
+          {/* Theme toggle */}
+          <ThemeToggle />
 
           {/* XP */}
           <div style={{ fontSize: '0.78rem', color: 'var(--text3)' }}>

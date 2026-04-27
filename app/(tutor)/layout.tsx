@@ -1,6 +1,7 @@
-import { redirect } from 'next/navigation'
-import Link         from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { redirect }     from 'next/navigation'
+import Link              from 'next/link'
+import { createClient }  from '@/lib/supabase/server'
+import { ThemeToggle }   from '@/components/ThemeToggle'
 import type { ReactNode } from 'react'
 
 const TUTOR_EMAILS = ['hadishokeir@gmail.com', 'hadishkeir123@gmail.com']
@@ -36,6 +37,7 @@ export default async function TutorLayout({ children }: { children: ReactNode })
         </Link>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <ThemeToggle />
           <Link href="/portal" style={{ fontSize: '0.78rem', color: 'var(--text3)', textDecoration: 'none' }}>
             Student view
           </Link>
