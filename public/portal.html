@@ -5302,7 +5302,7 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
 
 function StudentProfile({data, setData, profileId, auth}) {
   const s = data.students.find(x=>x.id===profileId);
-  const [tab, setTab] = useState("overview");
+  const [tab, setTab] = useState("assessment");
   const [assessmentTrack, setAssessmentTrack] = useState("classical");
   const [aiResult, setAiResult] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
@@ -5435,7 +5435,7 @@ function StudentProfile({data, setData, profileId, auth}) {
 
   const markReviewed = hw => setData({...data,homework:data.homework.map(x=>x.id===hw.id?{...x,status:"reviewed",reviewedAt:today()}:x)});
 
-  const tabs = [["overview","Overview"],["logs","Lesson Logs"+(sLessonLogs.length?" ("+sLessonLogs.length+")":" ")],["homework","Homework ("+sHomework.length+")"],["ai","AI Analysis"]];
+  const tabs = [["assessment","Ratings"],["overview","Overview"],["logs","Lesson Logs"+(sLessonLogs.length?" ("+sLessonLogs.length+")":" ")],["homework","Homework ("+sHomework.length+")"],["ai","AI Analysis"]];
 
   return h`<div>
     <div class="prof-hd" style=${{marginBottom:20}}>
@@ -5462,6 +5462,37 @@ function StudentProfile({data, setData, profileId, auth}) {
     <div class="auth-tabs" style=${{marginBottom:20}}>
       ${tabs.map(([k,l])=>h`<div key=${k} class=${"auth-tab "+(tab===k?"on":"")} onClick=${()=>setTab(k)}>${l}</div>`)}
     </div>
+
+    ${tab==="assessment" && h`<div>
+      <div class="assess-card" style=${{borderLeftColor:activeTrackMeta.color}}>
+        <div style=${{display:"flex",justifyContent:"space-between",gap:14,alignItems:"flex-start",marginBottom:14,flexWrap:"wrap"}}>
+          <div>
+            <h4 style=${{marginBottom:4}}>Student Assessment & Ratings</h4>
+            <div style=${{fontSize:12,color:"var(--g500)",lineHeight:1.6}}>Rate ${s.name.split(" ")[0]||"this student"} by learning track. Enable Classical, Conversational, Quranic, or any combination.</div>
+          </div>
+          <div style=${{fontSize:12,fontWeight:800,color:activeTrackMeta.color,whiteSpace:"nowrap"}}>${activeStudyTypes.length} / 3 tracks active</div>
+        </div>
+        <div class="assessment-track-grid">
+          ${ASSESSMENT_TRACKS.map(t=>{
+            const active = activeStudyTypes.includes(t.id);
+            return h`<button key=${t.id} class=${"assessment-track-toggle "+(active?"on":"")} style=${{"--track":t.color,borderColor:active?t.color:"",background:active?t.color+"18":""}} onClick=${()=>toggleStudyType(t.id)}>
+              <div class="assessment-track-kicker">${active?"Active":"Off"} / ${t.kicker}</div>
+              <div class="assessment-track-title">${t.title}</div>
+              <div class="assessment-track-meta">${t.detail}</div>
+              <div class="assessment-track-score">${trackSkillAvg(s,t.id)} / 5 / ${(ALL_SKILL_AXES[t.id]||[]).length} skills</div>
+            </button>`;
+          })}
+        </div>
+        <div class="assessment-section-tabs">
+          ${activeStudyTypes.map(id=>{
+            const t = ASSESSMENT_TRACKS.find(x=>x.id===id) || ASSESSMENT_TRACKS[0];
+            return h`<button key=${id} class=${"assessment-section-tab "+(activeAssessmentTrack===id?"on":"")} style=${{"--track":t.color}} onClick=${()=>setAssessmentTrack(id)}>${t.short}</button>`;
+          })}
+        </div>
+      </div>
+
+      <${SkillCategoryCard} type=${activeAssessmentTrack} title=${activeTrackMeta.title} icon=${activeTrackMeta.icon} color=${activeTrackMeta.color} s=${s} upd=${upd} updMany=${updMany} recordSnap=${recordSkillSnapshot}/>
+    </div>`}
 
     ${tab==="overview" && h`<div>
       <div class="assess-card">
