@@ -44,12 +44,18 @@ export default function HomeworkPage() {
         supabase.from('homework_submissions').select('*').eq('student_id', user.id),
       ])
 
+      // If table doesn't exist yet, degrade gracefully
       setHomework(hwRes.data as Homework[] ?? [])
 
       const subMap: Record<string, Submission> = {}
       ;(subRes.data as Submission[] ?? []).forEach(s => { subMap[s.homework_id] = s })
       setSubmissions(subMap)
       setLoading(false)
+      if (hwRes.error?.code === 'PGRST205') {
+        // homework table hasn't been created yet in Supabase
+        setLoading(false)
+        return
+      }
     }
     load()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
