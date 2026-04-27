@@ -1,7 +1,8 @@
-import { redirect }     from 'next/navigation'
-import Link             from 'next/link'
-import { createClient } from '@/lib/supabase/server'
-import type { ReactNode } from 'react'
+import { redirect }          from 'next/navigation'
+import Link                  from 'next/link'
+import { createClient }      from '@/lib/supabase/server'
+import { AiChatWidget }      from '@/components/AiChatWidget'
+import type { ReactNode }    from 'react'
 import type { Profile, Streak } from '@/types'
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -17,11 +18,17 @@ const NAV_LINKS = [
   { href: '/portal/settings',    label: 'Settings',   ar: 'الإعدادات'   },
 ]
 
+// Hadi's accounts — redirect to tutor portal instead of student portal
+const TUTOR_EMAILS = ['hadishokeir@gmail.com', 'hadishkeir123@gmail.com']
+
 export default async function PortalLayout({ children }: { children: ReactNode }) {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  // Tutor gets their own portal
+  if (user.email && TUTOR_EMAILS.includes(user.email)) redirect('/tutor')
 
   const { data: profile } = await supabase
     .from('profiles')
@@ -202,6 +209,9 @@ export default async function PortalLayout({ children }: { children: ReactNode }
         </main>
 
       </div>
+
+      {/* Floating AI chat widget */}
+      <AiChatWidget />
     </div>
   )
 }

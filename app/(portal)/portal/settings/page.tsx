@@ -80,12 +80,12 @@ export default function SettingsPage() {
 
     const { error: updateError } = await (supabase
       .from('profiles') as ReturnType<typeof supabase.from>)
-      .update({
+      .upsert({
+        id:        user.id,
         full_name: form.full_name.trim(),
         whatsapp:  form.whatsapp.trim()  || null,
         goals:     form.goals.trim()     || null,
       })
-      .eq('id', user.id)
 
     setSaving(false)
     if (updateError) {
