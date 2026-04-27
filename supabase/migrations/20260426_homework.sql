@@ -51,6 +51,25 @@ create policy "student inserts own submissions"
 -- Tutors can read all submissions (service role used for this in the API)
 -- The AI feedback column is written by the server-side API using the service role key
 
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Lead captures (resources / email capture)
+-- ─────────────────────────────────────────────────────────────────────────────
+create table if not exists lead_captures (
+  id           uuid        primary key default gen_random_uuid(),
+  email        text        not null,
+  resource_id  text        not null,
+  source       text,
+  created_at   timestamptz not null default now(),
+  unique(email, resource_id)
+);
+
+alter table lead_captures enable row level security;
+
+-- Only service role can read/write (no student RLS needed here)
+create policy "service role only"
+  on lead_captures for all
+  using (false);   -- public cannot access; only service role key bypasses RLS
+
 -- ── Indexes ─────────────────────────────────────────────────────────────────
 create index if not exists idx_homework_student       on homework(student_id);
 create index if not exists idx_homework_tutor         on homework(tutor_id);

@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import SectionHeading from '@/components/ui/SectionHeading'
 import Reveal         from '@/components/ui/Reveal'
+import { getAllPosts } from '@/lib/blog'
 
 export const metadata: Metadata = {
   title: 'Blog — Arabic Enthusiast',
@@ -15,35 +16,8 @@ export const metadata: Metadata = {
    @next/mdx + a getAllPosts() utility.
 ───────────────────────────────────────────────────────────────────────────── */
 
-/* Placeholder post previews — replace with real MDX imports when ready */
-const PLACEHOLDER_POSTS = [
-  {
-    slug:     'sun-and-moon-letters',
-    title:    'Sun and Moon Letters Explained',
-    arabic:   'الحروف الشمسية والقمرية',
-    date:     'Coming soon',
-    category: 'Grammar',
-    excerpt:  'The single most important pronunciation rule in Arabic — and why it matters even if you can already read.',
-  },
-  {
-    slug:     'why-levantine-arabic',
-    title:    'Why Learn Levantine Arabic?',
-    arabic:   'لماذا تتعلم اللهجة الشامية؟',
-    date:     'Coming soon',
-    category: 'Dialect',
-    excerpt:  'MSA is formal and beautiful. Levantine is what people actually speak. Here is why both matter — and which to learn first.',
-  },
-  {
-    slug:     'al-fatiha-word-by-word',
-    title:    'Al-Fatiha: A Word-by-Word Breakdown',
-    arabic:   'الفاتحة: تحليل كلمة بكلمة',
-    date:     'Coming soon',
-    category: 'Quranic',
-    excerpt:  'The seven verses every Muslim recites 17 times a day — and what each word actually means.',
-  },
-]
-
 export default function BlogPage() {
+  const posts = getAllPosts()
   return (
     <>
       {/* ── Header ───────────────────────────────────────────────────────────── */}
@@ -66,68 +40,71 @@ export default function BlogPage() {
       <section style={{ padding: 'clamp(48px, 6vw, 80px) clamp(20px, 6vw, 80px)' }}>
         <div style={{ maxWidth: 860, margin: '0 auto' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-            {PLACEHOLDER_POSTS.map((post, i) => (
+            {posts.map((post, i) => (
               <Reveal key={post.slug} delay={i * 60}>
-                <div
-                  style={{
-                    display:    'flex',
-                    gap:        24,
-                    padding:    '28px 0',
-                    borderBottom: '1px solid var(--border)',
-                    alignItems: 'flex-start',
-                  }}
-                >
-                  {/* Category pill */}
-                  <div style={{ flexShrink: 0, paddingTop: 3 }}>
-                    <span
-                      style={{
-                        fontSize:      '0.62rem',
-                        letterSpacing: '0.12em',
-                        textTransform: 'uppercase',
-                        color:         'var(--text3)',
-                        border:        '1px solid var(--border)',
-                        padding:       '3px 9px',
-                        borderRadius:  2,
-                        whiteSpace:    'nowrap',
-                      }}
-                    >
-                      {post.category}
-                    </span>
-                  </div>
-
-                  <div style={{ flex: 1 }}>
-                    <h2
-                      style={{
-                        fontFamily:   'var(--font-heading)',
-                        fontSize:     '1.1rem',
-                        color:        'var(--text)',
-                        marginBottom: 4,
-                        lineHeight:   1.3,
-                      }}
-                    >
-                      {post.title}
-                    </h2>
-                    <div
-                      lang="ar"
-                      dir="rtl"
-                      style={{
-                        fontFamily:   'var(--font-arabic)',
-                        fontSize:     '0.85rem',
-                        color:        'var(--text3)',
-                        marginBottom: 10,
-                      }}
-                    >
-                      {post.arabic}
+                <Link href={`/blog/${post.slug}`} style={{ textDecoration: 'none', display: 'block' }}>
+                  <div
+                    style={{
+                      display:    'flex',
+                      gap:        24,
+                      padding:    '28px 0',
+                      borderBottom: '1px solid var(--border)',
+                      alignItems: 'flex-start',
+                      cursor:     'pointer',
+                    }}
+                  >
+                    {/* Category pill */}
+                    <div style={{ flexShrink: 0, paddingTop: 3 }}>
+                      <span
+                        style={{
+                          fontSize:      '0.62rem',
+                          letterSpacing: '0.12em',
+                          textTransform: 'uppercase',
+                          color:         'var(--gold)',
+                          border:        '1px solid var(--gold-border)',
+                          padding:       '3px 9px',
+                          borderRadius:  2,
+                          whiteSpace:    'nowrap',
+                        }}
+                      >
+                        {post.category}
+                      </span>
                     </div>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text2)', lineHeight: 1.7 }}>
-                      {post.excerpt}
-                    </p>
-                  </div>
 
-                  <div style={{ flexShrink: 0, fontSize: '0.72rem', color: 'var(--text3)', paddingTop: 3 }}>
-                    {post.date}
+                    <div style={{ flex: 1 }}>
+                      <h2
+                        style={{
+                          fontFamily:   'var(--font-heading)',
+                          fontSize:     '1.1rem',
+                          color:        'var(--text)',
+                          marginBottom: 4,
+                          lineHeight:   1.3,
+                        }}
+                      >
+                        {post.title}
+                      </h2>
+                      <div
+                        lang="ar"
+                        dir="rtl"
+                        style={{
+                          fontFamily:   'var(--font-arabic)',
+                          fontSize:     '0.85rem',
+                          color:        'var(--text3)',
+                          marginBottom: 10,
+                        }}
+                      >
+                        {post.arabic}
+                      </div>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text2)', lineHeight: 1.7 }}>
+                        {post.excerpt}
+                      </p>
+                    </div>
+
+                    <div style={{ flexShrink: 0, fontSize: '0.72rem', color: 'var(--text3)', paddingTop: 3 }}>
+                      {new Date(post.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </div>
                   </div>
-                </div>
+                </Link>
               </Reveal>
             ))}
           </div>

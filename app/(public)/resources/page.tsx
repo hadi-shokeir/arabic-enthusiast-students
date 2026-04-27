@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import SectionHeading from '@/components/ui/SectionHeading'
-import Reveal         from '@/components/ui/Reveal'
-import Badge          from '@/components/ui/Badge'
-import { resources }  from '@/data/resources'
+import SectionHeading    from '@/components/ui/SectionHeading'
+import Reveal            from '@/components/ui/Reveal'
+import Badge             from '@/components/ui/Badge'
+import { LeadMagnetModal } from '@/components/LeadMagnetModal'
+import { resources }    from '@/data/resources'
 
 export const metadata: Metadata = {
   title: 'Free Resources — Arabic Enthusiast',
@@ -114,14 +115,11 @@ export default function ResourcesPage() {
                     {resource.description}
                   </p>
 
-                  {/* Download CTA — links to consultation page until API is wired in Phase 6 */}
-                  <Link
-                    href={`/consultation?resource=${resource.id}`}
-                    className="btn-primary"
-                    style={{ width: '100%', justifyContent: 'center', marginTop: 'auto' }}
-                  >
-                    Download Free PDF
-                  </Link>
+                  {/* Download CTA — email capture modal */}
+                  <LeadMagnetModal
+                    resourceId={resource.id}
+                    resourceTitle={resource.title}
+                  />
                 </div>
               </Reveal>
             ))}
