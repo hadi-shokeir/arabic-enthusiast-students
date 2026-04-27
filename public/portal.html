@@ -529,6 +529,112 @@ body:has(.sp2-root){overflow:hidden}
 .tutor-root .ai-plan-metric{background:var(--sp-surface);border-color:var(--sp-border)}
 .tutor-root .ai-plan-metric .lb{color:var(--sp-txt2)}
 .tutor-root .ai-plan-metric .vl{color:var(--sp-amber-l)}
+
+/* Layered depth polish: subtle 3D treatment for controls, nav, charts, and data surfaces */
+.btn,.sp2-btn,.sp2-tab,.tab,.auth-tab,.lib-tab,.skill-dot,.sp2-letter-cell,.sp2-mob-it,.mob-nav-it{
+  position:relative;
+  box-shadow:0 8px 16px rgba(31,24,12,0.08),inset 0 1px 0 rgba(255,255,255,0.22);
+  transform:translateZ(0);
+}
+.btn:hover,.sp2-btn:hover,.sp2-tab:hover,.tab:hover,.auth-tab:hover,.lib-tab:hover,.skill-dot:hover,.sp2-letter-cell:hover,.sp2-mob-it:hover,.mob-nav-it:hover{
+  transform:translateY(-1px);
+  box-shadow:0 12px 22px rgba(31,24,12,0.13),inset 0 1px 0 rgba(255,255,255,0.28);
+}
+.btn:active,.sp2-btn:active,.sp2-tab:active,.tab:active,.auth-tab:active,.lib-tab:active,.skill-dot:active,.sp2-letter-cell:active,.sp2-mob-it:active,.mob-nav-it:active{
+  transform:translateY(1px);
+  box-shadow:0 4px 9px rgba(31,24,12,0.12),inset 0 2px 4px rgba(0,0,0,0.12);
+}
+.btn-p,.sp2-btn-p,.sp2-tab.on,.sp2-mob-it.on,.mob-nav-it.on,.skill-dot.on{
+  box-shadow:0 12px 24px rgba(111,75,0,0.2),inset 0 1px 0 rgba(255,255,255,0.28),inset 0 -2px 0 rgba(0,0,0,0.16);
+}
+.bi{
+  border-radius:9px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.18);
+  transition:transform .16s,box-shadow .16s,background .16s,color .16s;
+}
+.bi:hover{
+  background:var(--sp-glow,rgba(201,162,74,0.12));
+  transform:translateY(-1px);
+  box-shadow:0 8px 16px rgba(31,24,12,0.1),inset 0 1px 0 rgba(255,255,255,0.22);
+}
+.card,.sp2-card,.stat,.assess-card,.prof-hd,.stu-card,.res-card,.fc-deck,.mo,.ai-plan-metric{
+  box-shadow:0 18px 34px rgba(31,24,12,0.1),0 2px 0 rgba(255,255,255,0.06) inset!important;
+}
+.card:hover,.sp2-card-h:hover,.stu-card:hover,.res-card:hover,.fc-deck:hover{
+  box-shadow:0 24px 46px rgba(31,24,12,0.14),0 1px 0 rgba(255,255,255,0.1) inset!important;
+}
+.sp2-sidebar,.sb{
+  box-shadow:inset -1px 0 0 rgba(255,255,255,0.04),14px 0 34px rgba(0,0,0,0.12);
+}
+.sp2-nav-grp{
+  margin:8px 8px 4px;
+  padding:7px 10px;
+  border-radius:10px;
+  background:linear-gradient(180deg,rgba(255,255,255,0.05),rgba(0,0,0,0.02));
+  border:1px solid var(--sp-border);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.08);
+}
+.sp2-nav-item,.sb-it{
+  border:1px solid transparent;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.sp2-nav-item:hover,.sb-it:hover{
+  border-color:var(--sp-border,rgba(229,201,120,0.18));
+  box-shadow:0 10px 20px rgba(0,0,0,0.12),inset 0 1px 0 rgba(255,255,255,0.08);
+}
+.sp2-nav-item.on,.sb-it.on{
+  border-color:var(--sp-border-h,rgba(229,201,120,0.34));
+  box-shadow:0 14px 26px rgba(0,0,0,0.16),inset 0 1px 0 rgba(255,255,255,0.12),inset 3px 0 0 var(--sp-amber,var(--ae-gold));
+}
+.sp2-root[data-theme="light"] .sp2-sidebar{
+  box-shadow:inset -1px 0 0 rgba(255,255,255,0.65),12px 0 28px rgba(92,66,15,0.08);
+}
+.sp2-root[data-theme="light"] .card,.sp2-root[data-theme="light"] .sp2-card,.sp2-root[data-theme="light"] .stat,.sp2-root[data-theme="light"] .assess-card,.sp2-root[data-theme="light"] .prof-hd,.sp2-root[data-theme="light"] .stu-card,.sp2-root[data-theme="light"] .res-card,.sp2-root[data-theme="light"] .ai-plan-metric{
+  box-shadow:0 16px 30px rgba(92,66,15,0.11),inset 0 1px 0 rgba(255,255,255,0.82)!important;
+}
+.sp2-root[data-theme="dark"] .card,.sp2-root[data-theme="dark"] .sp2-card,.sp2-root[data-theme="dark"] .stat,.sp2-root[data-theme="dark"] .assess-card,.sp2-root[data-theme="dark"] .prof-hd,.sp2-root[data-theme="dark"] .stu-card,.sp2-root[data-theme="dark"] .res-card,.sp2-root[data-theme="dark"] .ai-plan-metric{
+  box-shadow:0 18px 38px rgba(0,0,0,0.34),inset 0 1px 0 rgba(255,255,255,0.06)!important;
+}
+.card table,.sp2-card table,.assess-card table,.tutor-root table{
+  border-collapse:separate;
+  border-spacing:0;
+  border:1px solid var(--sp-border,var(--ae-line-soft));
+  border-radius:13px;
+  overflow:hidden;
+  background:var(--sp-card,var(--ae-panel));
+  box-shadow:0 12px 26px rgba(31,24,12,0.08);
+}
+th{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.12),inset 0 -1px 0 rgba(0,0,0,0.08);
+}
+td{
+  background:linear-gradient(180deg,rgba(255,255,255,0.018),rgba(0,0,0,0.012));
+}
+tr.ck:hover td,.tutor-root tr.ck:hover td{
+  background:var(--sp-glow,rgba(201,162,74,0.1))!important;
+}
+.assessment-chart-panel{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.12),inset 0 -18px 30px rgba(0,0,0,0.04),0 12px 24px rgba(31,24,12,0.08);
+}
+.assessment-chart-panel svg{
+  filter:drop-shadow(0 10px 10px rgba(0,0,0,0.11));
+}
+.assessment-track-toggle,.assessment-section-tab{
+  box-shadow:0 10px 18px rgba(31,24,12,0.08),inset 0 1px 0 rgba(255,255,255,0.12);
+}
+.assessment-track-toggle.on,.assessment-section-tab.on{
+  box-shadow:0 16px 28px rgba(31,24,12,0.14),inset 0 1px 0 rgba(255,255,255,0.2),inset 0 -2px 0 rgba(0,0,0,0.14);
+}
+.cal{
+  box-shadow:0 16px 34px rgba(31,24,12,0.1);
+}
+.cal-c{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.16);
+}
+.cal-e{
+  box-shadow:0 4px 9px rgba(0,0,0,0.16),inset 0 1px 0 rgba(255,255,255,0.12);
+  border-radius:6px;
+}
 @keyframes sp2Up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 @keyframes ae-draw-arc{from{stroke-dashoffset:352}to{stroke-dashoffset:0}}
 @keyframes ae-fade-letter{0%,50%{opacity:0;transform:scale(0.7) translateY(4px)}100%{opacity:1;transform:scale(1) translateY(0)}}
