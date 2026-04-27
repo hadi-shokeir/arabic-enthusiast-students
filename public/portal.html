@@ -354,10 +354,10 @@ tr.ck{cursor:pointer}tr.ck:hover td{background:var(--g100)}
 .qz-ar{font-family:'Amiri',serif;direction:rtl;font-size:22px;font-weight:700;text-align:center;line-height:1.8;color:#111}
 .qz-opt-ar{font-family:'Amiri',serif;direction:rtl;font-size:20px;font-weight:700;text-align:right}
 /* Library sub-tabs */
-.lib-tab-nav{display:flex;border-bottom:1px solid rgba(255,255,255,0.12);margin-bottom:20px;gap:4px}
-.lib-tab{padding:10px 18px;font-size:0.68rem;font-weight:600;color:rgba(240,240,240,0.35);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;letter-spacing:0.1em;text-transform:uppercase;background:none;border-top:none;border-left:none;border-right:none;font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap}
-.lib-tab:hover{color:rgba(240,240,240,0.65)}
-.lib-tab.on{color:#ffffff;border-bottom-color:#ffffff}
+.lib-tab-nav{display:flex;border-bottom:1px solid var(--sp-border);margin-bottom:20px;gap:4px}
+.lib-tab{padding:10px 18px;font-size:0.68rem;font-weight:700;color:var(--sp-txt3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;letter-spacing:0.1em;text-transform:uppercase;background:none;border-top:none;border-left:none;border-right:none;font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap}
+.lib-tab:hover{color:var(--sp-txt2)}
+.lib-tab.on{color:var(--sp-amber);border-bottom-color:var(--sp-amber)}
 /* Flashcard — single face, no 3D transform (eliminates backface flash) */
 .fc-scene{cursor:pointer;user-select:none}
 .fc-card{width:100%;min-height:180px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;padding:20px;box-sizing:border-box;animation:fc-in .15s ease}
@@ -374,15 +374,19 @@ tr.ck{cursor:pointer}tr.ck:hover td{background:var(--g100)}
 .conj-tbl .pron{font-family:'Amiri',serif;font-size:17px;direction:rtl;font-weight:700}
 @media(max-width:600px){.conj-tbl th .en{display:none}.conj-tbl .pron-en{display:none}.conj-tbl td .ar{font-size:17px !important}.lib-tab{padding:8px 10px;font-size:10px}}
 /* Resource link cards */
-.res-card{background:var(--sp-card,#16120c);border:1px solid rgba(255,255,255,0.08);border-radius:0;overflow:hidden;cursor:pointer;transition:border-color .2s,transform .15s;display:flex;flex-direction:column}
-.res-card:hover{border-color:rgba(255,255,255,0.3);transform:translateY(-2px)}
-.res-thumb{position:relative;width:100%;padding-bottom:52%;background:#080604;overflow:hidden;flex-shrink:0}
+.res-card{background:var(--sp-card,#16120c);border:1px solid var(--sp-border);border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color .2s,transform .15s,box-shadow .15s;display:flex;flex-direction:column;box-shadow:0 8px 22px rgba(0,0,0,0.06)}
+.res-card:hover{border-color:var(--sp-border-h);transform:translateY(-2px);box-shadow:0 14px 28px rgba(0,0,0,0.12)}
+.res-thumb{position:relative;width:100%;padding-bottom:52%;background:var(--sp-mid);overflow:hidden;flex-shrink:0}
 .res-thumb img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover}
-.res-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:48px;height:48px;background:rgba(255,255,255,0.65);border-radius:50%;display:flex;align-items:center;justify-content:center}
+.res-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:48px;height:48px;background:rgba(23,19,12,0.72);border-radius:50%;display:flex;align-items:center;justify-content:center}
 .res-body{padding:12px 14px;flex:1;min-width:0}
-.res-title{font-weight:600;font-size:13px;line-height:1.35;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;color:#f0f0f0;font-family:'DM Sans',sans-serif}
-.res-desc{font-size:11.5px;color:rgba(240,240,240,0.45);margin-top:4px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.5}
+.res-title{font-weight:800;font-size:13px;line-height:1.35;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;color:var(--sp-txt);font-family:'DM Sans',sans-serif}
+.res-desc{font-size:11.5px;color:var(--sp-txt2);margin-top:4px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.5}
 .res-meta{margin-top:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.res-cat{padding:2px 8px;background:var(--sp-glow);color:var(--sp-amber);border:1px solid var(--sp-border-h);border-radius:999px;font-size:0.6rem;font-weight:800;letter-spacing:0.06em;text-transform:uppercase}
+.res-url{font-size:0.7rem;color:var(--sp-txt2);font-weight:700}
+.res-meta span[style*="text-transform"]{background:var(--sp-glow)!important;color:var(--sp-amber)!important;border:1px solid var(--sp-border-h)!important;border-radius:999px!important}
+.res-meta span:not([style*="text-transform"]){color:var(--sp-txt2)!important;font-weight:700}
 /* ── Mobile bottom nav for tutor dashboard ── */
 .mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bk);border-top:1px solid rgba(255,255,255,0.1);z-index:50;overflow-x:auto;padding:0;-webkit-overflow-scrolling:touch}
 .mob-nav::-webkit-scrollbar{display:none}
@@ -434,7 +438,7 @@ tr.ck{cursor:pointer}tr.ck:hover td{background:var(--g100)}
 
 /* student-portal-v2 */
 .sp2-root[data-theme="dark"]{--sp-bg:#080808;--sp-mid:#11100d;--sp-card:#17140f;--sp-surface:rgba(229,201,120,0.05);--sp-amber:#c9a24a;--sp-amber-l:#e5c978;--sp-amber-d:#9d7420;--sp-glow:rgba(201,162,74,0.12);--sp-teal:#52C4B8;--sp-green:#4CAF7D;--sp-red:#CF4744;--sp-rose:#E07A90;--sp-txt:#f7efe0;--sp-txt2:#a59b87;--sp-txt3:#6f6655;--sp-border:rgba(229,201,120,0.12);--sp-border-h:rgba(229,201,120,0.34)}
-.sp2-root[data-theme="light"]{--sp-bg:#F4F1E9;--sp-mid:#ECE4D5;--sp-card:#FFFDF8;--sp-surface:rgba(201,162,74,0.06);--sp-amber:#9d7420;--sp-amber-l:#c9a24a;--sp-amber-d:#745314;--sp-glow:rgba(201,162,74,0.11);--sp-teal:#1F8A7F;--sp-green:#2E7D52;--sp-red:#C03030;--sp-rose:#C04060;--sp-txt:#17130c;--sp-txt2:#5f5748;--sp-txt3:#8d8067;--sp-border:rgba(116,83,20,0.12);--sp-border-h:rgba(201,162,74,0.34)}
+.sp2-root[data-theme="light"]{--sp-bg:#F4F1E9;--sp-mid:#ECE4D5;--sp-card:#FFFDF8;--sp-surface:rgba(137,94,18,0.09);--sp-amber:#6f4b00;--sp-amber-l:#8a5d00;--sp-amber-d:#5c3c00;--sp-glow:rgba(137,94,18,0.14);--sp-teal:#126E66;--sp-green:#256C45;--sp-red:#A92828;--sp-rose:#A83250;--sp-txt:#120f09;--sp-txt2:#3f372d;--sp-txt3:#625741;--sp-border:rgba(92,66,15,0.22);--sp-border-h:rgba(111,75,0,0.46)}
 body:has(.sp2-root){overflow:hidden}
 #root:has(.sp2-root){overflow:hidden;height:100dvh}
 .sp2-root{font-family:'DM Sans',sans-serif;height:100dvh;background:var(--sp-bg);color:var(--sp-txt);display:flex;flex-direction:column;overflow:hidden}
@@ -4639,6 +4643,15 @@ const SP_NAV = [
   {id:'settings',icon:'⚙️',label:'Settings',group:'MY LESSONS'},
 ];
 const SP_NAV_GROUPS = [null,'LEARN','EXPLORE','MY LESSONS'];
+const SP_MORE_NAV = [
+  {id:'skills',icon:'*',label:'Skills Practice',desc:'Reading, writing, listening, and speaking practice.'},
+  {id:'foundation',icon:'R',label:'Foundation',desc:'Vocabulary, roots, and grammar basics.'},
+  {id:'script',icon:'ب',label:'Arabic Script',desc:'Letters, forms, and script confidence.'},
+  {id:'culture',icon:'C',label:'Culture',desc:'Expressions, context, and cultural notes.'},
+  {id:'curriculum',icon:'L',label:'Curriculum',desc:'Assigned lessons and class materials.'},
+  {id:'preferences',icon:'J',label:'My Journey',desc:'Goals, interests, study style, and motivation.'},
+  {id:'settings',icon:'S',label:'Settings',desc:'Profile, timezone, notifications, and theme.'},
+];
 
 const SP_VOCAB = [
   {ar:"مَرْحَبًا",leb:"مرحبا / هلا",en:"Hello",phonetic:"marḥaban / hala",cat:"Greetings",img:"👋",root:"ر-ح-ب"},
@@ -4945,6 +4958,18 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
   const lp = s.learningProfile||{};
   const prefFilled = [lp.why,lp.style,lp.time,(lp.topics||[]).length>0,lp.challenge,lp.personalGoal].filter(Boolean).length;
   const prefBadge = 6-prefFilled;
+  const moreBadge = prefBadge + settingsBadge;
+  const navById = id => SP_NAV.find(item=>item.id===id) || {id,icon:'',label:id,group:null};
+  const studentNav = [
+    {...navById('home'),group:null},
+    {...navById('ai'),group:null},
+    {...navById('studio'),group:null},
+    {...navById('book'),label:'Book',group:null},
+    {...navById('library'),label:'Resources',group:null},
+    {id:'more',icon:'...',label:'More',group:null}
+  ];
+  const studentNavGroups = [null];
+  const navActiveId = SP_MORE_NAV.some(item=>item.id===spTab) ? 'more' : spTab;
 
   // Tab content
   const renderContent = () => {
@@ -5321,6 +5346,22 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
     // ── SHOP ──
 
     // ── LIBRARY ──
+    if(spTab==='more') return h`<div style=${{maxWidth:760,margin:"0 auto"}}>
+      <div style=${{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:700,marginBottom:6,color:"var(--sp-txt)"}}>More</div>
+      <div style=${{fontSize:13,color:"var(--sp-txt2)",marginBottom:18,lineHeight:1.7}}>Extra tools and account settings are here when you need them.</div>
+      <div style=${{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:12}}>
+        ${SP_MORE_NAV.map(item=>{
+          const badge = item.id==='preferences' ? prefBadge : item.id==='settings' ? settingsBadge : 0;
+          return h`<button key=${item.id} class="sp2-card sp2-card-h" onClick=${()=>switchTab(item.id)} style=${{textAlign:"left",border:"1px solid var(--sp-border)",color:"var(--sp-txt)",fontFamily:"'DM Sans',sans-serif",position:"relative"}}>
+            ${badge>0?h`<span style=${{position:"absolute",top:10,right:10,background:"var(--sp-amber)",color:"#fff",borderRadius:10,fontSize:10,fontWeight:800,padding:"1px 7px"}}>${badge}</span>`:null}
+            <div style=${{fontSize:22,marginBottom:10}}>${item.icon}</div>
+            <div style=${{fontWeight:800,fontSize:14,marginBottom:5,color:"var(--sp-txt)"}}>${item.label}</div>
+            <div style=${{fontSize:12,lineHeight:1.55,color:"var(--sp-txt2)"}}>${item.desc}</div>
+          </button>`;
+        })}
+      </div>
+    </div>`;
+
     if(spTab==='studio') return h`<${StudentLearningStudio} student=${s} data=${data}/>`;
     if(spTab==='library') return h`<${StudentLibraryTab} student=${s} data=${data} setData=${setData} initialTopic=${jumpTopic}/>`;
 
@@ -5339,7 +5380,7 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
     return null;
   };
 
-  const mobNavItems = SP_NAV.slice(0,6);
+  const mobNavItems = studentNav.slice(0,6);
 
   return h`<div class="sp2-root" data-theme=${theme}>
     <header class="sp2-hdr">
@@ -5362,15 +5403,16 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
 
     <div class="sp2-layout">
       <nav class="sp2-sidebar">
-        ${SP_NAV_GROUPS.map(g => {
-          const items = SP_NAV.filter(item => item.group === g);
+        ${studentNavGroups.map(g => {
+          const items = studentNav.filter(item => item.group === g);
           return h`<div key=${g||'top'}>
             ${g?h`<div class="sp2-nav-grp">${g}</div>`:null}
-            ${items.map(item => h`<button key=${item.id} class=${"sp2-nav-item "+(spTab===item.id?"on":"")} onClick=${()=>switchTab(item.id)}>
+            ${items.map(item => h`<button key=${item.id} class=${"sp2-nav-item "+(navActiveId===item.id?"on":"")} onClick=${()=>switchTab(item.id)}>
               <span style=${{fontSize:15,width:20,flexShrink:0,textAlign:"center"}}>${item.icon}</span>
               ${item.label}
               ${item.id==='preferences'&&prefBadge>0?h`<span style=${{marginLeft:"auto",background:"var(--sp-amber)",color:"#fff",borderRadius:10,fontSize:10,fontWeight:700,padding:"1px 6px"}}>${prefBadge}</span>`:null}
               ${item.id==='settings'&&settingsBadge>0?h`<span style=${{marginLeft:"auto",background:"var(--sp-amber)",color:"#fff",borderRadius:10,fontSize:10,fontWeight:700,padding:"1px 6px"}}>${settingsBadge}</span>`:null}
+              ${item.id==='more'&&moreBadge>0?h`<span style=${{marginLeft:"auto",background:"var(--sp-amber)",color:"#fff",borderRadius:10,fontSize:10,fontWeight:700,padding:"1px 6px"}}>${moreBadge}</span>`:null}
             </button>`)}
           </div>`;
         })}
@@ -5382,7 +5424,7 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
     </div>
 
     <nav class="sp2-mob-nav">
-      ${mobNavItems.map(item=>h`<button key=${item.id} class=${"sp2-mob-it "+(spTab===item.id?"on":"")} onClick=${()=>switchTab(item.id)}>
+      ${mobNavItems.map(item=>h`<button key=${item.id} class=${"sp2-mob-it "+(navActiveId===item.id?"on":"")} onClick=${()=>switchTab(item.id)}>
         <span style=${{fontSize:20}}>${item.icon}</span>${item.label}
       </button>`)}
     </nav>
