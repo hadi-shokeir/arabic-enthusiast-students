@@ -4746,6 +4746,7 @@ const SP_NAV = [
   {id:'home',icon:'🏠',label:'Home',group:null},
   {id:'ai',icon:'🤖',label:'AI Tutor',group:null},
   {id:'studio',icon:'🎓',label:'Learning Studio',group:'LEARN'},
+  {id:'trace',icon:'✍️',label:'Trace',group:'LEARN'},
   {id:'skills',icon:'⚡',label:'Skills',group:'LEARN'},
   {id:'foundation',icon:'🌿',label:'Foundation',group:'LEARN'},
   {id:'script',icon:'ب',label:'Script',group:'LEARN'},
@@ -4851,7 +4852,253 @@ const SP_SHOP = [
   {id:6,name:"Root-Pattern Reference Guide",nameAr:"دليل الأوزان والجذور",price:12.99,type:"digital",img:"🌿",rating:4.9,reviews:278},
 ];
 
-function StudentLearningStudio({student: s, data}) {
+const TRACE_SETS = [
+  {id:"letters",title:"Letters",desc:"Start with single letters and build hand control.",items:SP_SCRIPT.map(l=>({text:l.l,label:l.n,hint:"Trace the main shape slowly, then add dots clearly."}))},
+  {id:"forms",title:"Letter Forms",desc:"Practice how letters connect at the beginning, middle, and end.",items:[
+    {text:"ب بـ ـبـ ـب",label:"Bāʾ forms",hint:"Notice how the body stretches when it connects."},
+    {text:"ت تـ ـتـ ـت",label:"Tāʾ forms",hint:"Keep the two dots balanced above the letter."},
+    {text:"ج جـ ـجـ ـج",label:"Jīm forms",hint:"Let the bowl drop below the line in final forms."},
+    {text:"ع عـ ـعـ ـع",label:"ʿAyn forms",hint:"This letter changes shape strongly by position."},
+    {text:"م مـ ـمـ ـم",label:"Mīm forms",hint:"Keep the loop rounded and controlled."},
+    {text:"ه هـ ـهـ ـه",label:"Hāʾ forms",hint:"Trace the inner loop gently."}
+  ]},
+  {id:"words",title:"Words",desc:"Move from letters into connected handwriting.",items:[
+    {text:"كِتَاب",label:"kitāb - book",hint:"Write right-to-left; keep the baseline steady."},
+    {text:"بَيْت",label:"bayt - house",hint:"Leave space for the two dots under ي."},
+    {text:"قَلْب",label:"qalb - heart",hint:"Make ق tall enough before connecting to ل."},
+    {text:"نُور",label:"nūr - light",hint:"Keep ن and و distinct."},
+    {text:"مَدْرَسَة",label:"madrasa - school",hint:"This is longer; slow down before the final ة."},
+    {text:"السَّلَام",label:"as-salām - peace",hint:"Follow the connected س carefully."}
+  ]},
+  {id:"phrases",title:"Short Phrases",desc:"Practice useful phrases as handwriting lines.",items:[
+    {text:"مَرْحَبًا",label:"marḥaban - hello",hint:"Trace the word as one flowing unit."},
+    {text:"شُكْرًا",label:"shukran - thank you",hint:"Dots and vowels matter here."},
+    {text:"أَهْلًا وَسَهْلًا",label:"ahlan wa sahlan - welcome",hint:"Take it in two parts, then connect your rhythm."},
+    {text:"كَيْفَ حَالُكَ؟",label:"kayfa ḥāluka? - how are you?",hint:"Give the question mark its own space on the left."}
+  ]}
+];
+
+function parseTraceSource(sourceText) {
+  const lines = (sourceText||"")
+    .split(/\n|,/)
+    .map(x=>x.trim())
+    .filter(Boolean)
+    .filter(x=>!/^https?:\/\//i.test(x));
+  return lines.map((text,i)=>({text,label:"Custom "+(i+1),hint:"Trace this item from right to left."}));
+}
+
+function ArabicTracingLab({student:s, data, setData, sourceText, title, compact}) {
+  const sourceItems = parseTraceSource(sourceText);
+  const sets = sourceItems.length ? [{id:"custom",title:title||"Tutor Tracing",desc:"Tracing activity prepared by Hadi.",items:sourceItems}] : TRACE_SETS;
+  const [setId, setSetId] = useState(sets[0].id);
+  const [idx, setIdx] = useState(0);
+  const [customText, setCustomText] = useState("");
+  const [brush, setBrush] = useState(22);
+  const [showGrid, setShowGrid] = useState(true);
+  const [score, setScore] = useState(null);
+  const [feedback, setFeedback] = useState("");
+  const canvasRef = useRef(null);
+  const guideRef = useRef(null);
+  const inkRef = useRef(null);
+  const drawingRef = useRef(false);
+  const lastRef = useRef(null);
+  const currentSet = sets.find(x=>x.id===setId) || sets[0];
+  const item = customText.trim() ? {text:customText.trim(),label:"My custom text",hint:"Trace your custom Arabic text."} : (currentSet.items[idx] || currentSet.items[0]);
+  const text = item?.text || "ب";
+
+  const drawGuide = (ctx, w, h, mask=false) => {
+    ctx.clearRect(0,0,w,h);
+    if (!mask) {
+      ctx.fillStyle = "rgba(255,255,255,0.02)";
+      ctx.fillRect(0,0,w,h);
+      if (showGrid) {
+        ctx.strokeStyle = "rgba(201,162,74,0.12)";
+        ctx.lineWidth = 1;
+        const gap = 38;
+        for (let x=gap; x<w; x+=gap) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
+        for (let y=gap; y<h; y+=gap) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
+        ctx.strokeStyle = "rgba(201,162,74,0.28)";
+        ctx.beginPath(); ctx.moveTo(22,h*0.64); ctx.lineTo(w-22,h*0.64); ctx.stroke();
+      }
+    }
+    let fontSize = text.length <= 1 ? Math.min(210, h*0.62) : text.length <= 6 ? Math.min(150, h*0.48) : Math.min(108, h*0.38);
+    ctx.direction = "rtl";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    do {
+      ctx.font = "700 "+fontSize+"px 'Amiri','Noto Kufi Arabic',serif";
+      if (ctx.measureText(text).width < w-42 || fontSize < 34) break;
+      fontSize -= 6;
+    } while (fontSize > 28);
+    const x = w/2, y = h*0.52;
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    ctx.lineWidth = Math.max(18, fontSize*0.14);
+    if (mask) {
+      ctx.strokeStyle = "#fff";
+      ctx.fillStyle = "#fff";
+      ctx.strokeText(text,x,y);
+      ctx.fillText(text,x,y);
+      return;
+    }
+    ctx.setLineDash([10,10]);
+    ctx.strokeStyle = "rgba(229,201,120,0.38)";
+    ctx.strokeText(text,x,y);
+    ctx.setLineDash([]);
+    ctx.fillStyle = "rgba(247,239,224,0.08)";
+    ctx.fillText(text,x,y);
+    ctx.fillStyle = "rgba(229,201,120,0.78)";
+    ctx.font = "800 11px 'DM Sans',sans-serif";
+    ctx.textAlign = "right";
+    ctx.direction = "ltr";
+    ctx.fillText("Start on the right. Trace inside the glowing guide.", w-18, 24);
+  };
+
+  const redraw = () => {
+    const canvas = canvasRef.current;
+    const guide = guideRef.current;
+    const ink = inkRef.current;
+    if (!canvas || !guide || !ink) return;
+    const dpr = window.devicePixelRatio || 1;
+    const w = Math.max(320, Math.floor(canvas.parentElement?.clientWidth || 680));
+    const h = compact ? 300 : (w < 520 ? 330 : 390);
+    [canvas,guide,ink].forEach(c => {
+      if (c.width !== Math.floor(w*dpr) || c.height !== Math.floor(h*dpr)) {
+        c.width = Math.floor(w*dpr); c.height = Math.floor(h*dpr);
+        c.style.width = "100%"; c.style.height = h+"px";
+      }
+    });
+    const ctx = canvas.getContext("2d");
+    const gctx = guide.getContext("2d");
+    const ictx = ink.getContext("2d");
+    [ctx,gctx,ictx].forEach(c=>c.setTransform(dpr,0,0,dpr,0,0));
+    drawGuide(ctx,w,h,false);
+    gctx.clearRect(0,0,w,h); drawGuide(gctx,w,h,true);
+    ctx.drawImage(ink,0,0,w,h);
+  };
+
+  const clearInk = () => {
+    const ink = inkRef.current;
+    if (ink) {
+      const ictx = ink.getContext("2d");
+      ictx.setTransform(1,0,0,1,0,0);
+      ictx.clearRect(0,0,ink.width,ink.height);
+    }
+    setScore(null); setFeedback("");
+    setTimeout(redraw,0);
+  };
+
+  useEffect(() => {
+    guideRef.current = guideRef.current || document.createElement("canvas");
+    inkRef.current = inkRef.current || document.createElement("canvas");
+    const onResize = () => redraw();
+    window.addEventListener("resize", onResize);
+    setTimeout(redraw,40);
+    return () => window.removeEventListener("resize", onResize);
+  }, [text, showGrid, compact]);
+
+  const point = e => {
+    const rect = canvasRef.current.getBoundingClientRect();
+    return {x:e.clientX-rect.left, y:e.clientY-rect.top};
+  };
+  const drawTo = p => {
+    const ink = inkRef.current;
+    if (!ink) return;
+    const dpr = window.devicePixelRatio || 1;
+    const ctx = ink.getContext("2d");
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.strokeStyle = "rgba(229,201,120,0.96)";
+    ctx.lineWidth = brush;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.beginPath();
+    const last = lastRef.current || p;
+    ctx.moveTo(last.x,last.y);
+    ctx.lineTo(p.x,p.y);
+    ctx.stroke();
+    lastRef.current = p;
+    redraw();
+  };
+  const start = e => { e.preventDefault(); e.currentTarget.setPointerCapture?.(e.pointerId); drawingRef.current = true; lastRef.current = point(e); drawTo(lastRef.current); };
+  const move = e => { if(!drawingRef.current) return; e.preventDefault(); drawTo(point(e)); };
+  const stop = e => { drawingRef.current = false; lastRef.current = null; };
+  const check = () => {
+    const guide = guideRef.current, ink = inkRef.current;
+    if (!guide || !ink) return;
+    const g = guide.getContext("2d").getImageData(0,0,guide.width,guide.height).data;
+    const k = ink.getContext("2d").getImageData(0,0,ink.width,ink.height).data;
+    let guidePx=0, covered=0, inkPx=0, offGuide=0;
+    for (let i=3; i<g.length; i+=16) {
+      const hasGuide = g[i] > 18;
+      const hasInk = k[i] > 18;
+      if (hasGuide) guidePx++;
+      if (hasInk) inkPx++;
+      if (hasGuide && hasInk) covered++;
+      if (hasInk && !hasGuide) offGuide++;
+    }
+    const coverage = guidePx ? covered/guidePx : 0;
+    const drift = inkPx ? offGuide/inkPx : 0;
+    const nextScore = Math.max(0, Math.min(100, Math.round(coverage*112 - drift*20)));
+    setScore(nextScore);
+    setFeedback(nextScore>=82 ? "Excellent control. Try the next one." : nextScore>=58 ? "Good start. Trace the lighter empty areas again." : "Slow down and stay inside the guide. Reset if you want a clean try.");
+    if (s && data && setData) {
+      const entry = {date:new Date().toISOString(),text,score:nextScore};
+      setData({...data,students:data.students.map(st=>st.id===s.id?{...st,tracingHistory:[...(st.tracingHistory||[]),entry].slice(-40)}:st)});
+    }
+  };
+  const next = () => { setIdx((idx+1)%currentSet.items.length); setCustomText(""); clearInk(); };
+  const setExercise = id => { setSetId(id); setIdx(0); setCustomText(""); clearInk(); };
+
+  return h`<div>
+    <div style=${{display:"flex",justifyContent:"space-between",alignItems:"flex-end",gap:14,flexWrap:"wrap",marginBottom:14}}>
+      <div>
+        <div class="sp2-nav-grp" style=${{padding:0,marginBottom:6}}>Writing Practice</div>
+        <h2 style=${{fontFamily:"'Playfair Display',serif",fontSize:compact?24:30,fontWeight:600,color:"var(--sp-txt)",margin:0}}>${title||"Arabic Tracing Lab"}</h2>
+        <p style=${{fontSize:13,color:"var(--sp-txt2)",lineHeight:1.7,marginTop:6}}>Trace with Apple Pencil, stylus, finger, trackpad, or mouse. Use slow, confident strokes from right to left.</p>
+      </div>
+      ${score!==null?h`<div style=${{textAlign:"center",background:"var(--sp-glow)",border:"1px solid var(--sp-border-h)",borderRadius:14,padding:"10px 16px",minWidth:96}}>
+        <div style=${{fontSize:10,fontWeight:800,color:"var(--sp-txt3)",textTransform:"uppercase",letterSpacing:1}}>Trace Score</div>
+        <div style=${{fontFamily:"'Playfair Display',serif",fontSize:30,color:score>=82?"var(--sp-green)":score>=58?"var(--sp-amber)":"var(--sp-red)",fontWeight:800,lineHeight:1}}>${score}%</div>
+      </div>`:null}
+    </div>
+
+    ${!sourceItems.length&&h`<div class="sp2-tabs" style=${{marginBottom:14}}>
+      ${sets.map(set=>h`<button key=${set.id} class=${"sp2-tab "+(setId===set.id?"on":"")} onClick=${()=>setExercise(set.id)}>${set.title}</button>`)}
+    </div>`}
+
+    <div class="sp2-card" style=${{padding:compact?12:16,marginBottom:14}}>
+      <div style=${{display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,flexWrap:"wrap",marginBottom:12}}>
+        <div>
+          <div style=${{fontWeight:800,color:"var(--sp-txt)",fontSize:15}}>${item.label||"Tracing"}</div>
+          <div style=${{fontSize:12,color:"var(--sp-txt3)",marginTop:3}}>${item.hint||currentSet.desc}</div>
+        </div>
+        <div style=${{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
+          <label style=${{fontSize:12,color:"var(--sp-txt2)",display:"flex",gap:6,alignItems:"center"}}><input type="checkbox" checked=${showGrid} onChange=${e=>setShowGrid(e.target.checked)}/> Grid</label>
+          <label style=${{fontSize:12,color:"var(--sp-txt2)",display:"flex",gap:6,alignItems:"center"}}>Brush <input type="range" min="12" max="34" value=${brush} onInput=${e=>setBrush(+e.target.value)} style=${{width:90}}/></label>
+        </div>
+      </div>
+      <canvas ref=${canvasRef} onPointerDown=${start} onPointerMove=${move} onPointerUp=${stop} onPointerCancel=${stop} onPointerLeave=${stop} style=${{display:"block",width:"100%",borderRadius:14,border:"1px solid var(--sp-border-h)",background:"var(--sp-surface)",touchAction:"none",cursor:"crosshair",boxShadow:"inset 0 1px 0 rgba(255,255,255,.06),0 18px 38px rgba(0,0,0,.22)"}}></canvas>
+      <div style=${{display:"flex",justifyContent:"space-between",gap:10,alignItems:"center",marginTop:12,flexWrap:"wrap"}}>
+        <div style=${{display:"flex",gap:8,flexWrap:"wrap"}}>
+          <button class="sp2-btn sp2-btn-g sp2-btn-sm" onClick=${clearInk}>Reset</button>
+          <button class="sp2-btn sp2-btn-p sp2-btn-sm" onClick=${check}>Check</button>
+          <button class="sp2-btn sp2-btn-g sp2-btn-sm" onClick=${next}>Next</button>
+        </div>
+        <input value=${customText} onInput=${e=>{setCustomText(e.target.value);setScore(null);setFeedback("");}} placeholder="Custom Arabic word..." style=${{minWidth:220,flex:"1 1 240px",background:"var(--sp-surface)",border:"1px solid var(--sp-border)",borderRadius:10,padding:"9px 12px",color:"var(--sp-txt)",fontFamily:"'Amiri',serif",fontSize:18,direction:"rtl"}}/>
+      </div>
+      ${feedback&&h`<div style=${{marginTop:10,fontSize:13,color:"var(--sp-txt2)",lineHeight:1.6,borderLeft:"3px solid var(--sp-amber)",paddingLeft:10}}>${feedback}</div>`}
+    </div>
+
+    ${s?.tracingHistory?.length?h`<div class="sp2-card" style=${{padding:14}}>
+      <div style=${{fontSize:11,fontWeight:800,textTransform:"uppercase",letterSpacing:1.4,color:"var(--sp-txt3)",marginBottom:10}}>Recent tracing</div>
+      <div style=${{display:"flex",gap:8,flexWrap:"wrap"}}>
+        ${s.tracingHistory.slice(-8).reverse().map((r,i)=>h`<span key=${i} class=${"sp2-badge "+(r.score>=82?"sp2-badge-g":r.score>=58?"sp2-badge-a":"sp2-badge-t")}>${r.text} · ${r.score}%</span>`)}
+      </div>
+    </div>`:null}
+  </div>`;
+}
+
+function StudentLearningStudio({student: s, data, setData}) {
   const [filter, setFilter] = useState("All");
   const [opened, setOpened] = useState(null);
   const all = (data.studioItems||[]).filter(item => item.published);
@@ -4915,7 +5162,9 @@ function StudentLearningStudio({student: s, data}) {
         <span class="sp2-badge sp2-badge-g">${opened.track||"General"}</span>
       </div>
       ${opened.description&&h`<p style=${{fontSize:14,lineHeight:1.75,color:"var(--sp-txt2)",marginBottom:14}}>${opened.description}</p>`}
-      ${opened.instructions&&h`<div class="sp2-card" style=${{boxShadow:"none",background:"var(--sp-surface)",whiteSpace:"pre-wrap",fontSize:14,lineHeight:1.8}}>${opened.instructions}</div>`}
+      ${opened.type==="Tracing"
+        ? h`<${ArabicTracingLab} student=${s} data=${data} setData=${setData} sourceText=${opened.instructions||opened.title} title=${opened.title||"Tracing"} compact=${true}/>`
+        : opened.instructions&&h`<div class="sp2-card" style=${{boxShadow:"none",background:"var(--sp-surface)",whiteSpace:"pre-wrap",fontSize:14,lineHeight:1.8}}>${opened.instructions}</div>`}
       ${opened.fileName&&h`<div style=${{marginTop:14,fontSize:13,color:"var(--sp-txt2)"}}>Attached file: <b>${opened.fileName}</b></div>`}
       ${opened.url&&h`<div style=${{marginTop:14,fontSize:13,color:"var(--sp-txt2)",wordBreak:"break-all"}}>${opened.url}</div>`}
     <//>`}
@@ -5077,6 +5326,7 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
   const studentNav = [
     {...navById('home'),group:null},
     {...navById('ai'),group:null},
+    {...navById('trace'),group:null},
     {...navById('studio'),group:null},
     {...navById('book'),label:'Book',group:null},
     {...navById('library'),label:'Resources',group:null},
@@ -5476,7 +5726,8 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
       </div>
     </div>`;
 
-    if(spTab==='studio') return h`<${StudentLearningStudio} student=${s} data=${data}/>`;
+    if(spTab==='trace') return h`<${ArabicTracingLab} student=${s} data=${data} setData=${setData}/>`;
+    if(spTab==='studio') return h`<${StudentLearningStudio} student=${s} data=${data} setData=${setData}/>`;
     if(spTab==='library') return h`<${StudentLibraryTab} student=${s} data=${data} setData=${setData} initialTopic=${jumpTopic}/>`;
 
     // ── BOOK ──
@@ -5494,7 +5745,7 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
     return null;
   };
 
-  const mobNavItems = studentNav.slice(0,6);
+  const mobNavItems = ['home','ai','trace','studio','book','more'].map(id=>studentNav.find(item=>item.id===id)).filter(Boolean);
 
   return h`<div class="sp2-root" data-theme=${theme}>
     <header class="sp2-hdr">
@@ -8931,7 +9182,7 @@ function StudioAdmin({data, setData}) {
       <div class="fr3"><div class="fg"><label>Track</label><select value=${form.track} onChange=${e=>setForm({...form,track:e.target.value})}>${tracks.map(t=>h`<option key=${t}>${t}</option>`)}</select></div><div class="fg"><label>Level</label><select value=${form.level} onChange=${e=>setForm({...form,level:e.target.value})}>${levels.map(l=>h`<option key=${l}>${l}</option>`)}</select></div><div class="fg"><label>Category</label><input value=${form.category} onInput=${e=>setForm({...form,category:e.target.value})} placeholder="Writing, Speaking..."/></div></div>
       <div class="fr"><div class="fg"><label>Availability</label><select value=${form.audience} onChange=${e=>setForm({...form,audience:e.target.value})}>${audiences.map(([v,l])=>h`<option key=${v} value=${v}>${l}</option>`)}</select></div><div class="fg"><label>Status</label><select value=${form.published?"published":"draft"} onChange=${e=>setForm({...form,published:e.target.value==="published"})}><option value="draft">Hidden / Draft</option><option value="published">Published to students</option></select></div></div>
       <div class="fg"><label>Description</label><textarea value=${form.description} onInput=${e=>setForm({...form,description:e.target.value})} placeholder="What should students know before opening this?"/></div>
-      <div class="fg"><label>Instructions / Activity Content</label><textarea value=${form.instructions} onInput=${e=>setForm({...form,instructions:e.target.value})} placeholder="For tracing: paste words/letters. For speaking: write prompts. For quizzes/exercises: write the questions or instructions."/></div>
+      <div class="fg"><label>${form.type==="Tracing"?"Tracing Words / Letters":"Instructions / Activity Content"}</label><textarea value=${form.instructions} onInput=${e=>setForm({...form,instructions:e.target.value})} placeholder=${form.type==="Tracing"?"Paste one Arabic letter, word, or phrase per line. Students will trace each one on the canvas.":"For tracing: paste words/letters. For speaking: write prompts. For quizzes/exercises: write the questions or instructions."}/></div>
       <div class="fg"><label>Link / Video URL</label><input value=${form.url} onInput=${e=>setForm({...form,url:e.target.value})} placeholder="https://..."/></div>
       <div class="fg"><label>Upload File (PDF, image, audio, etc. max 50MB)</label><div class="fu" onClick=${()=>fileRef.current?.click()}><input ref=${fileRef} type="file" onChange=${handleFile}/>${form.fileName?h`<span>${ic('fi')} ${form.fileName}</span>`:h`<p style=${{fontWeight:600}}>Click to upload a file</p>`}</div></div>
     <//>`}
