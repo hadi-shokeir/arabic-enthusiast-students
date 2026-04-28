@@ -4886,6 +4886,12 @@ const TRACE_FONTS = [
   {id:"kufi",label:"Kufi",stack:"'Noto Kufi Arabic',sans-serif",weight:400,scale:0.84,stroke:0.06,desc:"Blocky beginner forms"}
 ];
 
+const TRACE_LEVELS = [
+  {id:"beginner",label:"Beginner",short:"Trace",desc:"Strong guide, grid, and generous matching.",guideAlpha:0.5,fillAlpha:0.06,dash:[8,14]},
+  {id:"medium",label:"Medium",short:"Copy",desc:"Faint guide for students who know the shape.",guideAlpha:0.22,fillAlpha:0.018,dash:[4,18]},
+  {id:"advanced",label:"Advanced",short:"Free write",desc:"Blank canvas. Write from memory, then compare.",guideAlpha:0,fillAlpha:0,dash:[]}
+];
+
 function parseTraceSource(sourceText) {
   const lines = (sourceText||"")
     .split(/\n|,/)
@@ -4904,6 +4910,7 @@ function ArabicTracingLab({student:s, data, setData, sourceText, title, compact}
   const [brush, setBrush] = useState(22);
   const [fontId, setFontId] = useState("naskh");
   const [guideSize, setGuideSize] = useState(84);
+  const [traceLevel, setTraceLevel] = useState("beginner");
   const [showGrid, setShowGrid] = useState(true);
   const [score, setScore] = useState(null);
   const [feedback, setFeedback] = useState("");
@@ -4916,6 +4923,7 @@ function ArabicTracingLab({student:s, data, setData, sourceText, title, compact}
   const item = customText.trim() ? {text:customText.trim(),label:"My custom text",hint:"Trace your custom Arabic text."} : (currentSet.items[idx] || currentSet.items[0]);
   const text = item?.text || "ب";
   const traceFont = TRACE_FONTS.find(f=>f.id===fontId) || TRACE_FONTS[0];
+  const level = TRACE_LEVELS.find(l=>l.id===traceLevel) || TRACE_LEVELS[0];
 
   const drawGuide = (ctx, w, h, mask=false) => {
     ctx.clearRect(0,0,w,h);
@@ -4923,12 +4931,13 @@ function ArabicTracingLab({student:s, data, setData, sourceText, title, compact}
       ctx.fillStyle = "rgba(255,255,255,0.02)";
       ctx.fillRect(0,0,w,h);
       if (showGrid) {
-        ctx.strokeStyle = "rgba(201,162,74,0.12)";
+        const gridAlpha = traceLevel==="advanced" ? 0.075 : traceLevel==="medium" ? 0.095 : 0.12;
+        ctx.strokeStyle = "rgba(201,162,74,"+gridAlpha+")";
         ctx.lineWidth = 1;
         const gap = 38;
         for (let x=gap; x<w; x+=gap) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
         for (let y=gap; y<h; y+=gap) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
-        ctx.strokeStyle = "rgba(201,162,74,0.28)";
+        ctx.strokeStyle = "rgba(201,162,74,"+(traceLevel==="advanced"?0.22:0.28)+")";
         ctx.beginPath(); ctx.moveTo(22,h*0.64); ctx.lineTo(w-22,h*0.64); ctx.stroke();
       }
     }
@@ -4953,12 +4962,20 @@ function ArabicTracingLab({student:s, data, setData, sourceText, title, compact}
       ctx.fillText(text,x,y);
       return;
     }
+    if (traceLevel==="advanced") {
+      ctx.fillStyle = "rgba(229,201,120,0.72)";
+      ctx.font = "800 11px 'DM Sans',sans-serif";
+      ctx.textAlign = "right";
+      ctx.direction = "ltr";
+      ctx.fillText("Free write: match the target above without a guide.", w-18, 24);
+      return;
+    }
     ctx.lineWidth = Math.max(7, fontSize*traceFont.stroke);
-    ctx.setLineDash([8,14]);
-    ctx.strokeStyle = "rgba(229,201,120,0.48)";
+    ctx.setLineDash(level.dash);
+    ctx.strokeStyle = "rgba(229,201,120,"+level.guideAlpha+")";
     ctx.strokeText(text,x,y);
     ctx.setLineDash([]);
-    ctx.fillStyle = "rgba(247,239,224,0.045)";
+    ctx.fillStyle = "rgba(247,239,224,"+level.fillAlpha+")";
     ctx.fillText(text,x,y);
     ctx.fillStyle = "rgba(229,201,120,0.78)";
     ctx.font = "800 11px 'DM Sans',sans-serif";
@@ -5009,54 +5026,105 @@ function ArabicTracingLab({student:s, data, setData, sourceText, title, compact}
     setTimeout(redraw,40);
     document.fonts?.ready?.then(redraw).catch(()=>{});
     return () => window.removeEventListener("resize", onResize);
-  }, [text, showGrid, compact, fontId, guideSize]);
+  }, [text, showGrid, compact, fontId, guideSize, traceLevel]);
 
   const point = e => {
     const rect = canvasRef.current.getBoundingClientRect();
     return {x:e.clientX-rect.left, y:e.clientY-rect.top};
   };
-  const drawTo = p => {
+  const drawTo = (p, pressure=0.55, deferRedraw=false) => {
     const ink = inkRef.current;
     if (!ink) return;
     const dpr = window.devicePixelRatio || 1;
     const ctx = ink.getContext("2d");
     ctx.setTransform(dpr,0,0,dpr,0,0);
     ctx.strokeStyle = "rgba(229,201,120,0.96)";
-    ctx.lineWidth = brush;
+    ctx.fillStyle = "rgba(229,201,120,0.96)";
+    const force = Math.max(0.25, Math.min(1, pressure || 0.55));
+    const width = brush * (0.78 + force * 0.28);
+    ctx.lineWidth = width;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-    ctx.beginPath();
     const last = lastRef.current || p;
-    ctx.moveTo(last.x,last.y);
-    ctx.lineTo(p.x,p.y);
-    ctx.stroke();
+    const dist = Math.hypot(p.x-last.x,p.y-last.y);
+    ctx.beginPath();
+    if (dist < 0.7) {
+      ctx.arc(p.x,p.y,width/2,0,Math.PI*2);
+      ctx.fill();
+    } else {
+      ctx.moveTo(last.x,last.y);
+      ctx.lineTo(p.x,p.y);
+      ctx.stroke();
+    }
     lastRef.current = p;
+    if (!deferRedraw) redraw();
+  };
+  const start = e => {
+    e.preventDefault();
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+    drawingRef.current = true;
+    lastRef.current = null;
+    drawTo(point(e), e.pressure);
+  };
+  const move = e => {
+    if(!drawingRef.current) return;
+    e.preventDefault();
+    const events = e.getCoalescedEvents?.() || [e];
+    events.forEach(ev=>drawTo(point(ev), ev.pressure, true));
     redraw();
   };
-  const start = e => { e.preventDefault(); e.currentTarget.setPointerCapture?.(e.pointerId); drawingRef.current = true; lastRef.current = point(e); drawTo(lastRef.current); };
-  const move = e => { if(!drawingRef.current) return; e.preventDefault(); drawTo(point(e)); };
-  const stop = e => { drawingRef.current = false; lastRef.current = null; };
+  const stop = e => { drawingRef.current = false; lastRef.current = null; try{e.currentTarget.releasePointerCapture?.(e.pointerId);}catch{} };
   const check = () => {
     const guide = guideRef.current, ink = inkRef.current;
     if (!guide || !ink) return;
     const g = guide.getContext("2d").getImageData(0,0,guide.width,guide.height).data;
     const k = ink.getContext("2d").getImageData(0,0,ink.width,ink.height).data;
     let guidePx=0, covered=0, inkPx=0, offGuide=0;
+    const gb = {minX:Infinity,minY:Infinity,maxX:-Infinity,maxY:-Infinity};
+    const ib = {minX:Infinity,minY:Infinity,maxX:-Infinity,maxY:-Infinity};
     for (let i=3; i<g.length; i+=16) {
       const hasGuide = g[i] > 18;
       const hasInk = k[i] > 18;
+      const px = (i-3)/4;
+      const x = px % guide.width;
+      const y = Math.floor(px/guide.width);
       if (hasGuide) guidePx++;
-      if (hasInk) inkPx++;
+      if (hasGuide) { gb.minX=Math.min(gb.minX,x); gb.maxX=Math.max(gb.maxX,x); gb.minY=Math.min(gb.minY,y); gb.maxY=Math.max(gb.maxY,y); }
+      if (hasInk) { inkPx++; ib.minX=Math.min(ib.minX,x); ib.maxX=Math.max(ib.maxX,x); ib.minY=Math.min(ib.minY,y); ib.maxY=Math.max(ib.maxY,y); }
       if (hasGuide && hasInk) covered++;
       if (hasInk && !hasGuide) offGuide++;
     }
+    if (inkPx < 8) {
+      setScore(0);
+      setFeedback("Make a few slow strokes first, then press Check.");
+      return;
+    }
     const coverage = guidePx ? covered/guidePx : 0;
     const drift = inkPx ? offGuide/inkPx : 0;
-    const nextScore = Math.max(0, Math.min(100, Math.round(coverage*112 - drift*20)));
+    const precision = Math.max(0, 1-drift);
+    const boxScore = (() => {
+      if (!isFinite(gb.minX) || !isFinite(ib.minX)) return 0;
+      const gw=Math.max(1,gb.maxX-gb.minX), gh=Math.max(1,gb.maxY-gb.minY);
+      const iw=Math.max(1,ib.maxX-ib.minX), ih=Math.max(1,ib.maxY-ib.minY);
+      const gcx=(gb.minX+gb.maxX)/2, gcy=(gb.minY+gb.maxY)/2;
+      const icx=(ib.minX+ib.maxX)/2, icy=(ib.minY+ib.maxY)/2;
+      const centerScore = 1-Math.min(1,(Math.abs(icx-gcx)/gw + Math.abs(icy-gcy)/gh)/0.85);
+      const sizeScore = 1-Math.min(1,(Math.abs(iw-gw)/gw + Math.abs(ih-gh)/gh)/1.25);
+      return Math.max(0,(centerScore*0.58 + sizeScore*0.42));
+    })();
+    const coverageScore = Math.min(1, coverage*2.35);
+    const raw = traceLevel==="advanced"
+      ? (coverageScore*0.42 + precision*0.26 + boxScore*0.32) * 100
+      : traceLevel==="medium"
+        ? (coverageScore*0.58 + precision*0.25 + boxScore*0.17) * 100
+        : (coverageScore*0.68 + precision*0.22 + boxScore*0.10) * 100;
+    const nextScore = Math.max(0, Math.min(100, Math.round(raw)));
     setScore(nextScore);
-    setFeedback(nextScore>=82 ? "Excellent control. Try the next one." : nextScore>=58 ? "Good start. Trace the lighter empty areas again." : "Slow down and stay inside the guide. Reset if you want a clean try.");
+    setFeedback(nextScore>=84 ? (traceLevel==="advanced"?"Strong free writing. The size and shape are matching well.":"Excellent control. Try the next one.")
+      : nextScore>=62 ? (traceLevel==="advanced"?"Good attempt. Match the target size and keep it closer to the baseline.":"Good start. Trace the lighter empty areas again.")
+      : (traceLevel==="advanced"?"Write slower and center the shape near the baseline, then check again.":"Slow down and stay inside the guide. Reset if you want a clean try."));
     if (s && data && setData) {
-      const entry = {date:new Date().toISOString(),text,score:nextScore};
+      const entry = {date:new Date().toISOString(),text,score:nextScore,level:traceLevel};
       setData({...data,students:data.students.map(st=>st.id===s.id?{...st,tracingHistory:[...(st.tracingHistory||[]),entry].slice(-40)}:st)});
     }
   };
@@ -5068,7 +5136,7 @@ function ArabicTracingLab({student:s, data, setData, sourceText, title, compact}
       <div>
         <div class="sp2-nav-grp" style=${{padding:0,marginBottom:6}}>Writing Practice</div>
         <h2 style=${{fontFamily:"'Playfair Display',serif",fontSize:compact?24:30,fontWeight:600,color:"var(--sp-txt)",margin:0}}>${title||"Arabic Tracing Lab"}</h2>
-        <p style=${{fontSize:13,color:"var(--sp-txt2)",lineHeight:1.7,marginTop:6}}>Trace with Apple Pencil, stylus, finger, trackpad, or mouse. Use slow, confident strokes from right to left.</p>
+        <p style=${{fontSize:13,color:"var(--sp-txt2)",lineHeight:1.7,marginTop:6}}>Trace with Apple Pencil, stylus, finger, trackpad, or mouse. Start guided, then move toward free writing.</p>
       </div>
       ${score!==null?h`<div style=${{textAlign:"center",background:"var(--sp-glow)",border:"1px solid var(--sp-border-h)",borderRadius:14,padding:"10px 16px",minWidth:96}}>
         <div style=${{fontSize:10,fontWeight:800,color:"var(--sp-txt3)",textTransform:"uppercase",letterSpacing:1}}>Trace Score</div>
@@ -5079,6 +5147,16 @@ function ArabicTracingLab({student:s, data, setData, sourceText, title, compact}
     ${!sourceItems.length&&h`<div class="sp2-tabs" style=${{marginBottom:14}}>
       ${sets.map(set=>h`<button key=${set.id} class=${"sp2-tab "+(setId===set.id?"on":"")} onClick=${()=>setExercise(set.id)}>${set.title}</button>`)}
     </div>`}
+
+    <div class="sp2-card" style=${{padding:12,marginBottom:14,display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,flexWrap:"wrap"}}>
+      <div>
+        <div style=${{fontSize:10,fontWeight:800,textTransform:"uppercase",letterSpacing:1.3,color:"var(--sp-txt3)",marginBottom:4}}>Practice Level</div>
+        <div style=${{fontSize:12,color:"var(--sp-txt2)",lineHeight:1.55}}>${level.desc}</div>
+      </div>
+      <div style=${{display:"flex",gap:8,flexWrap:"wrap"}}>
+        ${TRACE_LEVELS.map(l=>h`<button key=${l.id} class=${"sp2-tab "+(traceLevel===l.id?"on":"")} onClick=${()=>{setTraceLevel(l.id);clearInk();}} style=${{border:"1px solid var(--sp-border)",borderRadius:10,padding:"8px 11px"}}>${l.label}</button>`)}
+      </div>
+    </div>
 
     <div class="sp2-card" style=${{padding:compact?12:16,marginBottom:14}}>
       <div style=${{display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,flexWrap:"wrap",marginBottom:12}}>
@@ -5093,6 +5171,13 @@ function ArabicTracingLab({student:s, data, setData, sourceText, title, compact}
           <label style=${{fontSize:12,color:"var(--sp-txt2)",display:"flex",gap:6,alignItems:"center"}}>Brush <input type="range" min="12" max="34" value=${brush} onInput=${e=>setBrush(+e.target.value)} style=${{width:90}}/></label>
         </div>
       </div>
+      ${traceLevel==="advanced"&&h`<div style=${{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,marginBottom:12,padding:"10px 12px",borderRadius:12,background:"var(--sp-glow)",border:"1px solid var(--sp-border)"}}>
+        <div>
+          <div style=${{fontSize:10,fontWeight:800,textTransform:"uppercase",letterSpacing:1,color:"var(--sp-txt3)"}}>Target</div>
+          <div style=${{fontSize:12,color:"var(--sp-txt2)",marginTop:2}}>Write this from memory on the blank canvas.</div>
+        </div>
+        <div style=${{fontFamily:traceFont.stack,fontSize:Math.max(28, Math.min(44, text.length<=1?44:34)),direction:"rtl",color:"var(--sp-amber)",lineHeight:1.4}}>${text}</div>
+      </div>`}
       <canvas ref=${canvasRef} onPointerDown=${start} onPointerMove=${move} onPointerUp=${stop} onPointerCancel=${stop} onPointerLeave=${stop} style=${{display:"block",width:"100%",borderRadius:14,border:"1px solid var(--sp-border-h)",background:"var(--sp-surface)",touchAction:"none",cursor:"crosshair",boxShadow:"inset 0 1px 0 rgba(255,255,255,.06),0 18px 38px rgba(0,0,0,.22)"}}></canvas>
       <div style=${{display:"flex",justifyContent:"space-between",gap:10,alignItems:"center",marginTop:12,flexWrap:"wrap"}}>
         <div style=${{display:"flex",gap:8,flexWrap:"wrap"}}>
@@ -5108,7 +5193,7 @@ function ArabicTracingLab({student:s, data, setData, sourceText, title, compact}
     ${s?.tracingHistory?.length?h`<div class="sp2-card" style=${{padding:14}}>
       <div style=${{fontSize:11,fontWeight:800,textTransform:"uppercase",letterSpacing:1.4,color:"var(--sp-txt3)",marginBottom:10}}>Recent tracing</div>
       <div style=${{display:"flex",gap:8,flexWrap:"wrap"}}>
-        ${s.tracingHistory.slice(-8).reverse().map((r,i)=>h`<span key=${i} class=${"sp2-badge "+(r.score>=82?"sp2-badge-g":r.score>=58?"sp2-badge-a":"sp2-badge-t")}>${r.text} · ${r.score}%</span>`)}
+        ${s.tracingHistory.slice(-8).reverse().map((r,i)=>h`<span key=${i} class=${"sp2-badge "+(r.score>=82?"sp2-badge-g":r.score>=58?"sp2-badge-a":"sp2-badge-t")}>${r.text} · ${r.score}%${r.level?" · "+r.level:""}</span>`)}
       </div>
     </div>`:null}
   </div>`;
