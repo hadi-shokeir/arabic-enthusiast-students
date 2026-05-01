@@ -14,6 +14,22 @@ A student management system for Arabic language tutors — with authentication, 
 - **WhatsApp Reminders** — one-click message templates
 - **RTL Support** — Arabic text displays correctly in all fields
 - **Configurable** — currency, week start day, lesson types, levels
+- **Arabic Quest Games** — student game hub with story, kitchen, market, word-building, tracing, memory, and boss quiz chapters
+- **المطبخ — The Kitchen** — task-based Arabic cooking game with shuffled ingredients, kitchen zones, tools, register/harakat settings, and vocabulary journal
+
+## Pedagogical Game Model
+
+The student games are designed as task-based language learning, not flashcard drills. In **المطبخ — The Kitchen**, students complete a real cooking task while Arabic is needed to act: choose the right kitchen zone, tool, command, and ingredient.
+
+- **Comprehensible input + 1**: Arabic appears with a visual object, optional English gloss, and browser TTS fallback.
+- **Task-based learning**: vocabulary is learned while preparing dishes such as mint tea, fattoush, hummus, tabbouleh, mujaddara, and shish taouk.
+- **Spaced recycling**: ingredients and verbs recur across recipes, so common kitchen language keeps returning.
+- **Pushed output**: medium and advanced levels ask students to choose the Arabic command before the action works.
+- **Dual register**: students can switch between MSA and Levantine where the data is available.
+- **Harakat control**: full, partial, or no diacritics can be selected from the game settings.
+- **Vocabulary journal**: unlocked words are collected by recipe/category so students can review what they used.
+
+Future contributors should preserve the language layer when adding game mechanics. A mechanic should either make the cooking task more fun, make the Arabic more memorable, or both.
 
 ## Quick Start (Local)
 

@@ -695,6 +695,29 @@ tr.ck:hover td,.tutor-root tr.ck:hover td{
 .kit-feedback{margin-top:12px;font-size:13px;font-weight:900;line-height:1.6;padding:10px 12px;border-radius:12px;border:1px solid var(--sp-border);background:var(--sp-surface)}
 .kit-feedback.ok{color:var(--sp-green);border-color:rgba(76,175,125,.42);background:linear-gradient(180deg,rgba(76,175,125,.14),rgba(76,175,125,.07));box-shadow:0 12px 24px rgba(76,175,125,.12),inset 0 1px 0 rgba(255,255,255,.12)}.kit-feedback.no{color:var(--sp-red);border-color:rgba(207,71,68,.36)}
 .kit-complete{text-align:center;padding:30px 12px;background:linear-gradient(180deg,rgba(111,210,163,.12),transparent);border-radius:18px}
+.kit-settings{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;margin-bottom:12px}
+.kit-setting{border:1px solid var(--sp-border);background:var(--sp-surface);border-radius:12px;padding:9px 10px}
+.kit-setting-label{font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:1.2px;color:var(--sp-txt3);margin-bottom:6px}
+.kit-kitchen-map{position:relative;z-index:1;display:grid;grid-template-columns:repeat(7,minmax(86px,1fr));gap:9px;margin:0 0 14px;overflow-x:auto;padding-bottom:2px}
+.kit-zone{min-height:84px;border:1px solid var(--sp-border);border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(0,0,0,.02)),var(--sp-card);color:var(--sp-txt2);font-family:'DM Sans',sans-serif;cursor:pointer;padding:10px 8px;text-align:center;box-shadow:0 14px 24px rgba(0,0,0,.1),inset 0 1px 0 rgba(255,255,255,.08);transition:transform .16s,border-color .16s,background .16s}
+.kit-zone:hover,.kit-zone.on{transform:translateY(-2px);border-color:var(--sp-amber);background:linear-gradient(180deg,rgba(201,162,74,.18),rgba(82,196,184,.06)),var(--sp-card);color:var(--sp-txt)}
+.kit-zone.need{box-shadow:0 0 0 3px rgba(201,162,74,.13),0 14px 24px rgba(0,0,0,.12)}
+.kit-zone-ic{font-size:24px;margin-bottom:5px;color:var(--sp-amber)}
+.kit-tool-rack{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:8px;margin-bottom:14px}
+.kit-tool{border:1px solid var(--sp-border);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(0,0,0,.02)),var(--sp-card);color:var(--sp-txt2);padding:10px 8px;text-align:center;font-family:'DM Sans',sans-serif;cursor:pointer;transition:transform .16s,border-color .16s,background .16s}
+.kit-tool:hover,.kit-tool.on{transform:translateY(-2px);border-color:var(--sp-amber);background:var(--sp-glow);color:var(--sp-txt)}
+.kit-tool.need{border-color:rgba(76,175,125,.55);box-shadow:0 12px 24px rgba(76,175,125,.12)}
+.kit-tool-ic{font-size:24px;margin-bottom:4px}
+.kit-side-grid{display:grid;grid-template-columns:1fr;gap:12px}
+.kit-recipe-card{border-radius:18px!important;background:linear-gradient(180deg,rgba(201,162,74,.08),rgba(47,157,104,.05)),var(--sp-card)!important}
+.kit-recipe-list{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+.kit-mini-word{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--sp-border);background:var(--sp-surface);border-radius:999px;padding:5px 9px;font-size:11px;color:var(--sp-txt2)}
+.kit-command-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:10px 0}
+.kit-command{border:1px solid var(--sp-border);border-radius:12px;background:var(--sp-card);color:var(--sp-txt);padding:9px 10px;font-family:'Noto Naskh Arabic','Amiri',serif;font-size:17px;direction:rtl;cursor:pointer}
+.kit-command.ok{border-color:rgba(76,175,125,.48);background:linear-gradient(180deg,rgba(76,175,125,.14),rgba(76,175,125,.06));color:var(--sp-green)}
+.kit-journal{max-height:430px;overflow:auto;padding-right:4px}
+.kit-journal-row{display:grid;grid-template-columns:38px 1fr auto;gap:9px;align-items:center;padding:9px 0;border-bottom:1px solid var(--sp-border)}
+.kit-journal-ar{font-family:'Noto Naskh Arabic','Amiri',serif;font-size:18px;direction:rtl;color:var(--sp-amber)}
 .quest-root{--quest-sky:#3f8dbf;--quest-violet:#8b5cf6;--quest-coral:#d9534f;--quest-mint:#2f9d68}
 .quest-hero{position:relative;overflow:hidden;border:1px solid var(--sp-border-h);border-radius:22px;padding:22px;margin-bottom:16px;background:radial-gradient(circle at 16% 22%,rgba(82,196,184,.18),transparent 28%),radial-gradient(circle at 82% 18%,rgba(217,83,79,.17),transparent 30%),linear-gradient(135deg,rgba(201,162,74,.18),rgba(63,141,191,.12)),var(--sp-card);box-shadow:0 28px 56px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.12)}
 .quest-hero:after{content:"";position:absolute;inset:auto 0 0;height:46%;background:linear-gradient(180deg,transparent,rgba(47,157,104,.1));pointer-events:none}
@@ -791,6 +814,8 @@ tr.ck:hover td,.tutor-root tr.ck:hover td{
   .kit-title{font-size:29px}
   .kit-room{padding:12px;border-radius:18px}
   .kit-room-top{grid-template-columns:1fr;gap:10px}
+  .kit-kitchen-map{grid-template-columns:repeat(7,92px)}
+  .kit-tool-rack{grid-template-columns:repeat(3,minmax(0,1fr))}
   .kit-window,.kit-hooks{height:66px}
   .kit-board{grid-template-columns:1fr;gap:12px}
   .kit-ar{font-size:25px;line-height:2}
@@ -820,6 +845,7 @@ tr.ck:hover td,.tutor-root tr.ck:hover td{
   .sp2-mob-it{min-width:54px;font-size:9px}
   .sp2-mob-it svg{width:17px;height:17px}
   .kit-shelf{grid-template-columns:1fr}
+  .kit-tool-rack{grid-template-columns:repeat(2,minmax(0,1fr))}
   .kit-actions .sp2-badge{font-size:10px}
   .quest-choice-grid,.quest-shop-grid,.quest-word-bank{grid-template-columns:1fr}
   .quest-title{font-size:29px}
@@ -5507,85 +5533,324 @@ const KITCHEN_RECIPES = [
   }
 ];
 
+const KITCHEN_EXTRA_RECIPES = [
+  {
+    id:"tabbouleh", title:"Tabbouleh", titleAr:"تَبّولَة", emoji:"🥗", level:"Intermediate", theme:"Levantine salad",
+    goal:"Chop herbs finely, soak bulgur, and recycle vegetables from fattoush.",
+    pattern:"اليوم رح نعمل...",
+    newNouns:["parsley","bulgur","greenonion","bowl","plate"],
+    newVerbs:["يفرم / بيفرم","ينقع / بينقع","يخلط / بيخلط"],
+    ingredients:[
+      {id:"parsley",ar:"بَقْدونِس",en:"parsley",emoji:"🌿"},
+      {id:"bulgur",ar:"بُرْغُل",en:"bulgur",emoji:"🌾"},
+      {id:"tomato",ar:"طَماطِم",en:"tomatoes",emoji:"🍅"},
+      {id:"greenonion",ar:"بَصَل أَخْضَر",en:"green onion",emoji:"🧅"},
+      {id:"mint",ar:"نَعْناع",en:"mint",emoji:"🌿"},
+      {id:"lemon",ar:"لَيْمون",en:"lemon",emoji:"🍋"},
+      {id:"oliveoil",ar:"زَيْت زَيْتون",en:"olive oil",emoji:"🫒"},
+      {id:"salt",ar:"مِلْح",en:"salt",emoji:"🧂"},
+      {id:"rice",ar:"أَرُزّ",en:"rice",emoji:"🍚",distractor:true},
+      {id:"chickpeas",ar:"حُمُّص",en:"chickpeas",emoji:"🫘",distractor:true}
+    ],
+    steps:[
+      {target:"bulgur",tool:"pot",zone:"sink",before:"اِنْقَعِ ",word:"البُرْغُل",after:" بِقَليلٍ مِنَ الماء.",en:"Soak the bulgur in a little water.",verb:"اِنْقَعِ",command:"اِنْقَعِ البُرْغُل"},
+      {target:"parsley",tool:"knife",zone:"cutting",before:"اِفْرُمِ ",word:"البَقْدونِس",after:" ناعِمًا.",en:"Chop the parsley finely.",verb:"اِفْرُمِ",command:"اِفْرُمِ البَقْدونِس"},
+      {target:"tomato",tool:"knife",zone:"cutting",before:"قَطِّعِ ",word:"الطَماطِم",after:" مُكَعَّباتٍ صَغيرَة.",en:"Cut the tomatoes into small cubes.",verb:"قَطِّعِ",command:"قَطِّعِ الطَماطِم"},
+      {target:"greenonion",tool:"knife",zone:"cutting",before:"أَضِفِ ",word:"البَصَل الأَخْضَر",after:".",en:"Add the green onion.",verb:"أَضِفِ",command:"أَضِفِ البَصَل"},
+      {target:"mint",tool:"knife",zone:"cutting",before:"ضَعِ ",word:"النَعْناع",after:" فِي الوِعاء.",en:"Put the mint in the bowl.",verb:"ضَعِ",command:"ضَعِ النَعْناع"},
+      {target:"lemon",tool:"spoon",zone:"counter",before:"اِعْصِرِ ",word:"اللَيْمون",after:" فَوقَ التَبّولَة.",en:"Squeeze lemon over the tabbouleh.",verb:"اِعْصِرِ",command:"اِعْصِرِ اللَيْمون"},
+      {target:"oliveoil",tool:"spoon",zone:"counter",before:"اِخْلِطْ مَعَ ",word:"زَيْت الزَيْتون",after:" والمِلْح.",en:"Mix with olive oil and salt.",verb:"اِخْلِطْ",command:"اِخْلِطْ التَبّولَة"},
+      {target:"salt",tool:"spoon",zone:"plate",before:"زَيِّنِ الطَبَقَ بِـ",word:"المِلْح",after:" الخَفيف.",en:"Finish with a little salt.",verb:"زَيِّنِ",command:"زَيِّنِ الطَبَق"}
+    ]
+  },
+  {
+    id:"mujaddara", title:"Mujaddara", titleAr:"مُجَدَّرَة", emoji:"🍛", level:"Intermediate", theme:"Warm meal",
+    goal:"Cook lentils and rice, then finish with onions.",
+    pattern:"اِطْبَخْ... ثُمَّ أَضِفْ...",
+    newNouns:["lentils","rice","onion","cumin","pot"],
+    newVerbs:["يسلق / بيسلق","يقلي / بيقلي","يطبخ / بيطبخ"],
+    ingredients:[
+      {id:"lentils",ar:"عَدَس",en:"lentils",emoji:"🫘"},
+      {id:"rice",ar:"أَرُزّ",en:"rice",emoji:"🍚"},
+      {id:"onion",ar:"بَصَل",en:"onion",emoji:"🧅"},
+      {id:"oliveoil",ar:"زَيْت زَيْتون",en:"olive oil",emoji:"🫒"},
+      {id:"cumin",ar:"كَمّون",en:"cumin",emoji:"🧂"},
+      {id:"water",ar:"ماء",en:"water",emoji:"💧"},
+      {id:"salt",ar:"مِلْح",en:"salt",emoji:"🧂"},
+      {id:"fish",ar:"سَمَك",en:"fish",emoji:"🐟",distractor:true},
+      {id:"mint",ar:"نَعْناع",en:"mint",emoji:"🌿",distractor:true}
+    ],
+    steps:[
+      {target:"lentils",tool:"pot",zone:"stove",before:"اِسْلُقِ ",word:"العَدَس",after:" حَتّى يَلين.",en:"Boil the lentils until soft.",verb:"اِسْلُقِ",command:"اِسْلُقِ العَدَس"},
+      {target:"rice",tool:"pot",zone:"stove",before:"أَضِفِ ",word:"الأَرُزّ",after:" إِلى القِدْر.",en:"Add rice to the pot.",verb:"أَضِفِ",command:"أَضِفِ الأَرُزّ"},
+      {target:"water",tool:"pot",zone:"stove",before:"اِطْبَخْهُ مَعَ ",word:"الماء",after:".",en:"Cook it with water.",verb:"اِطْبَخْ",command:"اِطْبَخْ مَعَ الماء"},
+      {target:"onion",tool:"knife",zone:"cutting",before:"قَطِّعِ ",word:"البَصَل",after:" شَرائِح.",en:"Slice the onion.",verb:"قَطِّعِ",command:"قَطِّعِ البَصَل"},
+      {target:"oliveoil",tool:"pan",zone:"stove",before:"اِقْلِ البَصَلَ فِي ",word:"زَيْت الزَيْتون",after:".",en:"Fry the onion in olive oil.",verb:"اِقْلِ",command:"اِقْلِ البَصَل"},
+      {target:"cumin",tool:"spoon",zone:"counter",before:"رُشَّ ",word:"الكَمّون",after:" فِي النِهايَة.",en:"Sprinkle cumin at the end.",verb:"رُشَّ",command:"رُشَّ الكَمّون"},
+      {target:"salt",tool:"spoon",zone:"plate",before:"قَدِّمْهَا مَعَ ",word:"المِلْح",after:" الخَفيف.",en:"Serve with a little salt.",verb:"قَدِّمْ",command:"قَدِّمِ المُجَدَّرَة"}
+    ]
+  },
+  {
+    id:"shish", title:"Shish Taouk", titleAr:"شيش طاووق", emoji:"🍢", level:"Advanced", theme:"Grill meal",
+    goal:"Marinate chicken, skewer it, and grill with a richer command sequence.",
+    pattern:"خَلِّطْ... واتْرُكْهُ...",
+    newNouns:["chicken","yogurt","spices","skewer","grill"],
+    newVerbs:["يتبّل / بيتبّل","يشوي / بيشوي","يترك / بيترك"],
+    ingredients:[
+      {id:"chicken",ar:"دَجاج",en:"chicken",emoji:"🍗"},
+      {id:"yogurt",ar:"لَبَن",en:"yogurt",emoji:"🥛"},
+      {id:"lemon",ar:"لَيْمون",en:"lemon",emoji:"🍋"},
+      {id:"garlic",ar:"ثوم",en:"garlic",emoji:"🧄"},
+      {id:"oliveoil",ar:"زَيْت زَيْتون",en:"olive oil",emoji:"🫒"},
+      {id:"spices",ar:"بَهارات",en:"spices",emoji:"🧂"},
+      {id:"salt",ar:"مِلْح",en:"salt",emoji:"🧂"},
+      {id:"fish",ar:"سَمَك",en:"fish",emoji:"🐟",distractor:true},
+      {id:"bulgur",ar:"بُرْغُل",en:"bulgur",emoji:"🌾",distractor:true}
+    ],
+    steps:[
+      {target:"chicken",tool:"knife",zone:"cutting",before:"قَطِّعِ ",word:"الدَجاج",after:" إِلى قِطَع.",en:"Cut the chicken into pieces.",verb:"قَطِّعِ",command:"قَطِّعِ الدَجاج"},
+      {target:"yogurt",tool:"bowl",zone:"counter",before:"ضَعِ ",word:"اللَبَن",after:" فِي الوِعاء.",en:"Put the yogurt in the bowl.",verb:"ضَعِ",command:"ضَعِ اللَبَن"},
+      {target:"lemon",tool:"spoon",zone:"counter",before:"أَضِفْ ",word:"عَصير اللَيْمون",after:".",en:"Add lemon juice.",verb:"أَضِفْ",command:"أَضِفْ اللَيْمون"},
+      {target:"garlic",tool:"grater",zone:"cutting",before:"اِبْشُرِ ",word:"الثوم",after:" فِي التَتبيلَة.",en:"Grate the garlic into the marinade.",verb:"اِبْشُرِ",command:"اِبْشُرِ الثوم"},
+      {target:"spices",tool:"spoon",zone:"counter",before:"رُشَّ ",word:"البَهارات",after:" والمِلْح.",en:"Sprinkle spices and salt.",verb:"رُشَّ",command:"رُشَّ البَهارات"},
+      {target:"oliveoil",tool:"spoon",zone:"counter",before:"اِخْلِطْ مَعَ ",word:"زَيْت الزَيْتون",after:".",en:"Mix with olive oil.",verb:"اِخْلِطْ",command:"اِخْلِطْ التَتبيلَة"},
+      {target:"chicken",tool:"skewer",zone:"stove",before:"اِشْوِ ",word:"الدَجاج",after:" حَتّى يَستَوي.",en:"Grill the chicken until cooked.",verb:"اِشْوِ",command:"اِشْوِ الدَجاج"}
+    ]
+  }
+];
+
+const KITCHEN_RECIPE_ORDER = ["tea","fattoush","hummus","tabbouleh","mujaddara","shish"];
+const KITCHEN_GAME_RECIPES = [...KITCHEN_RECIPES, ...KITCHEN_EXTRA_RECIPES];
+
+const KITCHEN_TOOLS = [
+  {id:"knife", emoji:"🔪", en:"Knife", msa:"السِّكّين", lev:"السِّكّينة", verbMsa:"يُقَطِّع", verbLev:"بيقطّع"},
+  {id:"board", emoji:"▤", en:"Cutting board", msa:"لوح التقطيع", lev:"لوح التقطيع", verbMsa:"", verbLev:""},
+  {id:"pan", emoji:"🍳", en:"Pan", msa:"المِقلاة", lev:"الطاسة", verbMsa:"يَقلي", verbLev:"بيقلي"},
+  {id:"pot", emoji:"🍲", en:"Pot", msa:"القِدْر", lev:"الطَنْجَرَة", verbMsa:"يَطبُخ", verbLev:"بيطبخ"},
+  {id:"spoon", emoji:"🥄", en:"Spoon", msa:"المِلْعَقَة", lev:"المِلْعَقَة", verbMsa:"يُحَرِّك", verbLev:"بيحرّك"},
+  {id:"grater", emoji:"▦", en:"Grater", msa:"المِبْشَرَة", lev:"المِبْشَرَة", verbMsa:"يَبشُر", verbLev:"بيبشّر"},
+  {id:"blender", emoji:"🥣", en:"Blender", msa:"الخَلّاط", lev:"الخَلّاط", verbMsa:"يَخلِط", verbLev:"بيخلط"},
+  {id:"strainer", emoji:"◎", en:"Strainer", msa:"المِصْفاة", lev:"المِصْفايَة", verbMsa:"يُصَفّي", verbLev:"بيصفّي"},
+  {id:"peeler", emoji:"▱", en:"Peeler", msa:"المِقْشَرَة", lev:"المِقْشَرَة", verbMsa:"يُقَشِّر", verbLev:"بيقشّر"},
+  {id:"oven", emoji:"▣", en:"Oven", msa:"الفُرْن", lev:"الفُرْن", verbMsa:"يَخبِز", verbLev:"بيخبز"},
+  {id:"ladle", emoji:"🥄", en:"Ladle", msa:"المِغْرَفَة", lev:"الكَبْشَة", verbMsa:"يَغرِف", verbLev:"بيغرف"},
+  {id:"rollingpin", emoji:"━", en:"Rolling pin", msa:"الشوبَك", lev:"الشوبَك", verbMsa:"يَفرِد", verbLev:"بيفرد"},
+  {id:"bowl", emoji:"🥣", en:"Bowl", msa:"الوِعاء", lev:"الزَّبْدِيّة", verbMsa:"يَخلِط", verbLev:"بيخلط"},
+  {id:"skewer", emoji:"🍢", en:"Skewer", msa:"السِّيخ", lev:"السِّيخ", verbMsa:"يَشوي", verbLev:"بيشوي"}
+];
+
+const KITCHEN_ZONES = [
+  {id:"counter", icon:"▤", ar:"الطاولة / الكونتوار", en:"Counter"},
+  {id:"stove", icon:"♨", ar:"الموقد / الفرن", en:"Stove"},
+  {id:"fridge", icon:"▥", ar:"البراد / الثلاجة", en:"Fridge"},
+  {id:"pantry", icon:"▦", ar:"المؤونة", en:"Pantry"},
+  {id:"sink", icon:"≈", ar:"المغسلة / الجلية", en:"Sink"},
+  {id:"cutting", icon:"▧", ar:"لوح التقطيع", en:"Cutting station"},
+  {id:"plate", icon:"◯", ar:"الصحن", en:"Serving plate"}
+];
+
+const KITCHEN_LEVANTINE_COMMANDS = {
+  "اِغْلِ الماء":"غَلّي المي", "ضَعِ الشاي":"حُطّ الشاي", "أَضِفِ النَعْناع":"زيد النعنع",
+  "اِفْرُمِ البَقْدونِس":"فَرْم البقدونس", "قَطِّعِ الطَماطِم":"قطّع البندورة", "اِشْوِ الدَجاج":"اِشوي الدجاج"
+};
+
+const KITCHEN_WORD_BANK = {
+  tomato:{msa:{word:"طماطم",harakat:"طَمَاطِم"},levantine:{word:"بندورة",harakat:"بَنَدُورَة"},gender:"feminine",root:"ط م ط م",category:"vegetable"},
+  cucumber:{msa:{word:"خيار",harakat:"خِيار"},levantine:{word:"خيار",harakat:"خْيار"},gender:"masculine",root:"خ ي ر",category:"vegetable"},
+  onion:{msa:{word:"بصل",harakat:"بَصَل"},levantine:{word:"بصل",harakat:"بَصَل"},gender:"masculine",root:"ب ص ل",category:"vegetable"},
+  garlic:{msa:{word:"ثوم",harakat:"ثوم"},levantine:{word:"ثوم",harakat:"ثوم"},gender:"masculine",root:"ث و م",category:"vegetable"},
+  parsley:{msa:{word:"بقدونس",harakat:"بَقْدونِس"},levantine:{word:"بقدونس",harakat:"بَقْدونِس"},gender:"masculine",root:"",category:"vegetable"},
+  mint:{msa:{word:"نعناع",harakat:"نَعْناع"},levantine:{word:"نعنع",harakat:"نَعْنَع"},gender:"masculine",root:"",category:"vegetable"},
+  lemon:{msa:{word:"ليمون",harakat:"لَيْمون"},levantine:{word:"حامض",harakat:"حامِض"},gender:"masculine",root:"ل ي م",category:"vegetable"},
+  rice:{msa:{word:"أرز",harakat:"أَرُزّ"},levantine:{word:"رز",harakat:"رِزّ"},gender:"masculine",root:"أ ر ز",category:"grain"},
+  chickpeas:{msa:{word:"حمص",harakat:"حُمُّص"},levantine:{word:"حمص",harakat:"حُمُّص"},gender:"masculine",root:"ح م ص",category:"legume"},
+  lentils:{msa:{word:"عدس",harakat:"عَدَس"},levantine:{word:"عدس",harakat:"عَدَس"},gender:"masculine",root:"ع د س",category:"legume"},
+  bulgur:{msa:{word:"برغل",harakat:"بُرْغُل"},levantine:{word:"برغل",harakat:"بُرْغُل"},gender:"masculine",root:"",category:"grain"},
+  chicken:{msa:{word:"دجاج",harakat:"دَجاج"},levantine:{word:"جاج",harakat:"جاج"},gender:"masculine",root:"د ج ج",category:"meat"},
+  fish:{msa:{word:"سمك",harakat:"سَمَك"},levantine:{word:"سمك",harakat:"سَمَك"},gender:"masculine",root:"س م ك",category:"meat"},
+  salt:{msa:{word:"ملح",harakat:"مِلْح"},levantine:{word:"ملح",harakat:"مِلِح"},gender:"masculine",root:"م ل ح",category:"spice"},
+  cumin:{msa:{word:"كمون",harakat:"كَمّون"},levantine:{word:"كمون",harakat:"كَمّون"},gender:"masculine",root:"",category:"spice"},
+  sumac:{msa:{word:"سماق",harakat:"سُمّاق"},levantine:{word:"سماق",harakat:"سُمّاق"},gender:"masculine",root:"",category:"spice"},
+  spices:{msa:{word:"بهارات",harakat:"بَهارات"},levantine:{word:"بهارات",harakat:"بَهارات"},gender:"plural",root:"ب ه ر",category:"spice"},
+  oliveoil:{msa:{word:"زيت زيتون",harakat:"زَيْت زَيْتون"},levantine:{word:"زيت زيتون",harakat:"زَيْت زَيْتون"},gender:"masculine",root:"ز ي ت",category:"liquid"},
+  water:{msa:{word:"ماء",harakat:"ماء"},levantine:{word:"مي",harakat:"مَيّ"},gender:"masculine",root:"م و ه",category:"liquid"},
+  tahini:{msa:{word:"طحينة",harakat:"طَحِينَة"},levantine:{word:"طحينة",harakat:"طْحينة"},gender:"feminine",root:"ط ح ن",category:"liquid"},
+  yogurt:{msa:{word:"لبن",harakat:"لَبَن"},levantine:{word:"لبن",harakat:"لَبَن"},gender:"masculine",root:"ل ب ن",category:"liquid"},
+  tea:{msa:{word:"شاي",harakat:"شاي"},levantine:{word:"شاي",harakat:"شاي"},gender:"masculine",root:"",category:"drink"},
+  sugar:{msa:{word:"سكر",harakat:"سُكَّر"},levantine:{word:"سكر",harakat:"سُكَّر"},gender:"masculine",root:"س ك ر",category:"spice"}
+};
+
+function kitchenHash(str) {
+  let h = 2166136261;
+  for (let i=0;i<String(str).length;i++) h = Math.imul(h ^ String(str).charCodeAt(i), 16777619);
+  return h >>> 0;
+}
+function kitchenShuffle(list, seed) {
+  const arr = [...list];
+  let s = kitchenHash(seed || "kitchen");
+  for (let i=arr.length-1;i>0;i--) {
+    s = (Math.imul(s, 1664525) + 1013904223) >>> 0;
+    const j = s % (i + 1);
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+  return arr;
+}
+function kitchenLang(item, register, harakat) {
+  const meta = KITCHEN_WORD_BANK[item.id];
+  if (!meta) return item.ar;
+  const lang = register === "levantine" ? meta.levantine : meta.msa;
+  if (harakat === "none") return lang.word;
+  if (harakat === "partial") return lang.harakat || lang.word;
+  return lang.harakat || lang.word;
+}
+function kitchenToolLabel(tool, register) {
+  return register === "levantine" ? tool.lev : tool.msa;
+}
+function kitchenStepTool(step) {
+  if (step.tool) return step.tool;
+  const v = (step.verb || "") + " " + (step.en || "");
+  if (/قط|Cut|cut|فرم|Chop|chop/.test(v)) return "knife";
+  if (/اسلق|اغل|Boil|Cook|cook|طبخ/.test(v)) return "pot";
+  if (/اقلي|Fry|fry/.test(v)) return "pan";
+  if (/اخلط|Blend|Grind|grind|Mix|mix|طحن/.test(v)) return "blender";
+  return "spoon";
+}
+function kitchenStepZone(step) {
+  if (step.zone) return step.zone;
+  const tool = kitchenStepTool(step);
+  if (tool === "knife" || tool === "grater") return "cutting";
+  if (tool === "pot" || tool === "pan" || tool === "oven" || tool === "skewer") return "stove";
+  if (/wash|غسل|انقع|soak/i.test(step.en||"")) return "sink";
+  return "counter";
+}
+function kitchenCommandText(step, register) {
+  const cmd = step.command || ((step.verb||"") + " " + (step.word||"")).trim();
+  return register === "levantine" ? (KITCHEN_LEVANTINE_COMMANDS[cmd] || cmd.replace("أَضِفِ","زيد").replace("ضَعِ","حطّ").replace("قَطِّعِ","قطّع")) : cmd;
+}
+
 function ArabicKitchenGame({student:s, data, setData, onQuestComplete}) {
-  const [recipeId, setRecipeId] = useState("fattoush");
+  const recipes = KITCHEN_RECIPE_ORDER.map(id=>KITCHEN_GAME_RECIPES.find(r=>r.id===id)).filter(Boolean);
+  const [recipeId, setRecipeId] = useState("tea");
   const [levelId, setLevelId] = useState("beginner");
+  const [register, setRegister] = useState(() => { try { return localStorage.getItem("ae_kit_register") || "levantine"; } catch { return "levantine"; } });
+  const [harakat, setHarakat] = useState(() => { try { return localStorage.getItem("ae_kit_harakat") || "full"; } catch { return "full"; } });
+  const [glossMode, setGlossMode] = useState(() => { try { return localStorage.getItem("ae_kit_gloss") || "always"; } catch { return "always"; } });
+  const [audioAuto, setAudioAuto] = useState(() => { try { return localStorage.getItem("ae_kit_audio") !== "off"; } catch { return true; } });
   const [stepIdx, setStepIdx] = useState(0);
   const [added, setAdded] = useState([]);
   const [mistakes, setMistakes] = useState(0);
   const [feedback, setFeedback] = useState("");
   const [dragging, setDragging] = useState("");
-  const recipe = KITCHEN_RECIPES.find(r=>r.id===recipeId) || KITCHEN_RECIPES[0];
+  const [pantrySeed, setPantrySeed] = useState(1);
+  const [activeTool, setActiveTool] = useState("spoon");
+  const [activeZone, setActiveZone] = useState("counter");
+  const [commandOk, setCommandOk] = useState(true);
+  const [journalOpen, setJournalOpen] = useState(false);
+  const recipe = recipes.find(r=>r.id===recipeId) || recipes[0];
   const level = KITCHEN_LEVELS.find(l=>l.id===levelId) || KITCHEN_LEVELS[0];
   const step = recipe.steps[stepIdx] || recipe.steps[0];
   const done = stepIdx >= recipe.steps.length;
   const neededIds = recipe.steps.map(st=>st.target);
-  const pantry = recipe.ingredients.filter(ing => neededIds.includes(ing.id) || levelId!=="beginner" || !ing.distractor);
-  const findIng = id => recipe.ingredients.find(ing=>ing.id===id) || pantry[0];
-  const score = Math.max(0, recipe.steps.length*10 + level.bonus - mistakes*4);
+  const pantry = kitchenShuffle(recipe.ingredients.filter(ing => neededIds.includes(ing.id) || levelId!=="beginner" || !ing.distractor), recipeId+"-"+levelId+"-"+pantrySeed);
+  const findIng = id => recipe.ingredients.find(ing=>ing.id===id) || pantry[0] || {};
+  const score = Math.max(0, recipe.steps.length*12 + level.bonus - mistakes*5);
   const progress = Math.round((Math.min(stepIdx,recipe.steps.length)/recipe.steps.length)*100);
-  const reset = (nextRecipe=recipeId) => { setRecipeId(nextRecipe); setStepIdx(0); setAdded([]); setMistakes(0); setFeedback(""); setDragging(""); };
+  const requiredTool = !done ? kitchenStepTool(step) : "spoon";
+  const requiredZone = !done ? kitchenStepZone(step) : "plate";
+  const requiredToolObj = KITCHEN_TOOLS.find(t=>t.id===requiredTool) || KITCHEN_TOOLS[0];
+  const correctCommand = !done ? kitchenCommandText(step, register) : "";
+  const needsCommand = !done && levelId !== "beginner";
+  const showGloss = glossMode === "always" || (glossMode === "hover" && levelId === "beginner");
+  const commandChoices = (() => {
+    const all = [...new Set([correctCommand, ...recipe.steps.map(st=>kitchenCommandText(st, register)), "ضَعِ الماء", "قَطِّعِ البَصَل", "اِخْلِطْ المَقادير"].filter(Boolean))];
+    const shuffled = kitchenShuffle(all, recipeId+"-"+stepIdx+"-"+register+"-cmd").slice(0,3);
+    return shuffled.includes(correctCommand) ? shuffled : kitchenShuffle([correctCommand, ...shuffled.slice(0,2)], recipeId+"cmd2");
+  })();
+  const unlockedRecipes = recipes.filter((r,i)=>i<=Math.max(0, recipes.findIndex(x=>x.id===recipeId)) || (s?.kitchenHistory||[]).some(h=>h.recipeId===r.id));
+  const journalMap = new Map();
+  unlockedRecipes.forEach(r => (r.ingredients||[]).filter(x=>!x.distractor).forEach(ing=>{ if(!journalMap.has(ing.id)) journalMap.set(ing.id,{...ing, recipe:r.titleAr}); }));
+  const journalItems = [...journalMap.values()];
+  const stepLine = !done && register==="levantine" ? correctCommand : !done ? (step.before||"")+step.word+(step.after||"") : "صَحَّة وعافِيَة!";
+  const targetIngredient = !done ? findIng(step.target) : null;
+  const speakText = txt => {
+    try {
+      const u = new SpeechSynthesisUtterance(txt);
+      u.lang = register === "msa" ? "ar-SA" : "ar";
+      u.rate = register === "msa" ? 0.82 : 0.88;
+      speechSynthesis.cancel(); speechSynthesis.speak(u);
+    } catch {}
+  };
+  const reset = (nextRecipe=recipeId) => {
+    setRecipeId(nextRecipe); setStepIdx(0); setAdded([]); setMistakes(0); setFeedback(""); setDragging("");
+    setPantrySeed(x=>x+1); setActiveTool("spoon"); setActiveZone("counter"); setCommandOk(levelId==="beginner");
+  };
+  useEffect(() => { try { localStorage.setItem("ae_kit_register", register); localStorage.setItem("ae_kit_harakat", harakat); localStorage.setItem("ae_kit_gloss", glossMode); localStorage.setItem("ae_kit_audio", audioAuto ? "on" : "off"); } catch {} }, [register, harakat, glossMode, audioAuto]);
+  useEffect(() => { setCommandOk(levelId === "beginner"); setFeedback(""); }, [recipeId, stepIdx, levelId, register]);
   const saveFinish = (finalScore, finalMistakes) => {
     if (!s || !data || !setData) return;
-    const entry = {date:new Date().toISOString(),recipe:recipe.titleAr,recipeId:recipe.id,score:finalScore,mistakes:finalMistakes,level:levelId};
-    const extraPatch = st => ({kitchenHistory:[...(st.kitchenHistory||[]),entry].slice(-30)});
-    if (onQuestComplete) {
-      onQuestComplete({score:finalScore, mistakes:finalMistakes, label:recipe.title, xp:34, extraPatch});
-      return;
-    }
+    const entry = {date:new Date().toISOString(),recipe:recipe.titleAr,recipeId:recipe.id,score:finalScore,mistakes:finalMistakes,level:levelId,register};
+    const extraPatch = st => ({kitchenHistory:[...(st.kitchenHistory||[]),entry].slice(-40)});
+    if (onQuestComplete) { onQuestComplete({score:finalScore, mistakes:finalMistakes, label:recipe.title, xp:38, extraPatch}); return; }
     setData({...data,students:data.students.map(st=>st.id===s.id?{...st,...extraPatch(st)}:st)});
   };
+  const chooseCommand = choice => {
+    if (choice === correctCommand) { setCommandOk(true); setFeedback("صَحيح! Now use the kitchen action."); speakText(choice); }
+    else { setMistakes(x=>x+1); setFeedback("Not that command yet. Listen to the chef and choose the matching action."); }
+  };
   const choose = id => {
-    if (done || !id || added.includes(id)) return;
+    if (done || !id) return;
     const ing = findIng(id);
+    if (needsCommand && !commandOk) { setFeedback("Say the Arabic command first, then cook."); return; }
+    if (activeZone !== requiredZone) { setMistakes(x=>x+1); setFeedback("Move to the "+(KITCHEN_ZONES.find(z=>z.id===requiredZone)?.en||"right zone")+" first."); return; }
+    if (activeTool !== requiredTool) { setMistakes(x=>x+1); setFeedback("Pick the "+requiredToolObj.en+" first: "+kitchenToolLabel(requiredToolObj, register)); return; }
     if (id === step.target) {
-      const nextAdded = [...added,id];
+      const nextAdded = [...added,{id,key:stepIdx+"-"+id,label:kitchenLang(ing,register,harakat)}];
       const final = stepIdx === recipe.steps.length-1;
       setAdded(nextAdded);
-      setFeedback("صَحيح! "+ing.ar+" - "+ing.en);
+      setFeedback("صَحيح! "+kitchenLang(ing,register,harakat)+" - "+ing.en);
+      speakText(kitchenCommandText(step, register));
       if (final) {
-        const finalScore = Math.max(0, recipe.steps.length*10 + level.bonus - mistakes*4);
+        const finalScore = Math.max(0, recipe.steps.length*12 + level.bonus - mistakes*5);
         setStepIdx(recipe.steps.length);
         saveFinish(finalScore,mistakes);
       } else {
-        setTimeout(()=>{ setStepIdx(i=>i+1); setFeedback(""); }, 520);
+        setTimeout(()=>{ setStepIdx(i=>i+1); setFeedback(""); setPantrySeed(x=>x+1); }, 560);
       }
     } else {
-      const nextMistakes = mistakes + 1;
-      setMistakes(nextMistakes);
-      setFeedback("Not this one. Look for: "+step.word+" ("+findIng(step.target).en+").");
+      setMistakes(x=>x+1);
+      setFeedback("Not this one. Look for: "+kitchenLang(findIng(step.target),register,harakat)+" ("+findIng(step.target).en+").");
     }
-  };
-  const speak = () => {
-    try {
-      const u = new SpeechSynthesisUtterance((step.before||"")+step.word+(step.after||""));
-      u.lang = "ar"; u.rate = 0.82;
-      speechSynthesis.cancel(); speechSynthesis.speak(u);
-    } catch {}
   };
 
   return h`<div class="kit-root">
     <div class="kit-hero">
-    <div class="kit-hero-inner">
-      <div>
-        <div class="kit-kicker">Playable Arabic · Kitchen Mission</div>
-        <h2 class="kit-title">Arabic Kitchen</h2>
-        <p class="kit-sub">Read the Arabic instruction, spot the highlighted ingredient, then drag or tap it into the dish. Students learn food words by actually using them.</p>
+      <div class="kit-hero-inner">
+        <div>
+          <div class="kit-kicker">المطبخ · The Kitchen</div>
+          <h2 class="kit-title">المطبخ — The Kitchen</h2>
+          <p class="kit-sub">Cook real Levantine and Middle Eastern dishes in a warm Beirut kitchen. Pick the right zone, tool, ingredient, and Arabic command to make the dish.</p>
+        </div>
+        <div class="kit-stats">
+          <span class="sp2-badge sp2-badge-a">Score ${score}</span>
+          <span class="sp2-badge sp2-badge-t">${progress}% cooked</span>
+          <span class="sp2-badge sp2-badge-g">${register==="msa"?"MSA":"Levantine"}</span>
+        </div>
       </div>
-      <div class="kit-stats">
-        <span class="sp2-badge sp2-badge-a">Score ${score}</span>
-        <span class="sp2-badge sp2-badge-t">${progress}% cooked</span>
-      </div>
-    </div>
     </div>
 
     <div class="kit-controls">
-    <div class="sp2-tabs" style=${{marginBottom:0}}>
-      ${KITCHEN_RECIPES.map(r=>h`<button key=${r.id} class=${"sp2-tab "+(recipeId===r.id?"on":"")} onClick=${()=>reset(r.id)}>${r.emoji} ${r.titleAr}</button>`)}
-    </div>
-    <div class="sp2-tabs" style=${{marginBottom:0}}>
-      ${KITCHEN_LEVELS.map(l=>h`<button key=${l.id} class=${"sp2-tab "+(levelId===l.id?"on":"")} onClick=${()=>{setLevelId(l.id);reset(recipeId);}}>${l.label}</button>`)}
-    </div>
+      <div class="sp2-tabs" style=${{marginBottom:0}}>
+        ${recipes.map(r=>h`<button key=${r.id} class=${"sp2-tab "+(recipeId===r.id?"on":"")} onClick=${()=>reset(r.id)}>${r.emoji} ${r.titleAr}</button>`)}
+      </div>
+      <div class="sp2-tabs" style=${{marginBottom:0}}>
+        ${KITCHEN_LEVELS.map(l=>h`<button key=${l.id} class=${"sp2-tab "+(levelId===l.id?"on":"")} onClick=${()=>{setLevelId(l.id);reset(recipeId);}}>${l.label}</button>`)}
+      </div>
+      <div class="kit-settings">
+        <div class="kit-setting"><div class="kit-setting-label">Register</div><div class="sp2-tabs" style=${{marginBottom:0}}><button class=${"sp2-tab "+(register==="levantine"?"on":"")} onClick=${()=>setRegister("levantine")}>Levantine</button><button class=${"sp2-tab "+(register==="msa"?"on":"")} onClick=${()=>setRegister("msa")}>MSA</button></div></div>
+        <div class="kit-setting"><div class="kit-setting-label">Harakat</div><div class="sp2-tabs" style=${{marginBottom:0}}>${["full","partial","none"].map(x=>h`<button key=${x} class=${"sp2-tab "+(harakat===x?"on":"")} onClick=${()=>setHarakat(x)}>${x}</button>`)}</div></div>
+        <div class="kit-setting"><div class="kit-setting-label">Gloss</div><div class="sp2-tabs" style=${{marginBottom:0}}>${["always","hover","off"].map(x=>h`<button key=${x} class=${"sp2-tab "+(glossMode===x?"on":"")} onClick=${()=>setGlossMode(x)}>${x}</button>`)}</div></div>
+        <div class="kit-setting"><div class="kit-setting-label">Audio</div><button class="sp2-btn sp2-btn-g sp2-btn-sm" onClick=${()=>setAudioAuto(!audioAuto)}>${audioAuto?"Autoplay on":"Autoplay off"}</button></div>
+      </div>
     </div>
 
     <div class="kit-room">
@@ -5593,89 +5858,143 @@ function ArabicKitchenGame({student:s, data, setData, onQuestComplete}) {
         <div class="kit-window"><span>☀️</span><span>🌿</span><span>بيروت</span></div>
         <div class="kit-mission">
           <div class="kit-kicker">Chef Mission</div>
-          <div class="kit-mission-ar">${done?"صَحَّة وعافِيَة!":step.word}</div>
-          <div style=${{fontSize:12,color:"var(--sp-txt2)",lineHeight:1.55}}>${done?"Recipe complete. Try a harder level.":"Find the highlighted Arabic ingredient and add it to the dish."}</div>
+          <div class="kit-mission-ar">${done?"صَحَّة وعافِيَة!":stepLine}</div>
+          <div style=${{fontSize:12,color:"var(--sp-txt2)",lineHeight:1.55}}>${done?"Recipe complete. Review the words, then try a harder level.":"Choose the correct zone, tool, Arabic command, and ingredient."}</div>
         </div>
-        <div class="kit-hooks"><span class="kit-hook-item">🥄</span><span class="kit-hook-item">🍳</span><span class="kit-hook-item">🔪</span></div>
+        <div class="kit-hooks">${["🥄","🍳","🔪"].map(x=>h`<span class="kit-hook-item">${x}</span>`)}</div>
       </div>
+
       <div class="kit-chef-card" style=${{marginBottom:14}}>
         <div class="kit-chef-face">👨‍🍳</div>
         <div>
-          <div style=${{fontFamily:"'Playfair Display',serif",fontSize:19,fontWeight:800,color:"var(--sp-txt)"}}>Chef Hadi</div>
-          <div style=${{fontSize:12,color:"var(--sp-txt2)",lineHeight:1.55}}>Complete the recipe by understanding the Arabic, not guessing the picture.</div>
+          <div style=${{fontFamily:"'Playfair Display',serif",fontSize:19,fontWeight:800,color:"var(--sp-txt)"}}>الشيف Hadi</div>
+          <div style=${{fontSize:12,color:"var(--sp-txt2)",lineHeight:1.55}}>Today: ${register==="msa"?"اليوم سنحضّر ":"اليوم رح نعمل "}<b>${recipe.titleAr}</b>. The English support fades as the level gets harder.</div>
         </div>
       </div>
-    <div class="kit-board">
-      <div class="sp2-card kit-card" style=${{padding:18}}>
-        <div class="kit-recipe-head">
-          <div class="kit-recipe-icon">${recipe.emoji}</div>
-          <div>
-            <div style=${{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700,color:"var(--sp-txt)"}}>${recipe.title}</div>
-            <div style=${{fontFamily:"'Noto Naskh Arabic','Amiri',serif",fontSize:22,direction:"rtl",color:"var(--sp-amber)",lineHeight:1.5}}>${recipe.titleAr}</div>
-            <div style=${{fontSize:12,color:"var(--sp-txt3)"}}>${recipe.theme} · ${level.desc}</div>
-          </div>
-        </div>
-        <div class="kit-progress"><div class="kit-progress-fill" style=${{width:progress+"%"}}></div></div>
-        <div class="kit-step-dots">${recipe.steps.map((_,i)=>h`<span key=${i} class=${"kit-step-dot "+(i<stepIdx?"done":i===stepIdx&&!done?"now":"")}></span>`)}</div>
 
-        ${!done ? h`<div>
-          <div style=${{fontSize:10,fontWeight:800,textTransform:"uppercase",letterSpacing:1.4,color:"var(--sp-txt3)",marginBottom:8}}>Instruction ${stepIdx+1} / ${recipe.steps.length}</div>
-          <div class="kit-instruction">
-            <div dir="rtl" class="kit-ar">
-              ${step.before}<span class="kit-word">${step.word}</span>${step.after}
-            </div>
-            ${levelId!=="advanced"&&h`<div style=${{fontSize:13,color:"var(--sp-txt2)",lineHeight:1.6,marginTop:8}}>${step.en}</div>`}
-          </div>
-          <div class="kit-actions">
-            <button class="sp2-btn sp2-btn-g sp2-btn-sm" onClick=${speak}>Listen</button>
-            <span class="sp2-badge sp2-badge-g">Verb: ${step.verb}</span>
-            ${levelId==="beginner"&&h`<span class="sp2-badge sp2-badge-a">Find: ${findIng(step.target).emoji} ${findIng(step.target).en}</span>`}
-          </div>
-        </div>` : h`<div class="kit-complete">
-          <div style=${{fontSize:64,marginBottom:8}}>${recipe.emoji}</div>
-          <div style=${{fontFamily:"'Playfair Display',serif",fontSize:28,color:"var(--sp-txt)",fontWeight:800}}>Recipe complete</div>
-          <div style=${{fontFamily:"'Noto Naskh Arabic','Amiri',serif",fontSize:28,color:"var(--sp-amber)",direction:"rtl",marginTop:4}}>صَحَّة وعافِيَة!</div>
-          <p style=${{fontSize:13,color:"var(--sp-txt2)",lineHeight:1.7,margin:"12px auto",maxWidth:440}}>You finished ${recipe.titleAr} with score ${score}. Try a harder level to remove English hints and add distractors.</p>
-          <button class="sp2-btn sp2-btn-p" onClick=${()=>reset(recipeId)}>Cook again</button>
-        </div>`}
+      <div class="kit-kitchen-map">
+        ${KITCHEN_ZONES.map(z=>h`<button key=${z.id} class=${"kit-zone "+(activeZone===z.id?"on ":"")+(requiredZone===z.id&&!done?"need":"")} onClick=${()=>setActiveZone(z.id)} title=${z.ar}>
+          <div class="kit-zone-ic">${z.icon}</div><div style=${{fontWeight:900,fontSize:12}}>${z.en}</div><div style=${{fontFamily:"'Noto Naskh Arabic','Amiri',serif",fontSize:13,direction:"rtl",marginTop:2}}>${z.ar}</div>
+        </button>`)}
+      </div>
 
-        <div class="kit-stove">
-        <div class="kit-burners"><span class="kit-burner"></span><span class="kit-burner"></span></div>
-        <div class="kit-drop" onDragOver=${e=>e.preventDefault()} onDrop=${e=>{e.preventDefault(); choose(e.dataTransfer.getData("text/plain")||dragging);}}>
-          <div style=${{textAlign:"center",width:"100%"}}>
-            <div class="kit-dish">🥣</div>
-            <div style=${{fontSize:11,fontWeight:800,textTransform:"uppercase",letterSpacing:1.3,color:"var(--sp-txt3)",marginBottom:10}}>Dish</div>
-            <div class="kit-added">
-              ${added.length?added.map(id=>{const ing=findIng(id);return h`<span key=${id} class="sp2-badge sp2-badge-a kit-chip">${ing.emoji} ${ing.ar}</span>`;}):h`<span style=${{fontSize:13,color:"var(--sp-txt3)"}}>Drop the highlighted ingredient here</span>`}
+      <div class="kit-board">
+        <div class="sp2-card kit-card" style=${{padding:18}}>
+          <div class="kit-recipe-head">
+            <div class="kit-recipe-icon">${recipe.emoji}</div>
+            <div>
+              <div style=${{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700,color:"var(--sp-txt)"}}>${recipe.title}</div>
+              <div style=${{fontFamily:"'Noto Naskh Arabic','Amiri',serif",fontSize:22,direction:"rtl",color:"var(--sp-amber)",lineHeight:1.5}}>${recipe.titleAr}</div>
+              <div style=${{fontSize:12,color:"var(--sp-txt3)"}}>${recipe.theme} · ${recipe.goal}</div>
             </div>
           </div>
-        </div>
-        </div>
-        ${feedback&&h`<div class=${"kit-feedback "+(feedback.startsWith("Not")?"no":"ok")}>${feedback}</div>`}
-      </div>
+          <div class="kit-progress"><div class="kit-progress-fill" style=${{width:progress+"%"}}></div></div>
+          <div class="kit-step-dots">${recipe.steps.map((_,i)=>h`<span key=${i} class=${"kit-step-dot "+(i<stepIdx?"done":i===stepIdx&&!done?"now":"")}></span>`)}</div>
 
-      <div class="sp2-card kit-pantry" style=${{padding:16}}>
-        <div style=${{fontSize:10,fontWeight:800,textTransform:"uppercase",letterSpacing:1.4,color:"var(--sp-txt3)",marginBottom:12}}>Pantry</div>
-        <div class="kit-shelf">
-          ${pantry.map(ing=>{
-            const used = added.includes(ing.id);
-            const target = !done && ing.id===step.target && levelId==="beginner";
-            return h`<button key=${ing.id} draggable=${!used} onDragStart=${e=>{setDragging(ing.id);e.dataTransfer.setData("text/plain",ing.id);}} onClick=${()=>choose(ing.id)} disabled=${used} class=${"kit-ingredient "+(used?"used ":"")+(target?"target":"")}>
-              <div class="kit-ing-emoji">${ing.emoji}</div>
-              <div class="kit-ing-ar">${ing.ar}</div>
-              ${levelId!=="advanced"&&h`<div style=${{fontSize:11,color:"var(--sp-txt3)",marginTop:2}}>${ing.en}</div>`}
-            </button>`;
-          })}
+          <div class="kit-tool-rack">
+            ${KITCHEN_TOOLS.map(t=>h`<button key=${t.id} class=${"kit-tool "+(activeTool===t.id?"on ":"")+(requiredTool===t.id&&!done?"need":"")} onClick=${()=>setActiveTool(t.id)} onMouseEnter=${()=>audioAuto&&speakText(kitchenToolLabel(t,register))} title=${kitchenToolLabel(t,register)+" · "+t.en}>
+              <div class="kit-tool-ic">${t.emoji}</div><div style=${{fontWeight:900,fontSize:11}}>${t.en}</div><div style=${{fontFamily:"'Noto Naskh Arabic','Amiri',serif",fontSize:13,direction:"rtl"}}>${kitchenToolLabel(t,register)}</div>
+            </button>`)}
+          </div>
+
+          ${!done ? h`<div>
+            <div style=${{fontSize:10,fontWeight:800,textTransform:"uppercase",letterSpacing:1.4,color:"var(--sp-txt3)",marginBottom:8}}>Instruction ${stepIdx+1} / ${recipe.steps.length}</div>
+            <div class="kit-instruction">
+              <div dir="rtl" class="kit-ar">${register==="msa" ? h`${step.before}<span class="kit-word">${step.word}</span>${step.after}` : h`<span class="kit-word">${correctCommand}</span>`}</div>
+              ${showGloss&&h`<div style=${{fontSize:13,color:"var(--sp-txt2)",lineHeight:1.6,marginTop:8}}>${step.en}</div>`}
+            </div>
+            ${needsCommand&&h`<div>
+              <div class="kit-kicker">Pushed Output</div>
+              <div class="kit-command-grid">${commandChoices.map(c=>h`<button key=${c} class=${"kit-command "+(commandOk&&c===correctCommand?"ok":"")} onClick=${()=>chooseCommand(c)}>${c}</button>`)}</div>
+            </div>`}
+            <div class="kit-actions">
+              <button class="sp2-btn sp2-btn-g sp2-btn-sm" onClick=${()=>speakText(stepLine)}>Listen</button>
+              <span class="sp2-badge sp2-badge-g">Tool: ${requiredToolObj.en}</span>
+              <span class="sp2-badge sp2-badge-t">Zone: ${KITCHEN_ZONES.find(z=>z.id===requiredZone)?.en}</span>
+              ${targetIngredient&&levelId==="beginner"&&h`<span class="sp2-badge sp2-badge-a">Find: ${targetIngredient.emoji} ${targetIngredient.en}</span>`}
+            </div>
+          </div>` : h`<div class="kit-complete">
+            <div style=${{fontSize:64,marginBottom:8}}>${recipe.emoji}</div>
+            <div style=${{fontFamily:"'Playfair Display',serif",fontSize:28,color:"var(--sp-txt)",fontWeight:800}}>Recipe complete</div>
+            <div style=${{fontFamily:"'Noto Naskh Arabic','Amiri',serif",fontSize:28,color:"var(--sp-amber)",direction:"rtl",marginTop:4}}>صَحَّة وعافِيَة!</div>
+            <p style=${{fontSize:13,color:"var(--sp-txt2)",lineHeight:1.7,margin:"12px auto",maxWidth:440}}>You finished ${recipe.titleAr} with score ${score}. New words were added to your vocabulary journal.</p>
+            <button class="sp2-btn sp2-btn-p" onClick=${()=>reset(recipeId)}>Cook again</button>
+          </div>`}
+
+          <div class="kit-stove">
+            <div class="kit-burners"><span class="kit-burner"></span><span class="kit-burner"></span></div>
+            <div class="kit-drop" onDragOver=${e=>e.preventDefault()} onDrop=${e=>{e.preventDefault(); choose(e.dataTransfer.getData("text/plain")||dragging);}}>
+              <div style=${{textAlign:"center",width:"100%"}}>
+                <div class="kit-dish">${activeZone==="stove"?"♨️":activeZone==="sink"?"💧":recipe.emoji}</div>
+                <div style=${{fontSize:11,fontWeight:800,textTransform:"uppercase",letterSpacing:1.3,color:"var(--sp-txt3)",marginBottom:10}}>${done?"Plated":activeZone==="stove"?"Cooking State":"Prep Surface"}</div>
+                <div class="kit-added">
+                  ${added.length?added.map((entry,i)=>{const ing=findIng(entry.id||entry);return h`<span key=${entry.key||i} class="sp2-badge sp2-badge-a kit-chip">${ing.emoji} ${entry.label||kitchenLang(ing,register,harakat)}</span>`;}):h`<span style=${{fontSize:13,color:"var(--sp-txt3)"}}>Use the correct tool and drop/tap the ingredient here</span>`}
+                </div>
+              </div>
+            </div>
+          </div>
+          ${feedback&&h`<div class=${"kit-feedback "+(feedback.startsWith("Not")||feedback.startsWith("Move")||feedback.startsWith("Pick")?"no":"ok")}>${feedback}</div>`}
+        </div>
+
+        <div class="kit-side-grid">
+          <div class="sp2-card kit-recipe-card" style=${{padding:16}}>
+            <div class="kit-kicker">Recipe Card</div>
+            <div style=${{fontFamily:"'Noto Naskh Arabic','Amiri',serif",fontSize:25,direction:"rtl",color:"var(--sp-amber)",lineHeight:1.5}}>${recipe.titleAr}</div>
+            <div style=${{fontSize:12,color:"var(--sp-txt2)",lineHeight:1.6,marginTop:6}}>${recipe.goal}</div>
+            <div class="kit-recipe-list">
+              ${(recipe.newNouns||[]).map(x=>h`<span class="kit-mini-word" key=${x}>Noun: ${x}</span>`)}
+              ${(recipe.newVerbs||[]).map(x=>h`<span class="kit-mini-word" key=${x}>Verb: ${x}</span>`)}
+            </div>
+            <div style=${{marginTop:10,borderTop:"1px solid var(--sp-border)",paddingTop:10}}>
+              <div class="kit-kicker">Pattern</div>
+              <div style=${{fontFamily:"'Noto Naskh Arabic','Amiri',serif",fontSize:18,direction:"rtl",color:"var(--sp-txt)"}}>${recipe.pattern||"أَضِفِ... إِلى..."}</div>
+            </div>
+            <button class="sp2-btn sp2-btn-g sp2-btn-sm" style=${{marginTop:12}} onClick=${()=>setJournalOpen(!journalOpen)}>${journalOpen?"Hide":"Open"} Vocabulary Journal</button>
+          </div>
+
+          ${journalOpen&&h`<div class="sp2-card kit-recipe-card" style=${{padding:16}}>
+            <div class="kit-kicker">دفتر المفردات</div>
+            <div class="kit-journal">
+              ${journalItems.map(ing=>h`<div key=${ing.id} class="kit-journal-row" onMouseEnter=${()=>audioAuto&&speakText(kitchenLang(ing,register,harakat))}>
+                <div style=${{fontSize:26}}>${ing.emoji}</div>
+                <div>
+                  <div class="kit-journal-ar">${kitchenLang(ing,register,harakat)}</div>
+                  <div style=${{fontSize:11,color:"var(--sp-txt3)"}}>${ing.en} · ${(KITCHEN_WORD_BANK[ing.id]?.category)||"food"} · ${ing.recipe}</div>
+                </div>
+                <button class="sp2-btn sp2-btn-g sp2-btn-sm" onClick=${()=>speakText(kitchenLang(ing,register,harakat))}>Listen</button>
+              </div>`)}
+            </div>
+          </div>`}
+
+          <div class="sp2-card kit-pantry" style=${{padding:16}}>
+            <div style=${{display:"flex",justifyContent:"space-between",alignItems:"center",gap:8,marginBottom:12}}>
+              <div><div class="kit-kicker">Shuffled Fridge + Pantry</div><div style=${{fontSize:12,color:"var(--sp-txt3)"}}>No fixed pattern. Every round reshuffles.</div></div>
+              <button class="sp2-btn sp2-btn-g sp2-btn-sm" onClick=${()=>setPantrySeed(x=>x+1)}>Shuffle</button>
+            </div>
+            <div class="kit-shelf">
+              ${pantry.map(ing=>{
+                const id = ing.id;
+                const remainingNeeds = recipe.steps.slice(stepIdx).map(st=>st.target);
+                const used = added.some(x=>(x.id||x)===id) && !remainingNeeds.includes(id);
+                const target = !done && id===step.target && levelId==="beginner";
+                const label = kitchenLang(ing,register,harakat);
+                return h`<button key=${id} draggable=${!used} onDragStart=${e=>{setDragging(id);e.dataTransfer.setData("text/plain",id);}} onMouseEnter=${()=>audioAuto&&speakText(label)} onClick=${()=>choose(id)} disabled=${used} class=${"kit-ingredient "+(used?"used ":"")+(target?"target":"")} title=${label+" · "+ing.en}>
+                  <div class="kit-ing-emoji">${ing.emoji}</div>
+                  <div class="kit-ing-ar">${label}</div>
+                  ${showGloss&&h`<div style=${{fontSize:11,color:"var(--sp-txt3)",marginTop:2}}>${ing.en}</div>`}
+                </button>`;
+              })}
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="kit-counter-front"></div>
+      <div class="kit-counter-front"></div>
     </div>
 
     ${s?.kitchenHistory?.length?h`<div class="sp2-card" style=${{padding:14,marginTop:16}}>
       <div style=${{fontSize:11,fontWeight:800,textTransform:"uppercase",letterSpacing:1.4,color:"var(--sp-txt3)",marginBottom:10}}>Recent cooking</div>
       <div style=${{display:"flex",gap:8,flexWrap:"wrap"}}>
-        ${s.kitchenHistory.slice(-8).reverse().map((r,i)=>h`<span key=${i} class="sp2-badge sp2-badge-g">${r.recipe} · ${r.score} · ${r.level}</span>`)}
+        ${s.kitchenHistory.slice(-8).reverse().map((r,i)=>h`<span key=${i} class="sp2-badge sp2-badge-g">${r.recipe} · ${r.score} · ${r.level}${r.register?" · "+r.register:""}</span>`)}
       </div>
     </div>`:null}
   </div>`;
