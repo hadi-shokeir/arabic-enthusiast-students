@@ -878,6 +878,97 @@ tr.ck:hover td,.tutor-root tr.ck:hover td{
   .quest-title{font-size:29px}
   .quest-ar{font-size:27px}
 }
+
+/* Phone optimization pass */
+@media (hover:none) and (pointer:coarse){
+  .btn:hover,.sp2-btn:hover,.sp2-tab:hover,.tab:hover,.auth-tab:hover,.lib-tab:hover,.skill-dot:hover,.sp2-letter-cell:hover,.sp2-mob-it:hover,.mob-nav-it:hover,.kit-zone:hover,.kit-tool:hover,.kit-ingredient:hover,.quest-card:hover,.quest-choice:hover,.quest-shop-item:hover,.quest-tile:hover,.quest-memory-card:hover{
+    transform:none;
+    filter:none;
+  }
+}
+@media(max-width:768px){
+  html{font-size:16px}
+  body{width:100%;min-width:0;touch-action:manipulation}
+  input,select,textarea,button{font-size:16px}
+  img,video,canvas{max-width:100%}
+  .btn,.sp2-btn,.sp2-tab,.tab,.auth-tab,.lib-tab,.pref-pill,.qz-opt,.quest-choice,.quest-shop-item,.quest-tile,.quest-memory-card,.kit-zone,.kit-tool,.kit-ingredient{
+    min-height:44px;
+  }
+  .auth-wrap{display:block;min-height:100dvh;width:100vw;max-width:100vw;padding:18px 12px;overflow-x:hidden}
+  .auth-box{box-sizing:border-box;width:calc(100vw - 48px);max-width:392px;min-width:0;margin:0 auto;border-radius:18px;padding:24px 18px}
+  .auth-btn,.auth-btn-ghost{box-sizing:border-box}
+  .auth-tabs{display:grid;grid-template-columns:1fr 1fr;overflow:visible;gap:0}
+  .auth-tab{min-width:0;white-space:normal;flex:1 1 0;padding:12px 4px;font-size:.62rem;letter-spacing:.08em}
+  .auth-role-sel{flex-direction:column}
+  .auth-inp,.auth-sel,.auth-textarea{font-size:16px;border-radius:12px}
+  .sp2-root{min-height:100dvh;height:100dvh}
+  .sp2-layout{min-width:0}
+  .sp2-hdr{position:sticky;top:0;z-index:110;min-width:0}
+  .sp2-content{min-width:0}
+  .sp2-card,.card,.assess-card,.stat,.stu-card,.prof-hd,.res-card,.fc-deck{max-width:100%;overflow-wrap:anywhere}
+  .sp2-tabs,.auth-tabs,.tabs,.lib-tab-nav{scroll-snap-type:x proximity}
+  .sp2-tab,.auth-tab,.tab,.lib-tab{scroll-snap-align:start}
+  .sp2-chat{height:calc(100dvh - 142px);max-height:none;border-radius:14px}
+  .sp2-chat-msgs{padding:14px;gap:10px}
+  .sp2-msg{max-width:94%;font-size:13px}
+  .sp2-chat-foot{padding:10px;gap:8px}
+  .sp2-chat-in{font-size:16px}
+  .res-card{min-width:0}
+  .res-body{padding:10px 12px}
+  .res-title{font-size:12px}
+  .res-desc{font-size:11px}
+  .fc-card{min-height:148px;padding:16px}
+  .qz-ar{font-size:20px}
+  .qz-opt{padding:11px 12px}
+  .qz-opt-ar{font-size:18px}
+  .conj-tbl{min-width:540px}
+  .assessment-chart-panel svg{max-width:100%;height:auto}
+  canvas{max-width:100%}
+}
+@media(max-width:640px){
+  .sp2-root{overflow:hidden}
+  .sp2-hdr{min-height:56px;padding:7px 9px;gap:7px}
+  .sp2-hdr-actions{max-width:58vw;overflow-x:auto;scrollbar-width:none}
+  .sp2-hdr-actions::-webkit-scrollbar{display:none}
+  .sp2-hdr-actions .sp2-btn-sm{flex:0 0 auto}
+  .sp2-content{padding:12px 10px;padding-bottom:calc(86px + env(safe-area-inset-bottom))}
+  .sp2-mob-nav{gap:4px;justify-content:flex-start;padding:5px 6px calc(7px + env(safe-area-inset-bottom))}
+  .sp2-mob-it{min-width:62px;min-height:48px}
+  .tutor-root .tutor-page-head h1{font-size:25px;line-height:1.08}
+  .tutor-root .tutor-page-head p{font-size:12px}
+  .prof-hd{gap:12px}
+  .prof-av{width:58px;height:58px;font-size:23px}
+  .prof-info h2{font-size:23px}
+  .prof-meta{justify-content:center}
+  .kit-hero-inner{align-items:flex-start}
+  .kit-stats{width:100%}
+  .kit-live-hud{display:grid;grid-template-columns:1fr;gap:8px}
+  .kit-live-hud > div{justify-content:flex-start!important}
+  .kit-customer{padding:10px}
+  .kit-customer-face{width:42px;height:42px;border-radius:14px}
+  .kit-ticket{padding:11px 12px}
+  .kit-ticket-ar{font-size:19px}
+  .kit-command-grid{grid-template-columns:1fr}
+  .kit-tray-head{align-items:flex-start;flex-direction:column}
+  .quest-stage{min-height:auto}
+  .quest-card{min-height:156px}
+  .quest-card-foot{position:static;margin-top:12px}
+  .quest-art-main{font-size:58px}
+}
+@media(max-width:420px){
+  .sp2-content{padding-left:8px;padding-right:8px}
+  .sp2-hdr-actions{max-width:62vw}
+  .sp2-hdr .sp2-btn-sm{padding:6px 7px!important}
+  .sp2-mob-it{min-width:56px}
+  .kit-title{font-size:26px}
+  .kit-sub{font-size:12px}
+  .kit-live-chip{font-size:10px;padding:5px 8px}
+  .kit-ar{font-size:22px}
+  .kit-tool-rack{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kit-zone{min-height:76px}
+  .quest-memory-card{min-height:78px}
+  .quest-built{font-size:30px;min-height:62px}
+}
 </style>
 </head>
 <body>
