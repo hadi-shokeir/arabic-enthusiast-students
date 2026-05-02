@@ -227,10 +227,11 @@ tr.ck{cursor:pointer}tr.ck:hover td{background:var(--g100)}
 .trace-target{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;padding:10px 12px;border-radius:12px;background:#eff6ff;border:1px solid #bfdbfe}
 .trace-target-ar{font-size:38px;direction:rtl;color:#0f172a;line-height:1.4}
 .trace-canvas{display:block;width:100%;border-radius:16px;border:2px solid #dbe4ee;background:#fff;touch-action:none;cursor:crosshair;box-shadow:inset 0 0 0 1px rgba(15,23,42,.04),0 16px 32px rgba(15,23,42,.10)}
-.trace-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+.trace-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px;margin-top:10px}
 .trace-metric{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:8px 10px}
 .trace-metric .lb{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#64748b;font-weight:900}
 .trace-metric .vl{font-size:16px;font-weight:900;color:#0f172a;margin-top:2px}
+.trace-metric .hint{font-size:10px;line-height:1.35;color:#64748b;margin-top:2px}
 .trace-feedback{margin-top:10px;font-size:13px;color:#334155;line-height:1.65;border-left:3px solid #2563eb;padding-left:10px}
 .trace-feedback.bad{border-left-color:#ef4444}
 .trace-feedback.good{border-left-color:#16a34a}
@@ -5672,6 +5673,115 @@ function analyzeTraceStrokes(strokes) {
   return {steadiness, shaky, advice};
 }
 
+function tracePixelComponents(data, width, height, otherData=null, sample=4) {
+  const cols = Math.max(1, Math.ceil(width / sample));
+  const rows = Math.max(1, Math.ceil(height / sample));
+  const grid = new Uint8Array(cols * rows);
+  const covered = otherData ? new Uint8Array(cols * rows) : null;
+  for (let gy=0; gy<rows; gy++) {
+    const y = Math.min(height-1, gy*sample);
+    for (let gx=0; gx<cols; gx++) {
+      const x = Math.min(width-1, gx*sample);
+      const src = (y*width + x)*4 + 3;
+      const cell = gy*cols + gx;
+      if (data[src] > 18) {
+        grid[cell] = 1;
+        if (otherData && otherData[src] > 18) covered[cell] = 1;
+      }
+    }
+  }
+  const seen = new Uint8Array(cols * rows);
+  const components = [];
+  const dirs = [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
+  for (let start=0; start<grid.length; start++) {
+    if (!grid[start] || seen[start]) continue;
+    const stack = [start];
+    seen[start] = 1;
+    let count = 0, hit = 0;
+    let minX = cols, maxX = 0, minY = rows, maxY = 0;
+    while (stack.length) {
+      const cell = stack.pop();
+      const gx = cell % cols, gy = Math.floor(cell / cols);
+      count++;
+      if (covered?.[cell]) hit++;
+      minX = Math.min(minX,gx); maxX = Math.max(maxX,gx);
+      minY = Math.min(minY,gy); maxY = Math.max(maxY,gy);
+      dirs.forEach(([dx,dy]) => {
+        const nx=gx+dx, ny=gy+dy;
+        if (nx<0 || ny<0 || nx>=cols || ny>=rows) return;
+        const ni = ny*cols + nx;
+        if (grid[ni] && !seen[ni]) { seen[ni] = 1; stack.push(ni); }
+      });
+    }
+    components.push({
+      count, covered:hit,
+      minX:minX*sample, minY:minY*sample,
+      maxX:Math.min(width-1,(maxX+1)*sample),
+      maxY:Math.min(height-1,(maxY+1)*sample),
+      w:Math.max(sample,(maxX-minX+1)*sample),
+      h:Math.max(sample,(maxY-minY+1)*sample)
+    });
+  }
+  return components.sort((a,b)=>b.count-a.count);
+}
+
+function traceScoreLabel(score) {
+  if (score == null) return {text:"OK", color:"#64748b"};
+  const pct = Math.round(Math.max(0,Math.min(1,score))*100);
+  return {
+    text:pct+"%",
+    color:pct>=82 ? "#16a34a" : pct>=65 ? "#d97706" : "#ef4444"
+  };
+}
+
+function buildTraceSegmentScores(g, k, width, height, gb, ib, coverageScore, lineControl, shapeScore, boxMetrics) {
+  const guideComps = tracePixelComponents(g,width,height,k,4);
+  const inkComps = tracePixelComponents(k,width,height,null,4);
+  const guideCells = guideComps.reduce((sum,c)=>sum+c.count,0) || 1;
+  const compactLimit = Math.max(10, guideCells * 0.07);
+  const dotComps = guideComps.filter((c,i) =>
+    i > 0 &&
+    c.count <= compactLimit &&
+    c.w <= width * 0.22 &&
+    c.h <= height * 0.22
+  );
+  const bodyComps = guideComps.filter(c=>!dotComps.includes(c));
+  const scoreCoverage = comps => {
+    const total = comps.reduce((sum,c)=>sum+c.count,0);
+    if (!total) return null;
+    const hit = comps.reduce((sum,c)=>sum+c.covered,0);
+    return Math.min(1, (hit/total) * 3.2);
+  };
+  const mergeBox = comps => {
+    if (!comps.length) return null;
+    return comps.reduce((box,c)=>({
+      minX:Math.min(box.minX,c.minX), minY:Math.min(box.minY,c.minY),
+      maxX:Math.max(box.maxX,c.maxX), maxY:Math.max(box.maxY,c.maxY)
+    }), {minX:Infinity,minY:Infinity,maxX:-Infinity,maxY:-Infinity});
+  };
+  const bodyBox = mergeBox(bodyComps.length ? bodyComps : guideComps);
+  const inkBody = inkComps[0] || null;
+  const baselineScore = (() => {
+    if (!bodyBox || !inkBody) return null;
+    const bodyH = Math.max(1, bodyBox.maxY-bodyBox.minY);
+    const tolerance = Math.max(18, bodyH * 0.18);
+    return Math.max(0, 1 - Math.abs(inkBody.maxY-bodyBox.maxY)/tolerance);
+  })();
+  const bodyScore = scoreCoverage(bodyComps.length ? bodyComps : guideComps);
+  const dotsScore = dotComps.length ? scoreCoverage(dotComps) : null;
+  const segments = [
+    {id:"body",label:"Body",score:bodyScore,hint:bodyScore>=0.72?"Main shape covered":"Trace more of the main body"},
+    dotComps.length
+      ? {id:"dots",label:"Dots",score:dotsScore,hint:dotsScore>=0.72?"Dots are placed":"Add or center the dots"}
+      : {id:"dots",label:"Dots",score:null,hint:"No required dots"},
+    {id:"baseline",label:"Baseline",score:baselineScore,hint:baselineScore>=0.72?"Sits on the line":"Align the body to the line"},
+    {id:"line",label:"Line Control",score:lineControl,hint:lineControl>=0.82?"Clean straight/curved strokes":"Smooth kinks and waves"}
+  ];
+  if (shapeScore != null) segments.unshift({id:"shape",label:"Shape",score:shapeScore,hint:shapeScore>=0.72?"Shape matches well":"Match the letter silhouette"});
+  if (boxMetrics?.proportion != null) segments.push({id:"proportion",label:"Proportion",score:boxMetrics.proportion,hint:boxMetrics.proportion>=0.72?"Good proportions":"Adjust height and width"});
+  return segments;
+}
+
 function ArabicTracingLab({student:s, data, setData, sourceText, title, compact}) {
   const sourceItems = parseTraceSource(sourceText);
   const sets = sourceItems.length ? [{id:"custom",title:title||"Tutor Tracing",desc:"Tracing activity prepared by Hadi.",items:sourceItems}] : TRACE_SETS;
@@ -5684,6 +5794,7 @@ function ArabicTracingLab({student:s, data, setData, sourceText, title, compact}
   const [letterGap, setLetterGap] = useState(5);
   const [traceLevel, setTraceLevel] = useState("beginner");
   const [showGrid, setShowGrid] = useState(true);
+  const [showHints, setShowHints] = useState(true);
   const [score, setScore] = useState(null);
   const [feedback, setFeedback] = useState("");
   const [boundaryPct, setBoundaryPct] = useState(0);
@@ -5764,6 +5875,38 @@ function ArabicTracingLab({student:s, data, setData, sourceText, title, compact}
     ctx.lineWidth = Math.max(2, fontSize*traceFont.stroke);
     ctx.strokeStyle = "rgba(15,23,42,"+level.guideAlpha+")";
     ctx.strokeText(text,x,y);
+    if (showHints) {
+      const measured = Math.min(ctx.measureText(text).width, w-56);
+      const right = Math.min(w-30, x + measured/2);
+      const left = Math.max(30, x - measured/2);
+      const arrowY = Math.max(42, y - fontSize*0.43);
+      const arrows = Math.min(4, Math.max(2, Math.ceil(baseLetterCount/2)));
+      const span = Math.max(64, right-left);
+      const drawArrow = (sx,sy,ex,ey) => {
+        const ang = Math.atan2(ey-sy,ex-sx);
+        ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(ex,ey); ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(ex,ey);
+        ctx.lineTo(ex-Math.cos(ang-0.62)*10, ey-Math.sin(ang-0.62)*10);
+        ctx.lineTo(ex-Math.cos(ang+0.62)*10, ey-Math.sin(ang+0.62)*10);
+        ctx.closePath(); ctx.fill();
+      };
+      ctx.save();
+      ctx.lineWidth = 2.4;
+      ctx.strokeStyle = "rgba(217,119,6,0.76)";
+      ctx.fillStyle = "rgba(217,119,6,0.82)";
+      ctx.shadowColor = "rgba(255,255,255,0.85)";
+      ctx.shadowBlur = 4;
+      ctx.beginPath();
+      ctx.arc(right, arrowY, 7, 0, Math.PI*2);
+      ctx.fill();
+      for (let i=0;i<arrows;i++) {
+        const sx = right - (span*(i+0.14)/arrows);
+        const ex = right - (span*(i+0.66)/arrows);
+        drawArrow(sx, arrowY + (i%2 ? 4 : -2), ex, arrowY + (i%2 ? -2 : 4));
+      }
+      ctx.restore();
+    }
     ctx.letterSpacing = "0px";
     ctx.fillStyle = "#64748b";
     ctx.font = "800 12px 'DM Sans',sans-serif";
@@ -5849,7 +5992,7 @@ function ArabicTracingLab({student:s, data, setData, sourceText, title, compact}
     setTimeout(redraw,40);
     document.fonts?.ready?.then(redraw).catch(()=>{});
     return () => window.removeEventListener("resize", onResize);
-  }, [text, showGrid, compact, fontId, guideSize, letterGap, traceLevel]);
+  }, [text, showGrid, showHints, compact, fontId, guideSize, letterGap, traceLevel]);
 
   const point = e => {
     const canvas = canvasRef.current;
@@ -5998,6 +6141,7 @@ function ArabicTracingLab({student:s, data, setData, sourceText, title, compact}
       return Math.max(0,Math.min(1,recall*0.32 + shapePrecision*0.25 + dice*0.25 + profileScore*0.18));
     })();
     const coverageScore = Math.min(1, coverage*3.2);
+    const segmentScores = buildTraceSegmentScores(g,k,guide.width,guide.height,gb,ib,coverageScore,steady.steadiness,shapeMimicScore,boxMetrics);
     const raw = traceLevel==="advanced"
       ? (shapeMimicScore*0.72 + boxMetrics.proportion*0.16 + steady.steadiness*0.12) * 100
       : traceLevel==="medium"
@@ -6008,10 +6152,12 @@ function ArabicTracingLab({student:s, data, setData, sourceText, title, compact}
     const passed = nextScore >= level.minScore;
     const boundaryNote = traceLevel==="advanced" ? "" : driftPct>14 ? " Red areas are outside the letter boundary; erase and stay inside the grey shape." : driftPct>6 ? " A few red areas left the boundary; slow down at corners and dots." : " Your pencil mostly stayed inside the letter boundary.";
     const steadyNote = " " + steady.advice;
-    setMetrics({inside:Math.round(insideRate*100),coverage:Math.round(coverageScore*100),steadiness:Math.round(steady.steadiness*100),shaky:steady.shaky});
+    const weakSegments = segmentScores.filter(seg=>seg.score != null && seg.score < 0.66).slice(0,2);
+    const segmentNote = weakSegments.length ? " Focus: " + weakSegments.map(seg=>seg.label.toLowerCase()+" - "+seg.hint.toLowerCase()).join("; ") + "." : " Segment check looks balanced.";
+    setMetrics({inside:Math.round(insideRate*100),coverage:Math.round(coverageScore*100),steadiness:Math.round(steady.steadiness*100),shaky:steady.shaky,segments:segmentScores});
     setFeedback((passed ? (traceLevel==="advanced"?"Strong free writing. The shape, proportions, and line control are good.":"Excellent control. Clean green strokes and strong coverage.")
       : nextScore>=62 ? (traceLevel==="advanced"?"Good attempt. Focus on proportions, dots, loops, and stroke direction.":"Good start, but the score is strict. Trace the grey areas again and keep red marks out.")
-      : (traceLevel==="advanced"?"Try again slowly. Capture the main body, dots, loops, and direction of the word.":"Reset and try again slowly. Red means your pencil left the letter body.")) + boundaryNote + steadyNote);
+      : (traceLevel==="advanced"?"Try again slowly. Capture the main body, dots, loops, and direction of the word.":"Reset and try again slowly. Red means your pencil left the letter body.")) + boundaryNote + steadyNote + segmentNote);
     playTraceSound(passed ? "success" : nextScore>=62 ? "almost" : "retry");
     if (s && data && setData) {
       const entry = {date:new Date().toISOString(),text,score:nextScore,level:traceLevel,inside:Math.round(insideRate*100),steadiness:Math.round(steady.steadiness*100)};
@@ -6058,6 +6204,7 @@ function ArabicTracingLab({student:s, data, setData, sourceText, title, compact}
         </div>
         <div class="trace-controls">
           <label class="trace-control"><input type="checkbox" checked=${showGrid} onChange=${e=>setShowGrid(e.target.checked)}/> Grid</label>
+          <label class="trace-control"><input type="checkbox" checked=${showHints} disabled=${traceLevel==="advanced"} onChange=${e=>setShowHints(e.target.checked)}/> Arrows</label>
           <label class="trace-control">Font <select value=${fontId} onChange=${e=>{setFontId(e.target.value);clearInk();}}>${TRACE_FONTS.map(f=>h`<option key=${f.id} value=${f.id}>${f.label}</option>`)}</select></label>
           <label class="trace-control">Size <input type="range" min="68" max="112" value=${guideSize} onInput=${e=>{setGuideSize(+e.target.value);clearInk();}}/></label>
           <label class="trace-control">Spacing <input type="range" min="0" max="10" value=${letterGap} onInput=${e=>{setLetterGap(+e.target.value);clearInk();}}/></label>
@@ -6075,7 +6222,11 @@ function ArabicTracingLab({student:s, data, setData, sourceText, title, compact}
       ${metrics&&h`<div class="trace-metrics">
         <div class="trace-metric"><div class="lb">Inside Border</div><div class="vl" style=${{color:metrics.inside>=92?"#16a34a":metrics.inside>=78?"#d97706":"#ef4444"}}>${metrics.inside}%</div></div>
         <div class="trace-metric"><div class="lb">Coverage</div><div class="vl">${metrics.coverage}%</div></div>
-        <div class="trace-metric"><div class="lb">Line Control</div><div class="vl" style=${{color:metrics.shaky?"#ef4444":"#16a34a"}}>${metrics.steadiness}%</div></div>
+        ${(metrics.segments||[]).map(seg=>{const rating=traceScoreLabel(seg.score);return h`<div key=${seg.id} class="trace-metric">
+          <div class="lb">${seg.label}</div>
+          <div class="vl" style=${{color:rating.color}}>${rating.text}</div>
+          <div class="hint">${seg.hint}</div>
+        </div>`})}
       </div>`}
       ${traceLevel!=="advanced"&&boundaryPct>0?h`<div style=${{marginTop:8,fontSize:12,color:boundaryPct>14?"#ef4444":"#64748b",fontWeight:900}}>Red outside boundary: ${boundaryPct}% of your ink</div>`:null}
       <div style=${{display:"flex",justifyContent:"space-between",gap:10,alignItems:"center",marginTop:12,flexWrap:"wrap"}}>
