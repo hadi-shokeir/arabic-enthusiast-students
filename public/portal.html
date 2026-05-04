@@ -1168,7 +1168,8 @@ function withQuestDefaults(student) {
   return out;
 }
 function withStudentDefaults(student) {
-  return withQuestDefaults(withSkillDefaults(student));
+  const out = withQuestDefaults(withSkillDefaults(student));
+  return {...out, lessonsOverdue: Math.max(0, out.lessonsOverdue || 0)};
 }
 
 // FIX #10: Configurable currency
@@ -1438,7 +1439,7 @@ async function loadData() {
 }
 function getStorageEstimate() { return (navigator.storage?.estimate) ? navigator.storage.estimate() : Promise.resolve({usage:0,quota:0}); }
 
-const mkStudent = S => ({id:uid(),studentNumber:0,quizHistory:[],name:"",email:"",phone:"",whatsapp:"",timezone:"",avatar:"",gender:"",nickname:"",nicknameEmoji:"",type:(S?.types||DEFS.types)[0],level:(S?.levels||DEFS.levels)[0],paymentPlan:(S?.payPlans||DEFS.payPlans)[0],lessonRate:0,bundleSize:10,lessonsTotal:0,lessonsTaken:0,remainingClasses:0,freeTotal:0,freeTaken:0,totalPaid:0,startDate:today(),notes:[],assignedLessons:[],completedLessons:[],active:true,enrollmentStatus:"",studioAccess:true,studentNote:"",...SKILL_DEFAULTS,studyTypes:["classical","dialect","quran"],teacherSummary:"",teacherStrengths:"",teacherImprove:"",teacherPrivateNotes:"",goals:"",nextSteps:"",homeworkNotes:"",skillHistory:[],focusItems:[],weeklyTasks:[],xp:0,streakDays:0,streakLastDate:null,questProgress:defaultQuestProgress()});
+const mkStudent = S => ({id:uid(),studentNumber:0,quizHistory:[],name:"",email:"",phone:"",whatsapp:"",timezone:"",avatar:"",gender:"",nickname:"",nicknameEmoji:"",type:(S?.types||DEFS.types)[0],level:(S?.levels||DEFS.levels)[0],paymentPlan:(S?.payPlans||DEFS.payPlans)[0],lessonRate:0,bundleSize:10,lessonsTotal:0,lessonsTaken:0,remainingClasses:0,freeTotal:0,freeTaken:0,lessonsOverdue:0,totalPaid:0,startDate:today(),notes:[],assignedLessons:[],completedLessons:[],active:true,enrollmentStatus:"",studioAccess:true,studentNote:"",...SKILL_DEFAULTS,studyTypes:["classical","dialect","quran"],teacherSummary:"",teacherStrengths:"",teacherImprove:"",teacherPrivateNotes:"",goals:"",nextSteps:"",homeworkNotes:"",skillHistory:[],focusItems:[],weeklyTasks:[],xp:0,streakDays:0,streakLastDate:null,questProgress:defaultQuestProgress()});
 const nextStudentNumber = (students) => { const nums = (students||[]).map(s=>s.studentNumber||0); return (nums.length ? Math.max(...nums) : 0) + 1; };
 const mkLesson = S => ({id:uid(),studentId:"",groupId:"",date:today(),time:"10:00",duration:60,type:(S?.types||DEFS.types)[0],status:"Scheduled",notes:""});
 const mkPayment = () => ({id:uid(),studentId:"",amount:0,date:today(),method:"Cash",notes:"",lessonsAdded:0,status:"Pending"});
@@ -1529,6 +1530,10 @@ function paidLessonsLeft(s) {
   if (typeof s.remainingClasses === "number") return Math.max(0, s.remainingClasses || 0);
   return Math.max(0, (s.lessonsTotal||0) - (s.lessonsTaken||0));
 }
+function activeFreeLessonTotal(s) {
+  const taken = Math.max(0, s?.freeTaken || 0);
+  return freeExpiry(s || {}).expired ? taken : Math.max(taken, s?.freeTotal || 0);
+}
 function lessonStats(s) {
   const paidTotal = Math.max(0, s?.lessonsTotal || 0);
   const paidTaken = Math.max(0, s?.lessonsTaken || 0);
@@ -1536,26 +1541,55 @@ function lessonStats(s) {
   const freeTotal = Math.max(0, s?.freeTotal || 0);
   const freeTaken = Math.max(0, s?.freeTaken || 0);
   const freeRemaining = freeLeft(s || {});
+  const overdue = Math.max(0, s?.lessonsOverdue || 0);
   const plannedTotal = paidTotal + freeTaken + freeRemaining;
-  const taken = paidTaken + freeTaken;
+  const usedCredits = paidTaken + freeTaken;
+  const taken = usedCredits + overdue;
   const left = paidLeft + freeRemaining;
-  const total = Math.max(plannedTotal, taken + left);
-  const pct = total > 0 ? Math.min(100, Math.round((taken / total) * 100)) : 0;
-  return {paidTotal, paidTaken, paidLeft, freeTotal, freeTaken, freeLeft:freeRemaining, total, taken, left, pct};
+  const total = Math.max(plannedTotal, usedCredits + left);
+  const pct = total > 0 ? Math.min(100, Math.round((usedCredits / total) * 100)) : (overdue ? 100 : 0);
+  return {paidTotal, paidTaken, paidLeft, freeTotal, freeTaken, freeLeft:freeRemaining, overdue, usedCredits, total, taken, left, pct};
+}
+function applyTotalLessonsTaken(s, totalTaken) {
+  const nextTaken = Math.max(0, Math.floor(+totalTaken || 0));
+  const paidCap = Math.max(0, s?.lessonsTotal || 0);
+  const freeCap = activeFreeLessonTotal(s || {});
+  const paidTaken = Math.min(nextTaken, paidCap);
+  const freeTaken = Math.min(freeCap, Math.max(0, nextTaken - paidTaken));
+  const overdue = Math.max(0, nextTaken - paidTaken - freeTaken);
+  return {
+    ...s,
+    lessonsTaken: paidTaken,
+    freeTaken,
+    lessonsOverdue: overdue,
+    remainingClasses: typeof s?.remainingClasses === "number" ? Math.max(0, paidCap - paidTaken) : s?.remainingClasses
+  };
+}
+function setPaidLessonTotal(s, nextTotal) {
+  const currentTaken = lessonStats(s || {}).taken;
+  return applyTotalLessonsTaken({...s, lessonsTotal: Math.max(0, +nextTotal || 0)}, currentTaken);
 }
 function takeLessonCredit(s) {
+  const paidLeft = paidLessonsLeft(s);
+  if (paidLeft > 0) {
+    return {
+      ...s,
+      lessonsTaken: (s.lessonsTaken||0) + 1,
+      remainingClasses: typeof s.remainingClasses === "number" ? Math.max(0, paidLeft - 1) : s.remainingClasses
+    };
+  }
   const freeRemaining = freeLeft(s || {});
   if (freeRemaining > 0) {
     return {...s, freeTaken: Math.min(s.freeTotal||0, (s.freeTaken||0) + 1)};
   }
-  const paidLeft = paidLessonsLeft(s);
   return {
     ...s,
-    lessonsTaken: (s.lessonsTaken||0) + 1,
-    remainingClasses: typeof s.remainingClasses === "number" ? Math.max(0, paidLeft - 1) : s.remainingClasses
+    lessonsOverdue: Math.max(0, (s.lessonsOverdue||0) + 1),
+    remainingClasses: typeof s.remainingClasses === "number" ? 0 : s.remainingClasses
   };
 }
 function restoreLessonCredit(s) {
+  if ((s.lessonsOverdue||0) > 0) return {...s, lessonsOverdue: Math.max(0, (s.lessonsOverdue||0) - 1)};
   if ((s.freeTaken||0) > 0) return {...s, freeTaken: Math.max(0, (s.freeTaken||0) - 1)};
   const paidLeft = paidLessonsLeft(s);
   return {
@@ -7601,6 +7635,7 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
               <div style=${{fontSize:22,fontWeight:900,fontFamily:"'Playfair Display',serif",color:credColor,lineHeight:1}}>${left<=0?"0":left}</div>
               <div style=${{fontSize:9,color:"var(--sp-txt3)",marginTop:2}}>of ${lessonSummary.total||0}</div>
               ${lessonSummary.freeTotal>0?h`<div style=${{fontSize:9,color:"var(--sp-green)",marginTop:3,fontWeight:700}}>${lessonSummary.freeLeft} free left</div>`:null}
+              ${lessonSummary.overdue>0?h`<div style=${{fontSize:9,color:"var(--sp-red)",marginTop:3,fontWeight:800}}>Overdue ${lessonSummary.overdue}</div>`:null}
               ${left<=2?h`<div style=${{fontSize:9,color:credColor,marginTop:4,fontWeight:700}}>${left===0?"⚠️ Refill needed":"⚠️ Running low"}</div>`:null}
             </div>`})()}
             ${nextLesson?h`<div style=${{textAlign:"center",background:"var(--sp-glow)",border:"1px solid var(--sp-border-h)",borderRadius:12,padding:"10px 14px"}}>
@@ -8199,8 +8234,8 @@ function StudentProfile({data, setData, profileId, auth}) {
     </div>
 
     <div class="stats" style=${{gridTemplateColumns:"repeat(4,1fr)",marginBottom:20}}>
-      <div class="stat"><div class="lb">Lessons Done</div><div class="vl">${lessonSummary.taken}</div></div>
-      <div class="stat"><div class="lb">Lessons Left</div><div class=${"vl ll "+(lessonSummary.left<=0?"low":lessonSummary.left<=2?"ok":"good")}>${lessonSummary.left}</div></div>
+      <div class="stat"><div class="lb">Lessons Done</div><div class="vl">${lessonSummary.taken}</div>${lessonSummary.overdue>0?h`<div style=${{fontSize:10,color:"var(--bd)",fontWeight:800}}>Overdue ${lessonSummary.overdue}</div>`:null}</div>
+      <div class="stat"><div class="lb">Lessons Left</div><div class=${"vl ll "+(lessonSummary.left<=0?"low":lessonSummary.left<=2?"ok":"good")}>${lessonSummary.left}</div>${lessonSummary.freeTotal>0?h`<div style=${{fontSize:10,color:"var(--ok)",fontWeight:800}}>${lessonSummary.freeLeft} free left</div>`:null}</div>
       <div class="stat"><div class="lb">Attendance</div><div class="vl" style=${{color:att.rate>=80?"var(--ok)":att.rate>=60?"var(--wn)":"var(--bd)"}}>${att.rate}%</div></div>
       <div class="stat"><div class="lb">HW Pending</div><div class="vl" style=${{color:sHomework.filter(x=>x.status==="assigned").length>0?"var(--wn)":"var(--ok)"}}>${sHomework.filter(x=>x.status==="assigned").length}</div></div>
     </div>
@@ -8259,14 +8294,14 @@ function StudentProfile({data, setData, profileId, auth}) {
         <div class="fr3">
           <div class="fg"><label>Timezone</label><input value=${s.timezone||""} onInput=${e=>upd("timezone",e.target.value)} placeholder="Asia/Beirut"/></div>
           <div class="fg"><label>Learning Studio Access</label><select value=${s.studioAccess===false?"off":"on"} onChange=${e=>upd("studioAccess",e.target.value==="on")}><option value="on">Active / Included</option><option value="off">Off / Subscription inactive</option></select></div>
-          <div class="fg"><label>Paid Lessons Purchased</label><input type="number" value=${s.lessonsTotal||0} onInput=${e=>{const next=Math.max(0,+e.target.value); updMany({lessonsTotal:next, remainingClasses:Math.max(0, paidLessonsLeft(s)+(next-(s.lessonsTotal||0)))})}}/></div>
+          <div class="fg"><label>Paid Lessons Purchased</label><input type="number" value=${s.lessonsTotal||0} onInput=${e=>{const next=setPaidLessonTotal(s, e.target.value); updMany({lessonsTotal:next.lessonsTotal, lessonsTaken:next.lessonsTaken, remainingClasses:next.remainingClasses, freeTaken:next.freeTaken, lessonsOverdue:next.lessonsOverdue})}}/></div>
         </div>
         <div class="fr3">
-          <div class="fg"><label>Paid Lessons Taken</label><input type="number" value=${s.lessonsTaken||0} onInput=${e=>{const next=Math.max(0,+e.target.value); updMany({lessonsTaken:next, remainingClasses:Math.max(0, paidLessonsLeft(s)-(next-(s.lessonsTaken||0)))})}}/></div>
-          <div class="fg"><label>Free Lessons Given</label><input type="number" value=${s.freeTotal||0} onInput=${e=>upd("freeTotal",Math.max(0,+e.target.value))}/></div>
+          <div class="fg"><label>Total Lessons Taken</label><input type="number" value=${lessonSummary.taken||0} onInput=${e=>{const next=applyTotalLessonsTaken(s, e.target.value); updMany({lessonsTaken:next.lessonsTaken, remainingClasses:next.remainingClasses, freeTaken:next.freeTaken, lessonsOverdue:next.lessonsOverdue})}}/></div>
+          <div class="fg"><label>Free Lessons Given</label><input type="number" value=${s.freeTotal||0} onInput=${e=>{const next=applyTotalLessonsTaken({...s, freeTotal:Math.max(0,+e.target.value)}, lessonSummary.taken); updMany({freeTotal:next.freeTotal, lessonsTaken:next.lessonsTaken, remainingClasses:next.remainingClasses, freeTaken:next.freeTaken, lessonsOverdue:next.lessonsOverdue})}}/></div>
           <div class="fg"><label>Free Lessons Taken</label><input type="number" value=${s.freeTaken||0} onInput=${e=>upd("freeTaken",Math.max(0,Math.min(s.freeTotal||0,+e.target.value)))}/></div>
         </div>
-        <div style=${{marginTop:4,padding:"10px 12px",borderRadius:8,background:"var(--g50)",border:"1.5px solid var(--g200)",fontSize:12,color:"var(--g600)",fontWeight:700}}>Total lesson credit: ${lessonSummary.left} left of ${lessonSummary.total} (${lessonSummary.paidLeft} paid + ${lessonSummary.freeLeft} free)</div>
+        <div style=${{marginTop:4,padding:"10px 12px",borderRadius:8,background:lessonSummary.overdue?"#fff5f5":"var(--g50)",border:"1.5px solid "+(lessonSummary.overdue?"#ffcdd2":"var(--g200)"),fontSize:12,color:lessonSummary.overdue?"var(--bd)":"var(--g600)",fontWeight:700}}>Total lesson credit: ${lessonSummary.left} left of ${lessonSummary.total} (${lessonSummary.paidLeft} paid + ${lessonSummary.freeLeft} free)${lessonSummary.overdue?h` · Lessons overdue: ${lessonSummary.overdue}`:""}</div>
       </div>
       ${s.studentNote&&h`<div class="assess-card" style=${{borderLeftColor:"#7b1fa2",background:"#fdf4ff",marginBottom:14}}>
         <div style=${{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8}}>
@@ -8773,7 +8808,7 @@ function Dashboard({data, setData, auth}) {
         </div>`}
         <div class="card" style=${{marginBottom:14}}><h3>LOW BALANCE</h3>
           ${(()=>{const low=active.filter(s=>lessonStats(s).left<=2);return low.length===0 ? h`<p style=${{color:"var(--g400)",fontSize:13}}>All good</p>` : h`<table><thead><tr><th>Student</th><th>Left</th></tr></thead><tbody>
-            ${low.map(s => {const ls=lessonStats(s);return h`<tr key=${s.id}><td style=${{fontWeight:600}}>${s.name}</td><td><span class=${"ll "+(ls.left<=0?"low":"ok")}>${ls.left}</span></td></tr>`;})}
+            ${low.map(s => {const ls=lessonStats(s);return h`<tr key=${s.id}><td style=${{fontWeight:600}}>${s.name}</td><td><span class=${"ll "+(ls.left<=0?"low":"ok")}>${ls.left}</span>${ls.freeTotal>0?h`<div style=${{fontSize:9,color:"var(--ok)",fontWeight:700}}>${ls.freeLeft} free</div>`:null}${ls.overdue>0?h`<div style=${{fontSize:9,color:"var(--bd)",fontWeight:800}}>overdue ${ls.overdue}</div>`:null}</td></tr>`;})}
           </tbody></table>`})()}
         </div>
         <div class="card">
@@ -8824,14 +8859,15 @@ function Students({data, setData, onProfile, auth}) {
       }
       const saved = {
         ...form,
-        remainingClasses: Math.max(0, paidLessonsLeft(ex) + lessonDiff - ((form.lessonsTaken||0) - (ex.lessonsTaken||0))),
+        remainingClasses: Math.max(0, form.remainingClasses || 0),
+        lessonsOverdue: Math.max(0, form.lessonsOverdue || 0),
         enrollmentStatus: form.enrollmentStatus==="pending" ? "active" : form.enrollmentStatus
       };
       setData({...data, students: data.students.map(s=>s.id===form.id?saved:s), payments: newPayments});
     } else {
       const amount = form.lessonsTotal * form.lessonRate;
       const newPayment = {id:uid(),studentId:form.id,amount,date:today(),method:"Cash",notes:"Initial enrollment — "+form.lessonsTotal+" lessons",lessonsAdded:form.lessonsTotal,status:payStatus};
-      setData({...data, students:[...data.students,{...form, remainingClasses:Math.max(0, (form.lessonsTotal||0) - (form.lessonsTaken||0)), studentNumber: nextStudentNumber(data.students)}], payments: amount>0 ? [...data.payments,newPayment] : data.payments});
+      setData({...data, students:[...data.students,{...form, remainingClasses:typeof form.remainingClasses==="number" ? Math.max(0, form.remainingClasses) : Math.max(0, (form.lessonsTotal||0) - (form.lessonsTaken||0)), lessonsOverdue:Math.max(0, form.lessonsOverdue||0), studentNumber: nextStudentNumber(data.students)}], payments: amount>0 ? [...data.payments,newPayment] : data.payments});
       // Optionally create a login account for the new student
       if (loginPw && form.email && auth?.token) {
         const r = await apiPost("/api/users", {token: auth.token, action:"create", name:form.name.trim(), email:form.email.toLowerCase().trim(), password:loginPw, role:"student", phone:form.whatsapp||""});
@@ -8845,12 +8881,11 @@ function Students({data, setData, onProfile, auth}) {
 
   const adjTaken = (sid, delta) => { setData({...data, students: data.students.map(s => {
     if (s.id!==sid) return s;
-    const nextTaken = Math.max(0, (s.lessonsTaken||0)+delta);
-    return {...s, lessonsTaken: nextTaken, remainingClasses: typeof s.remainingClasses==="number" ? Math.max(0, paidLessonsLeft(s)-delta) : s.remainingClasses};
+    return applyTotalLessonsTaken(s, lessonStats(s).taken + delta);
   })}); };
   const adjTotal = (sid, delta) => { setData({...data, students: data.students.map(s => {
     if (s.id!==sid) return s;
-    return {...s, lessonsTotal: Math.max(0, (s.lessonsTotal||0)+delta), remainingClasses: typeof s.remainingClasses==="number" ? Math.max(0, paidLessonsLeft(s)+delta) : s.remainingClasses};
+    return setPaidLessonTotal(s, Math.max(0, (s.lessonsTotal||0)+delta));
   })}); };
   const adjFreeTaken = (sid, delta) => { setData({...data, students: data.students.map(s => { if(s.id!==sid) return s; const fe=freeExpiry(s); if(fe.expired && delta>0) return s; const nv=Math.max(0, Math.min((s.freeTotal||0), (s.freeTaken||0)+delta)); return {...s, freeTaken:nv}; })}); };
 
@@ -8917,12 +8952,14 @@ function Students({data, setData, onProfile, auth}) {
                 </div>
               </div>
               ${ls.freeTotal>0&&h`<div style=${{fontSize:9,color:"var(--g400)",marginTop:6}}>paid ${ls.paidTaken} · free ${ls.freeTaken}</div>`}
+              ${ls.overdue>0&&h`<div style=${{fontSize:9,color:"var(--bd)",marginTop:4,fontWeight:800}}>Lessons overdue: ${ls.overdue}</div>`}
             </div>
             <div class="sc-stat">
               <div class="sc-sl">Lessons Left</div>
               <span class=${"ll "+(left<=0?"low":left<=2?"ok":"good")} style=${{fontSize:26}}>${left}</span>
               <span style=${{fontSize:10,color:"var(--g400)"}}> / ${ls.total}</span>
               ${ls.freeTotal>0&&h`<div style=${{fontSize:9,color:"var(--ok)",fontWeight:700}}>${ls.freeLeft} free left</div>`}
+              ${ls.overdue>0&&h`<div style=${{fontSize:9,color:"var(--bd)",fontWeight:800}}>Overdue ${ls.overdue}</div>`}
               <div class="prog"><div class=${"prog-fill "+(pct>=80?"low":pct>=50?"ok":"good")} style=${{width:pct+"%"}}></div></div>
             </div>
             <div class="sc-stat">
@@ -8953,8 +8990,8 @@ function Students({data, setData, onProfile, auth}) {
           <td class="nc" style=${{borderLeft:needsSetup?"4px solid #ff9800":"4px solid transparent",paddingLeft:needsSetup?6:8}}>${i+1}</td>
           <td style=${{fontWeight:600}}>${s.name}${needsSetup?h`<span style=${{marginLeft:6,fontSize:9,fontWeight:700,color:"#ff9800",background:"#fff3e0",padding:"2px 5px",borderRadius:4,verticalAlign:"middle"}}>⚠ SETUP</span>`:null}</td>
           <td><span class="tg">${s.type}</span></td>
-          <td>${ls.taken}</td>
-          <td><span class=${"ll "+(left<=0?"low":left<=2?"ok":"good")}>${left}</span></td>
+          <td>${ls.taken}${ls.overdue>0?h`<div style=${{fontSize:9,color:"var(--bd)",fontWeight:800}}>overdue ${ls.overdue}</div>`:null}</td>
+          <td><span class=${"ll "+(left<=0?"low":left<=2?"ok":"good")}>${left}</span>${ls.freeTotal>0?h`<div style=${{fontSize:9,color:"var(--ok)",fontWeight:700}}>${ls.freeLeft} free</div>`:null}</td>
           <td><span class=${"ll "+(att.rate>=80?"good":att.rate>=60?"ok":"low")} style=${{fontSize:16}}>${att.rate}%</span></td>
           <td style=${{fontFamily:"var(--fh)",fontSize:16}}>${fm(totalPaid, CUR)}</td>
           <td><span class=${"bg "+(s.active?"bg-ok":"bg-n")}>${s.active?"Active":"Off"}</span></td>
@@ -9048,7 +9085,7 @@ function Students({data, setData, onProfile, auth}) {
         </optgroup>
       </select></div>
       <div class="fr3"><div class="fg"><label>Type</label><select value=${form.type} onChange=${e=>setForm({...form,type:e.target.value})}>${S.types.map(t=>h`<option key=${t}>${t}</option>`)}</select></div><div class="fg"><label>Level</label><select value=${form.level} onChange=${e=>setForm({...form,level:e.target.value})}>${S.levels.map(l=>h`<option key=${l}>${l}</option>`)}</select></div><div class="fg"><label>Payment Plan</label><select value=${form.paymentPlan} onChange=${e=>setForm({...form,paymentPlan:e.target.value})}>${S.payPlans.map(p=>h`<option key=${p}>${p}</option>`)}</select></div></div>
-      <div class="fr3"><div class="fg"><label>Rate (${CUR})</label><input type="number" value=${form.lessonRate} onInput=${e=>setForm({...form,lessonRate:+e.target.value})}/></div><div class="fg"><label>Lessons Purchased</label><input type="number" value=${form.lessonsTotal} onInput=${e=>setForm({...form,lessonsTotal:+e.target.value})}/></div><div class="fg"><label>Lessons Taken</label><input type="number" value=${form.lessonsTaken} onInput=${e=>setForm({...form,lessonsTaken:+e.target.value})}/></div></div>
+      <div class="fr3"><div class="fg"><label>Rate (${CUR})</label><input type="number" value=${form.lessonRate} onInput=${e=>setForm({...form,lessonRate:+e.target.value})}/></div><div class="fg"><label>Lessons Purchased</label><input type="number" value=${form.lessonsTotal} onInput=${e=>setForm(setPaidLessonTotal(form,e.target.value))}/></div><div class="fg"><label>Total Lessons Taken</label><input type="number" value=${lessonStats(form).taken} onInput=${e=>setForm(applyTotalLessonsTaken(form,e.target.value))}/></div></div>
       ${(()=>{
         const ex = data.students.find(s=>s.id===form.id);
         const lessonDiff = ex ? form.lessonsTotal-(ex.lessonsTotal||0) : form.lessonsTotal;
@@ -9061,7 +9098,8 @@ function Students({data, setData, onProfile, auth}) {
           <button type="button" style=${{padding:"5px 14px",borderRadius:6,border:"none",cursor:"pointer",fontWeight:700,fontSize:12,background:payStatus==="Paid"?"#4caf50":"#ff9800",color:"#fff"}} onClick=${()=>setPayStatus(p=>p==="Paid"?"Pending":"Paid")}>${payStatus==="Paid"?"✓ Paid":"⏳ Pending"}</button>
         </div>`;
       })()}
-      <div class="fr" style=${{borderLeft:"3px solid var(--ok)",paddingLeft:12}}><div class="fg"><label style=${{color:"var(--ok)"}}>Free Lessons Given</label><input type="number" value=${form.freeTotal||0} onInput=${e=>setForm({...form,freeTotal:Math.max(0,+e.target.value)})}/></div><div class="fg"><label style=${{color:"var(--ok)"}}>Free Lessons Taken</label><input type="number" value=${form.freeTaken||0} onInput=${e=>setForm({...form,freeTaken:Math.max(0,Math.min(form.freeTotal||0,+e.target.value))})}/></div></div>
+      <div class="fr" style=${{borderLeft:"3px solid var(--ok)",paddingLeft:12}}><div class="fg"><label style=${{color:"var(--ok)"}}>Free Lessons Given</label><input type="number" value=${form.freeTotal||0} onInput=${e=>setForm(applyTotalLessonsTaken({...form,freeTotal:Math.max(0,+e.target.value)}, lessonStats(form).taken))}/></div><div class="fg"><label style=${{color:"var(--ok)"}}>Free Lessons Taken</label><input type="number" value=${form.freeTaken||0} onInput=${e=>setForm({...form,freeTaken:Math.max(0,Math.min(form.freeTotal||0,+e.target.value))})}/></div></div>
+      ${(()=>{const fs=lessonStats(form);return h`<div style=${{marginBottom:10,padding:"9px 12px",borderRadius:8,background:fs.overdue?"#fff5f5":"var(--g50)",border:"1.5px solid "+(fs.overdue?"#ffcdd2":"var(--g200)"),fontSize:12,fontWeight:700,color:fs.overdue?"var(--bd)":"var(--g600)"}}>Available: ${fs.left} left (${fs.paidLeft} paid + ${fs.freeLeft} free)${fs.overdue?" · Lessons overdue: "+fs.overdue:""}</div>`})()}
       <div class="fr"><div class="fg"><label>Start Date</label><input type="date" value=${form.startDate} onInput=${e=>setForm({...form,startDate:e.target.value})}/></div><div class="fg"><label>Status</label><select value=${form.active?"active":"inactive"} onChange=${e=>setForm({...form,active:e.target.value==="active"})}><option value="active">Active</option><option value="inactive">Inactive</option></select></div></div>
       ${!data.students.find(s=>s.id===form.id) && h`<div style=${{marginTop:16,paddingTop:14,borderTop:"1.5px dashed var(--g200)"}}>
         <div style=${{fontSize:12,fontWeight:700,color:"var(--g500)",marginBottom:8,letterSpacing:1}}>LOGIN ACCOUNT (optional)</div>
@@ -9519,7 +9557,7 @@ function Scheduling({data, setData, auth}) {
               <div class=${"cred-num "+cls}>${credits}</div>
               <div style=${{flex:1}}>
                 <div style=${{fontWeight:700,fontSize:14}}>${s.name}</div>
-                <div style=${{fontSize:11,color:"var(--g500)"}}>${credits===0?"No classes left":credits===1?"1 class left":credits+" classes left"}${ls.freeTotal>0?" · "+ls.paidLeft+" paid + "+ls.freeLeft+" free":""}</div>
+                <div style=${{fontSize:11,color:"var(--g500)"}}>${credits===0?"No classes left":credits===1?"1 class left":credits+" classes left"}${ls.freeTotal>0?" · "+ls.paidLeft+" paid + "+ls.freeLeft+" free":""}${ls.overdue>0?" · lessons overdue: "+ls.overdue:""}</div>
               </div>
               <button class="btn btn-sm" onClick=${()=>{setCreditModal({studentId:s.id,name:s.name,current:ls.paidLeft});setCreditDelta(0);setCreditNote("");}}>Adjust Paid</button>
             </div>`;

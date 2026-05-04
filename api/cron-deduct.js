@@ -38,6 +38,15 @@ function deductLessonCredit(s, now = new Date()) {
   const paidBefore = paidCreditsLeft(s);
   const freeBefore = freeLessonsLeft(s, now);
   const before = paidBefore + freeBefore;
+  if (paidBefore > 0) {
+    const paidAfter = Math.max(0, paidBefore - 1);
+    return {
+      student: { ...s, remainingClasses: paidAfter, lessonsTaken: (s.lessonsTaken || 0) + 1 },
+      before,
+      after: paidAfter + freeBefore,
+      creditType: 'paid'
+    };
+  }
   if (freeBefore > 0) {
     return {
       student: { ...s, freeTaken: Math.min(s.freeTotal || 0, (s.freeTaken || 0) + 1) },
@@ -46,12 +55,11 @@ function deductLessonCredit(s, now = new Date()) {
       creditType: 'free'
     };
   }
-  const paidAfter = Math.max(0, paidBefore - 1);
   return {
-    student: { ...s, remainingClasses: paidAfter, lessonsTaken: (s.lessonsTaken || 0) + 1 },
+    student: { ...s, remainingClasses: typeof s.remainingClasses === 'number' ? 0 : s.remainingClasses, lessonsOverdue: Math.max(0, (s.lessonsOverdue || 0) + 1) },
     before,
-    after: paidAfter,
-    creditType: 'paid'
+    after: 0,
+    creditType: 'overdue'
   };
 }
 
