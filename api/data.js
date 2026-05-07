@@ -17,6 +17,28 @@ async function getSessions() {
   return raw ? JSON.parse(raw) : {};
 }
 
+function mergeWeeklyTasksFromStudent(currentTasks = [], incomingTasks = []) {
+  const incomingById = new Map((incomingTasks || []).filter(t => t?.id).map(t => [t.id, t]));
+  return (currentTasks || []).map(task => {
+    const incoming = incomingById.get(task.id);
+    return incoming ? { ...task, doneAt: incoming.doneAt || null } : task;
+  });
+}
+
+function mergeStudentWriteRecord(currentStudent, incomingStudent) {
+  if (!incomingStudent) return currentStudent;
+  const editableFields = [
+    'timezone','gender','nickname','nicknameEmoji','learningProfile','completedLessons',
+    'quizHistory','xp','streakDays','streakLastDate','questProgress','studentNote'
+  ];
+  const merged = { ...currentStudent };
+  editableFields.forEach(key => {
+    if (incomingStudent[key] !== undefined) merged[key] = incomingStudent[key];
+  });
+  merged.weeklyTasks = mergeWeeklyTasksFromStudent(currentStudent.weeklyTasks || [], incomingStudent.weeklyTasks || []);
+  return merged;
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -56,7 +78,7 @@ export default async function handler(req, res) {
           if (s.email && s.email.toLowerCase() === studentEmail.toLowerCase()) {
             // Find the student's updated record in what they sent
             const mine = (data.students || []).find(x => x.email && x.email.toLowerCase() === studentEmail.toLowerCase());
-            return mine ? mine : s;
+            return mergeStudentWriteRecord(s, mine);
           }
           return s; // other students: keep server version
         }),
