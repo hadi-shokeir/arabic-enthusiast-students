@@ -143,28 +143,21 @@ export default async function handler(req, res) {
     if (action === 'request') {
       const { name, email, password, message, gender, phone } = req.body;
       if (!name || !email || !password) return res.status(400).json({ error: 'Name, email and password are required' });
-      if (!phone || !phone.trim()) return res.status(400).json({ error: 'WhatsApp number is required' });
       const users = await getUsers();
       if (users.find(u => u.email === email.toLowerCase().trim())) {
         return res.status(409).json({ error: 'An account with this email already exists or is awaiting approval' });
       }
       const { hash } = hashPw(password);
-      // Generate 6-digit verification code
-      const verifyCode = String(Math.floor(100000 + Math.random() * 900000));
-      const verifyCodeExpires = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(); // 48h
       users.push({
         id: randomBytes(8).toString('hex'),
         name: name.trim(),
         email: email.toLowerCase().trim(),
-        phone: phone.trim(),
+        phone: (phone || '').trim(),
         passwordHash: hash,
         passwordSalt: null,
         hashType: 'scrypt',
         role: 'student',
         status: 'pending',
-        phoneVerified: false,
-        verifyCode,
-        verifyCodeExpires,
         gender: gender || '',
         message: (message || '').trim(),
         createdAt: new Date().toISOString()
@@ -174,29 +167,6 @@ export default async function handler(req, res) {
     }
 
     // ── VERIFY WHATSAPP CODE ───────────────────────────────
-    if (action === 'verifyPhone') {
-      const { email, code } = req.body;
-      if (!email || !code) return res.status(400).json({ error: 'Email and code required' });
-      const users = await getUsers();
-      const idx = users.findIndex(u => u.email === email.toLowerCase().trim());
-      if (idx === -1) return res.status(404).json({ error: 'Account not found' });
-      const user = users[idx];
-      if (user.phoneVerified) return res.json({ ok: true, alreadyVerified: true });
-      if (!user.verifyCode) return res.status(400).json({ error: 'No code found. Contact your tutor.' });
-      if (user.verifyCodeExpires && new Date() > new Date(user.verifyCodeExpires)) {
-        return res.status(400).json({ error: 'Code expired. Contact Hadi to send a new one.' });
-      }
-      if (user.verifyCode !== code.trim()) {
-        return res.status(400).json({ error: 'Wrong code. Check your WhatsApp and try again.' });
-      }
-      users[idx].phoneVerified = true;
-      users[idx].verifyCode = null;
-      users[idx].verifyCodeExpires = null;
-      users[idx].phoneVerifiedAt = new Date().toISOString();
-      await saveUsers(users);
-      return res.json({ ok: true });
-    }
-
     // ── FIRST SETUP (create tutor account) ────────────────
     if (action === 'setup') {
       const { name, email, password } = req.body;

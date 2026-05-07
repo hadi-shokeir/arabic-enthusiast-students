@@ -73,7 +73,7 @@ export default async function handler(req, res) {
     }
 
     if (action === 'create') {
-      const { name, email, password, role } = req.body;
+      const { name, email, password, role, phone } = req.body;
       if (!name || !email || !password) return res.status(400).json({ error: 'Name, email and password required' });
       if (users.find(u => u.email === email.toLowerCase().trim())) return res.status(409).json({ error: 'Email already in use' });
       const { hash, salt } = hashPw(password);
@@ -81,6 +81,7 @@ export default async function handler(req, res) {
         id: randomBytes(8).toString('hex'),
         name: name.trim(),
         email: email.toLowerCase().trim(),
+        phone: (phone || '').trim(),
         passwordHash: hash,
         passwordSalt: salt,
         role: role || 'student',
