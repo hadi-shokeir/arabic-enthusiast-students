@@ -46,6 +46,23 @@ npx serve public -l 3000
 
 The app works without Supabase in **demo mode** (data stored in browser IndexedDB).
 
+## Demo Modes
+
+Two no-signup preview routes are available locally and on Vercel:
+
+- `/demo` — guest lessons with browser TTS, instant feedback, localStorage-only progress, and a soft signup prompt.
+- `/demo/portal` — fake student portal preview with dashboard, exercises, SRS vocabulary, booking, and teacher feedback.
+
+Run locally:
+
+```bash
+npx serve public -l 3000
+# Open http://localhost:3000/demo
+# Open http://localhost:3000/demo/portal
+```
+
+These demos do not call paid AI APIs and do not write real student data.
+
 ## Deploy to Vercel
 
 ### Step 1: Push to GitHub
@@ -138,9 +155,10 @@ arabic-tutor/
 ## Tech Stack
 
 - **React 18** via CDN (no build step)
-- **htm** for JSX-like templates without compilation
-- **IndexedDB** for local storage (hundreds of MB)
-- **Supabase** for auth (email + phone OTP)
+- **Babel standalone** for browser-loaded JSX files
+- **localStorage/browser storage** for local demo and portal state
+- **KV/Upstash REST** for current production persistence
+- **Supabase migration files** for the planned normalized database phase
 - **jsPDF** for PDF generation
 - **Vercel** for hosting
 

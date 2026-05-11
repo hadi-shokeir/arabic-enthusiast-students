@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Try Arabic Enthusiast | Guest Demo</title>
+<meta name="description" content="Try Arabic Enthusiast without signing up. Complete sample Arabic lessons, hear audio, and preview the learning flow." />
+<meta name="theme-color" content="#11100d" />
+<link rel="manifest" href="/manifest.json" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;600;700;800&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #11100d;
+  --panel: #1b1812;
+  --panel-2: #242016;
+  --ink: #fbf4e6;
+  --muted: rgba(251, 244, 230, 0.68);
+  --soft: rgba(251, 244, 230, 0.12);
+  --gold: #d9b55d;
+  --green: #7ee0a3;
+  --red: #f08b7f;
+  --shadow: 0 24px 70px rgba(0,0,0,0.35);
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    linear-gradient(145deg, rgba(217,181,93,0.12), transparent 38%),
+    radial-gradient(circle at 80% 10%, rgba(126,224,163,0.08), transparent 28%),
+    var(--bg);
+  color: var(--ink);
+  font-family: "DM Sans", "Cairo", sans-serif;
+}
+button, a, input, select { min-height: 44px; }
+button {
+  border: 0;
+  border-radius: 12px;
+  cursor: pointer;
+  font: inherit;
+}
+.shell { width: min(1180px, calc(100% - 32px)); margin: 0 auto; }
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(18px);
+  background: rgba(17,16,13,0.82);
+  border-bottom: 1px solid var(--soft);
+}
+.topbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--ink);
+  text-decoration: none;
+  font-weight: 800;
+}
+.brand-mark {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #e8ce82, #9b7629);
+  color: #16120a;
+  font-family: "Amiri", serif;
+  font-size: 1.6rem;
+}
+.nav-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.ghost-link, .gold-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  text-decoration: none;
+  border-radius: 12px;
+  font-weight: 800;
+}
+.ghost-link { color: var(--ink); border: 1px solid var(--soft); background: rgba(255,255,255,0.04); }
+.gold-btn { color: #151007; background: var(--gold); }
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.95fr);
+  gap: 28px;
+  align-items: center;
+  padding: 48px 0 26px;
+}
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+h1 {
+  margin: 16px 0 14px;
+  max-width: 780px;
+  font-family: "Amiri", serif;
+  font-size: clamp(2.55rem, 7vw, 5rem);
+  line-height: 0.98;
+  letter-spacing: 0;
+}
+.lead {
+  color: var(--muted);
+  max-width: 640px;
+  font-size: clamp(1rem, 2.8vw, 1.15rem);
+  line-height: 1.75;
+}
+.demo-banner {
+  margin: 22px 0 0;
+  padding: 14px 16px;
+  border: 1px solid rgba(217,181,93,0.28);
+  border-radius: 16px;
+  background: rgba(217,181,93,0.1);
+  color: #ffe7a6;
+}
+.walkthrough {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+}
+.step {
+  padding: 16px;
+  border: 1px solid var(--soft);
+  border-radius: 16px;
+  background: rgba(255,255,255,0.045);
+}
+.step-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: #151007;
+  background: var(--gold);
+  font-weight: 900;
+}
+.step h3 { margin: 12px 0 6px; font-size: 1rem; }
+.step p { margin: 0; color: var(--muted); line-height: 1.55; font-size: 0.92rem; }
+.device {
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 24px;
+  padding: 14px;
+  background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+  box-shadow: var(--shadow);
+}
+.screen {
+  min-height: 420px;
+  border-radius: 18px;
+  padding: 18px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.08), transparent),
+    #f9f3e7;
+  color: #231c11;
+  overflow: hidden;
+}
+.screen-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  background: rgba(35,28,17,0.09);
+}
+.arabic-card {
+  margin-top: 20px;
+  padding: 20px;
+  min-height: 160px;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 16px 40px rgba(35,28,17,0.12);
+  direction: rtl;
+  text-align: right;
+}
+.arabic-card .word {
+  display: block;
+  font-family: "Amiri", serif;
+  font-size: clamp(2.5rem, 9vw, 4.8rem);
+  line-height: 1;
+}
+.arabic-card p { color: #6a5b3d; line-height: 1.7; }
+.progress-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 16px;
+}
+.progress-tile {
+  min-height: 68px;
+  border-radius: 14px;
+  background: rgba(217,181,93,0.18);
+  padding: 10px;
+  text-align: center;
+  font-weight: 900;
+}
+.progress-tile span { display: block; color: #786235; font-size: 0.72rem; margin-top: 4px; font-weight: 700; }
+.section { padding: 32px 0; }
+.lesson-grid {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+.lesson-list, .lesson-panel, .result-panel {
+  border: 1px solid var(--soft);
+  border-radius: 20px;
+  background: rgba(255,255,255,0.05);
+  box-shadow: var(--shadow);
+}
+.lesson-list { padding: 12px; position: sticky; top: 88px; }
+.lesson-tab {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  text-align: left;
+  padding: 12px;
+  margin-bottom: 8px;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid transparent;
+}
+.lesson-tab.active {
+  background: rgba(217,181,93,0.14);
+  border-color: rgba(217,181,93,0.35);
+}
+.lesson-tab.done .status { background: rgba(126,224,163,0.18); color: var(--green); }
+.lesson-tab strong { display: block; }
+.lesson-tab span { color: var(--muted); font-size: 0.82rem; }
+.status {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: rgba(255,255,255,0.08);
+  font-weight: 900;
+}
+.lesson-panel { padding: 20px; }
+.lesson-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.lesson-head h2 { margin: 0; font-size: clamp(1.5rem, 4vw, 2.25rem); }
+.lesson-head p { color: var(--muted); line-height: 1.65; margin: 8px 0 0; }
+.demo-audio {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  color: #151007;
+  background: var(--gold);
+  font-weight: 900;
+}
+.activity {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+.prompt-box {
+  border-radius: 18px;
+  padding: 18px;
+  background: rgba(0,0,0,0.18);
+}
+.prompt-box [dir="rtl"] {
+  font-family: "Amiri", serif;
+  font-size: clamp(2rem, 8vw, 3.4rem);
+  line-height: 1.25;
+}
+.options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.option {
+  padding: 14px;
+  color: var(--ink);
+  background: rgba(255,255,255,0.07);
+  border: 1px solid var(--soft);
+  text-align: left;
+}
+.option.correct { border-color: rgba(126,224,163,0.7); background: rgba(126,224,163,0.14); }
+.option.wrong { border-color: rgba(240,139,127,0.7); background: rgba(240,139,127,0.12); }
+.input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+.input-row input {
+  width: 100%;
+  border: 1px solid var(--soft);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.08);
+  color: var(--ink);
+  padding: 12px 14px;
+  font: inherit;
+}
+.result-panel {
+  margin-top: 16px;
+  padding: 16px;
+  display: none;
+}
+.result-panel.show { display: block; }
+.result-panel.good { border-color: rgba(126,224,163,0.48); }
+.result-panel.bad { border-color: rgba(240,139,127,0.48); }
+.result-panel p { margin: 8px 0 0; color: var(--muted); line-height: 1.6; }
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: none;
+  place-items: center;
+  background: rgba(0,0,0,0.58);
+  padding: 18px;
+}
+.modal-backdrop.show { display: grid; }
+.modal {
+  width: min(520px, 100%);
+  border: 1px solid rgba(217,181,93,0.32);
+  border-radius: 22px;
+  padding: 22px;
+  background: #1d1912;
+  box-shadow: var(--shadow);
+}
+.modal h2 { margin: 0 0 8px; }
+.modal p { color: var(--muted); line-height: 1.65; }
+.modal-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+.small-note { color: var(--muted); font-size: 0.86rem; line-height: 1.6; }
+@media (max-width: 900px) {
+  .hero, .lesson-grid { grid-template-columns: 1fr; }
+  .lesson-list { position: static; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .lesson-tab { margin-bottom: 0; }
+}
+@media (max-width: 640px) {
+  .shell { width: min(100% - 20px, 1180px); }
+  .topbar-inner { align-items: flex-start; }
+  .brand span:last-child { display: none; }
+  .nav-actions { width: auto; }
+  .ghost-link, .gold-btn { padding-inline: 12px; font-size: 0.88rem; }
+  .hero { padding-top: 30px; }
+  .walkthrough, .options, .progress-strip, .lesson-list { grid-template-columns: 1fr; }
+  .screen { min-height: 340px; padding: 14px; }
+  .lesson-panel { padding: 14px; }
+  .lesson-head { flex-direction: column; }
+  .input-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="shell topbar-inner">
+    <a class="brand" href="/">
+      <span class="brand-mark" aria-hidden="true">ع</span>
+      <span>Arabic Enthusiast</span>
+    </a>
+    <nav class="nav-actions" aria-label="Demo navigation">
+      <a class="ghost-link" href="/demo/portal">Portal Preview</a>
+      <a class="gold-btn" href="/portal?signup=1">Sign Up</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="shell hero">
+    <div>
+      <span class="eyebrow">Guest demo</span>
+      <h1>Try the learning flow before signing up.</h1>
+      <p class="lead">Complete a few beginner Arabic activities, hear browser TTS audio, get instant feedback, and preview how the platform teaches through small tasks.</p>
+      <div class="demo-banner" role="status">You're in demo mode — sign up to save your progress and unlock the full curriculum.</div>
+      <div class="walkthrough" aria-label="How it works">
+        <article class="step">
+          <div class="step-icon">1</div>
+          <h3>Choose a micro-lesson</h3>
+          <p>Start with sound, greeting, dialogue, or reading practice.</p>
+        </article>
+        <article class="step">
+          <div class="step-icon">2</div>
+          <h3>Do the task</h3>
+          <p>Answer, listen, repeat, and get immediate correction.</p>
+        </article>
+        <article class="step">
+          <div class="step-icon">3</div>
+          <h3>See what comes next</h3>
+          <p>Preview the student portal and the teacher feedback loop.</p>
+        </article>
+      </div>
+    </div>
+    <aside class="device" aria-label="Student dashboard preview">
+      <div class="screen">
+        <div class="screen-top">
+          <strong>Demo Student</strong>
+          <span class="pill">Local only</span>
+        </div>
+        <div class="arabic-card">
+          <span class="word">السَّلامُ عَلَيْكُم</span>
+          <p>Listen, understand, answer, then reuse the phrase in context.</p>
+        </div>
+        <div class="progress-strip">
+          <div class="progress-tile"><b id="heroCompleted">0</b><span>done</span></div>
+          <div class="progress-tile">4<span>lessons</span></div>
+          <div class="progress-tile">12<span>words</span></div>
+          <div class="progress-tile">0<span>API calls</span></div>
+        </div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="shell section" id="lessons">
+    <div class="lesson-grid">
+      <aside class="lesson-list" id="lessonList" aria-label="Demo lessons"></aside>
+      <section class="lesson-panel" id="lessonPanel" aria-live="polite"></section>
+    </div>
+    <p class="small-note">Note for Hadi: Arabic demo strings in this preview should receive final human review before becoming official curriculum content.</p>
+  </section>
+</main>
+
+<div class="modal-backdrop" id="conversionModal" role="dialog" aria-modal="true" aria-labelledby="conversionTitle">
+  <div class="modal">
+    <h2 id="conversionTitle">Ready to save your Arabic progress?</h2>
+    <p>You completed two demo exercises. A real account saves your streak, teacher feedback, vocabulary deck, assignments, and booking history.</p>
+    <div class="modal-actions">
+      <a class="gold-btn" href="/portal?signup=1">Create Student Account</a>
+      <a class="ghost-link" href="/demo/portal">Preview Portal First</a>
+      <button class="ghost-link" type="button" id="closeModal">Keep Trying</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'ae_guest_demo_progress';
+const lessons = [
+  {
+    id: 'sounds',
+    title: 'Alphabet sound',
+    subtitle: 'phonetics',
+    kind: 'choice',
+    prompt: 'ع',
+    tts: 'عَيْن',
+    question: 'Which sound is closest to the Arabic letter ع?',
+    options: ['Deep throat sound', 'English B', 'English F', 'Long ee'],
+    answer: 0,
+    feedback: 'Correct. ع is produced deep in the throat, so it needs careful listening and slow repetition.'
+  },
+  {
+    id: 'greeting',
+    title: 'Basic greeting',
+    subtitle: 'speaking',
+    kind: 'fill',
+    prompt: 'السَّلامُ عَلَيْكُم',
+    tts: 'السَّلامُ عَلَيْكُم',
+    question: 'Type the English meaning.',
+    accepted: ['peace be upon you', 'peace upon you', 'hello'],
+    feedback: 'Good. In real conversation, the reply is وَعَلَيْكُمُ السَّلام.'
+  },
+  {
+    id: 'levantine-dialogue',
+    title: 'Short dialogue',
+    subtitle: 'Levantine sample',
+    kind: 'choice',
+    prompt: 'كيف حالك؟',
+    tts: 'كيف حالك؟',
+    question: 'What does this question ask?',
+    options: ['How are you?', 'Where are you?', 'What is your name?', 'Do you want tea?'],
+    answer: 0,
+    feedback: 'Correct. This is a simple conversational question. Dialect content should be checked by Hadi before publishing.'
+  },
+  {
+    id: 'msa-reading',
+    title: 'MSA reading',
+    subtitle: 'comprehension',
+    kind: 'choice',
+    prompt: 'أنا أدرس العربية كل يوم.',
+    tts: 'أنا أدرس العربية كل يوم.',
+    question: 'Choose the best meaning.',
+    options: ['I study Arabic every day.', 'I teach Arabic today.', 'I read a book tomorrow.', 'I speak English every day.'],
+    answer: 0,
+    feedback: 'Exactly. أنا = I, أدرس = I study, العربية = Arabic, كل يوم = every day.'
+  }
+];
+
+let progress = loadProgress();
+let activeId = progress.activeId || lessons[0].id;
+let selected = null;
+
+function loadProgress() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
+  catch { return {}; }
+}
+
+function saveProgress() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+  document.getElementById('heroCompleted').textContent = Object.keys(progress.completed || {}).length;
+}
+
+function speak(text) {
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'ar-SA';
+  utterance.rate = 0.78;
+  window.speechSynthesis.speak(utterance);
+}
+
+function renderLessonList() {
+  const done = progress.completed || {};
+  document.getElementById('lessonList').innerHTML = lessons.map((lesson, index) => `
+    <button class="lesson-tab ${lesson.id === activeId ? 'active' : ''} ${done[lesson.id] ? 'done' : ''}" type="button" data-lesson="${lesson.id}">
+      <span class="status">${done[lesson.id] ? '✓' : index + 1}</span>
+      <span><strong>${lesson.title}</strong><span>${lesson.subtitle}</span></span>
+      <span aria-hidden="true">›</span>
+    </button>
+  `).join('');
+  document.querySelectorAll('[data-lesson]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeId = btn.dataset.lesson;
+      selected = null;
+      progress.activeId = activeId;
+      saveProgress();
+      render();
+    });
+  });
+}
+
+function renderLesson() {
+  const lesson = lessons.find(item => item.id === activeId) || lessons[0];
+  const isDone = progress.completed?.[lesson.id];
+  const activity = lesson.kind === 'choice' ? `
+    <div class="options">
+      ${lesson.options.map((option, index) => `
+        <button class="option ${selected === index ? (index === lesson.answer ? 'correct' : 'wrong') : ''}" type="button" data-answer="${index}">${option}</button>
+      `).join('')}
+    </div>
+  ` : `
+    <div class="input-row">
+      <input id="fillAnswer" type="text" autocomplete="off" placeholder="Type your answer" />
+      <button class="gold-btn" type="button" id="checkFill">Check</button>
+    </div>
+  `;
+
+  document.getElementById('lessonPanel').innerHTML = `
+    <div class="lesson-head">
+      <div>
+        <span class="eyebrow">${lesson.subtitle}</span>
+        <h2>${lesson.title}</h2>
+        <p>${lesson.question}</p>
+      </div>
+      <button class="demo-audio" type="button" id="playAudio" aria-label="Play Arabic audio">♪</button>
+    </div>
+    <div class="prompt-box">
+      <div dir="rtl">${lesson.prompt}</div>
+    </div>
+    <div class="activity">${activity}</div>
+    <div class="result-panel ${isDone ? 'show good' : ''}" id="resultPanel">
+      <strong>${isDone ? 'Completed' : ''}</strong>
+      <p>${isDone ? lesson.feedback : ''}</p>
+    </div>
+  `;
+
+  document.getElementById('playAudio').addEventListener('click', () => speak(lesson.tts));
+  if (lesson.kind === 'choice') {
+    document.querySelectorAll('[data-answer]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        selected = Number(btn.dataset.answer);
+        completeLesson(lesson, selected === lesson.answer);
+      });
+    });
+  } else {
+    document.getElementById('checkFill').addEventListener('click', () => {
+      const value = (document.getElementById('fillAnswer').value || '').trim().toLowerCase();
+      const ok = lesson.accepted.includes(value);
+      completeLesson(lesson, ok);
+    });
+  }
+}
+
+function completeLesson(lesson, ok) {
+  const panel = document.getElementById('resultPanel');
+  panel.className = `result-panel show ${ok ? 'good' : 'bad'}`;
+  panel.innerHTML = `<strong>${ok ? 'Correct' : 'Try again'}</strong><p>${ok ? lesson.feedback : 'Close. Listen one more time and check the meaning before answering.'}</p>`;
+  if (ok) {
+    progress.completed = progress.completed || {};
+    progress.completed[lesson.id] = { completedAt: new Date().toISOString() };
+    saveProgress();
+    if (Object.keys(progress.completed).length >= 2 && !progress.conversionShown) {
+      progress.conversionShown = true;
+      saveProgress();
+      window.setTimeout(() => document.getElementById('conversionModal').classList.add('show'), 350);
+    }
+  }
+  renderLessonList();
+  renderLesson();
+}
+
+function render() {
+  renderLessonList();
+  renderLesson();
+}
+
+document.getElementById('closeModal').addEventListener('click', () => {
+  document.getElementById('conversionModal').classList.remove('show');
+});
+
+saveProgress();
+render();
+</script>
+</body>
+</html>

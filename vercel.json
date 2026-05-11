@@ -6,6 +6,8 @@
     { "path": "/api/cron-deduct", "schedule": "0 2 * * *" }
   ],
   "rewrites": [
+    { "source": "/demo",          "destination": "/demo/index.html" },
+    { "source": "/demo/portal",   "destination": "/demo/portal/index.html" },
     { "source": "/portal",        "destination": "/portal.html" },
     { "source": "/portal/(.*)",   "destination": "/portal.html" },
     { "source": "/((?!api/).*)",  "destination": "/index.html" }

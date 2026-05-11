@@ -1,6 +1,19 @@
 const KV = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
 const KV_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
 const SESSION_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+const FAST_MODEL = process.env.ANTHROPIC_FAST_MODEL || 'claude-haiku-4-5-20251001';
+
+function sanitizeValue(value, depth = 0) {
+  if (depth > 5) return '';
+  if (typeof value === 'string') {
+    return value.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, ' ').slice(0, 6000);
+  }
+  if (Array.isArray(value)) return value.slice(0, 40).map(item => sanitizeValue(item, depth + 1));
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).slice(0, 60).map(([key, val]) => [key, sanitizeValue(val, depth + 1)]));
+  }
+  return value;
+}
 
 async function validateToken(token) {
   if (!token || !KV || !KV_TOKEN) return false;
@@ -27,7 +40,10 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const { token, messages, studentProfile, systemPrompt } = req.body;
+    let { token, messages, studentProfile, systemPrompt } = req.body;
+    messages = sanitizeValue(messages);
+    studentProfile = sanitizeValue(studentProfile || {});
+    systemPrompt = sanitizeValue(systemPrompt || '');
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: 'Missing messages' });
@@ -35,6 +51,7 @@ export default async function handler(req, res) {
 
     const authed = await validateToken(token);
     if (!authed) return res.status(403).json({ error: 'Unauthorized' });
+    if (!process.env.ANTHROPIC_API_KEY) return res.status(500).json({ error: 'ANTHROPIC_API_KEY is not configured' });
 
     const prof = studentProfile || {};
     const profileNote = prof.name
@@ -51,7 +68,7 @@ export default async function handler(req, res) {
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
+        model: FAST_MODEL,
         max_tokens: 1024,
         system,
         messages,

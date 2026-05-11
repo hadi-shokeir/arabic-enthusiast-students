@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Student Portal Demo | Arabic Enthusiast</title>
+<meta name="description" content="Preview the Arabic Enthusiast student portal with sample exercises, vocabulary review, booking, and teacher feedback." />
+<meta name="theme-color" content="#17130d" />
+<link rel="manifest" href="/manifest.json" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;600;700;800&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #17130d;
+  --paper: #fff8ea;
+  --ink: #20170c;
+  --muted: #756243;
+  --gold: #d8b65f;
+  --green: #3f9d68;
+  --blue: #3a78b8;
+  --red: #bf554b;
+  --line: rgba(32,23,12,0.12);
+  --shadow: 0 18px 44px rgba(65,45,17,0.14);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  font-family: "DM Sans", "Cairo", sans-serif;
+  background:
+    linear-gradient(135deg, rgba(216,182,95,0.22), transparent 34%),
+    linear-gradient(0deg, #f3ead7, #fff8ea);
+}
+button, a, input, select { min-height: 44px; }
+button { border: 0; cursor: pointer; font: inherit; }
+.demo-watermark {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  z-index: 20;
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: rgba(32,23,12,0.76);
+  color: #fff8ea;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+}
+.app {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  min-height: 100vh;
+}
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding: 18px;
+  border-right: 1px solid var(--line);
+  background: rgba(255,255,255,0.56);
+  backdrop-filter: blur(18px);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+  text-decoration: none;
+  color: var(--ink);
+  font-weight: 900;
+}
+.mark {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: var(--ink);
+  color: var(--gold);
+  font-family: "Amiri", serif;
+  font-size: 1.7rem;
+}
+.profile {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--paper);
+  box-shadow: var(--shadow);
+}
+.profile strong { display: block; font-size: 1.05rem; }
+.profile span { color: var(--muted); font-size: 0.88rem; }
+.nav { display: grid; gap: 8px; margin-top: 18px; }
+.nav button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  text-align: left;
+  color: var(--ink);
+  background: transparent;
+}
+.nav button.active { background: var(--ink); color: #fff8ea; }
+.main {
+  min-width: 0;
+  padding: 22px;
+}
+.topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.topline h1 { margin: 0; font-size: clamp(1.75rem, 5vw, 3rem); }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 13px;
+  padding: 10px 14px;
+  text-decoration: none;
+  font-weight: 900;
+}
+.btn.dark { color: #fff8ea; background: var(--ink); }
+.btn.gold { color: var(--ink); background: var(--gold); }
+.btn.soft { color: var(--ink); background: rgba(32,23,12,0.08); }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+.card {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255,255,255,0.74);
+  box-shadow: var(--shadow);
+}
+.stat { padding: 18px; }
+.stat span { color: var(--muted); font-weight: 800; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.stat strong { display: block; margin-top: 8px; font-size: 2rem; }
+.panel-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.8fr);
+  gap: 14px;
+  margin-top: 14px;
+}
+.panel { padding: 18px; }
+.panel h2 { margin: 0 0 12px; font-size: 1.25rem; }
+.exercise-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.exercise-tabs button {
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: rgba(32,23,12,0.08);
+  color: var(--ink);
+  font-weight: 800;
+}
+.exercise-tabs button.active { background: var(--gold); }
+.exercise-box {
+  border-radius: 18px;
+  padding: 18px;
+  background: #fff;
+  border: 1px solid var(--line);
+}
+.arabic {
+  direction: rtl;
+  text-align: right;
+  font-family: "Amiri", serif;
+  font-size: clamp(2rem, 7vw, 3.35rem);
+  line-height: 1.2;
+}
+.options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+.option {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px;
+  background: #fff8ea;
+  color: var(--ink);
+  text-align: left;
+}
+.option.good { border-color: rgba(63,157,104,0.6); background: rgba(63,157,104,0.12); }
+.list { display: grid; gap: 10px; }
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(32,23,12,0.06);
+}
+.row small, .muted { color: var(--muted); }
+.bar {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(32,23,12,0.08);
+  overflow: hidden;
+}
+.bar span { display: block; height: 100%; background: var(--green); border-radius: inherit; }
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.slot {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+}
+.slot.booked { border-color: rgba(216,182,95,0.65); background: rgba(216,182,95,0.18); }
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: none;
+  place-items: center;
+  background: rgba(32,23,12,0.48);
+  padding: 16px;
+}
+.modal-backdrop.show { display: grid; }
+.modal {
+  width: min(500px, 100%);
+  border-radius: 22px;
+  padding: 22px;
+  background: #fff8ea;
+  box-shadow: 0 28px 80px rgba(0,0,0,0.26);
+}
+.modal h2 { margin: 0 0 8px; }
+.mobile-toggle { display: none; }
+@media (max-width: 1024px) {
+  .app { grid-template-columns: 220px minmax(0, 1fr); }
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .panel-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  .app { display: block; }
+  .sidebar {
+    position: sticky;
+    top: 0;
+    z-index: 12;
+    height: auto;
+    padding: 12px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .brand { margin-bottom: 10px; }
+  .profile { display: none; }
+  .mobile-toggle { display: inline-flex; }
+  .nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 10px;
+  }
+  .nav.collapsed { display: none; }
+  .nav button { justify-content: center; text-align: center; }
+  .main { padding: 14px; }
+  .topline { align-items: flex-start; flex-direction: column; }
+  .grid, .options, .calendar { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="demo-watermark">Demo</div>
+<div class="app">
+  <aside class="sidebar">
+    <a class="brand" href="/">
+      <span class="mark">ع</span>
+      <span>Arabic Enthusiast</span>
+    </a>
+    <button class="btn soft mobile-toggle" type="button" id="toggleNav">Menu</button>
+    <section class="profile">
+      <strong>Demo Student</strong>
+      <span>Beginner A1 • MSA + conversation</span>
+    </section>
+    <nav class="nav" id="nav">
+      <button class="active" data-view="dashboard">Dashboard <span>›</span></button>
+      <button data-view="exercises">Exercises <span>›</span></button>
+      <button data-view="vocab">Vocabulary <span>›</span></button>
+      <button data-view="booking">Booking <span>›</span></button>
+      <button data-view="feedback">Teacher feedback <span>›</span></button>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <div class="topline">
+      <div>
+        <h1 id="viewTitle">أهلاً، Demo Student</h1>
+        <p class="muted" id="viewSubtitle">A preview of the student learning portal. Nothing here is saved to the real database.</p>
+      </div>
+      <div class="actions">
+        <a class="btn soft" href="/demo">Guest Lessons</a>
+        <a class="btn gold" href="/portal?signup=1">Sign Up</a>
+      </div>
+    </div>
+    <section id="content"></section>
+  </main>
+</div>
+
+<div class="modal-backdrop" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal">
+    <h2 id="modalTitle">Demo action</h2>
+    <p id="modalText" class="muted">This button works in the demo, but it does not write to the production database or call paid APIs.</p>
+    <div class="actions">
+      <button class="btn dark" type="button" id="closeModal">Close</button>
+      <a class="btn gold" href="/portal?signup=1">Create Account</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const content = document.getElementById('content');
+const title = document.getElementById('viewTitle');
+const subtitle = document.getElementById('viewSubtitle');
+const nav = document.getElementById('nav');
+const views = {
+  dashboard: {
+    title: 'أهلاً، Demo Student',
+    subtitle: 'Today: review due words, finish one listening task, and book your next lesson.',
+    html: `
+      <section class="grid">
+        <article class="card stat"><span>Completed lessons</span><strong>18</strong></article>
+        <article class="card stat"><span>Current streak</span><strong>6 days</strong></article>
+        <article class="card stat"><span>Vocabulary due</span><strong>14</strong></article>
+        <article class="card stat"><span>Next session</span><strong>Tue 6:00</strong></article>
+      </section>
+      <section class="panel-grid">
+        <article class="card panel">
+          <h2>Recommended today</h2>
+          <div class="list">
+            <div class="row"><span>Listening: classroom commands</span><button class="btn gold demo-action">Start</button></div>
+            <div class="row"><span>Vocabulary: food and kitchen verbs</span><button class="btn soft demo-action">Review</button></div>
+            <div class="row"><span>Writing: trace and copy 5 words</span><button class="btn soft demo-action">Open</button></div>
+          </div>
+        </article>
+        <article class="card panel">
+          <h2>Weekly goal</h2>
+          <p class="muted">93 minutes studied out of 120.</p>
+          <div class="bar"><span style="width:78%"></span></div>
+        </article>
+      </section>`
+  },
+  exercises: {
+    title: 'Exercise Preview',
+    subtitle: 'Try the main exercise types without calling paid APIs.',
+    html: `
+      <section class="card panel">
+        <div class="exercise-tabs">
+          <button class="active" data-exercise="choice">Multiple choice</button>
+          <button data-exercise="fill">Fill blank</button>
+          <button data-exercise="listen">Listening</button>
+          <button data-exercise="speak">Speaking</button>
+          <button data-exercise="build">Sentence build</button>
+        </div>
+        <div class="exercise-box" id="exerciseBox"></div>
+      </section>`
+  },
+  vocab: {
+    title: 'Vocabulary SRS',
+    subtitle: 'A sample spaced-repetition deck organized by due date and category.',
+    html: `
+      <section class="panel-grid">
+        <article class="card panel">
+          <h2>Due now</h2>
+          <div class="list">
+            <div class="row"><span dir="rtl" class="arabic" style="font-size:1.55rem">مِفْتاح</span><small>key • interval 2d</small></div>
+            <div class="row"><span dir="rtl" class="arabic" style="font-size:1.55rem">يَكْتُبُ</span><small>he writes • interval 3d</small></div>
+            <div class="row"><span dir="rtl" class="arabic" style="font-size:1.55rem">الطّاولة</span><small>table • interval 5d</small></div>
+          </div>
+        </article>
+        <article class="card panel">
+          <h2>Deck health</h2>
+          <p class="muted">Easy: 42 • Learning: 18 • New: 9</p>
+          <button class="btn gold demo-action">Review due cards</button>
+        </article>
+      </section>`
+  },
+  booking: {
+    title: 'Lesson Booking',
+    subtitle: 'Students can request slots; the teacher sees and approves them.',
+    html: `
+      <section class="card panel">
+        <h2>Available sample slots</h2>
+        <div class="calendar">
+          <button class="slot demo-action">Mon<br><strong>5:00 PM</strong></button>
+          <button class="slot booked demo-action">Tue<br><strong>6:00 PM</strong><br><small>requested</small></button>
+          <button class="slot demo-action">Thu<br><strong>4:30 PM</strong></button>
+        </div>
+      </section>`
+  },
+  feedback: {
+    title: 'Teacher Feedback',
+    subtitle: 'Feedback, homework, and notes appear in one student-friendly panel.',
+    html: `
+      <section class="panel-grid">
+        <article class="card panel">
+          <h2>Latest note from Hadi</h2>
+          <p>You recognized the greeting patterns quickly. Next lesson: use them in short role-play without looking at notes.</p>
+        </article>
+        <article class="card panel">
+          <h2>Assigned task</h2>
+          <p class="muted">Record yourself saying five classroom objects and submit before the next lesson.</p>
+          <button class="btn gold demo-action">Open task</button>
+        </article>
+      </section>`
+  }
+};
+
+const exercises = {
+  choice: `<p class="arabic">أَيْنَ الكِتاب؟</p><p class="muted">Choose the best meaning.</p><div class="options"><button class="option good">Where is the book?</button><button class="option">What is the book?</button><button class="option">The book is new.</button><button class="option">I wrote a book.</button></div>`,
+  fill: `<p class="arabic">أنا ___ العربية.</p><p class="muted">Fill the blank with "study".</p><input style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--line)" placeholder="Type: أدرس"><button class="btn gold demo-action" style="margin-top:10px">Check</button>`,
+  listen: `<p class="arabic">افتح الباب</p><p class="muted">Listen and choose the command you heard.</p><button class="btn gold" id="playTts">Play audio</button><div class="options"><button class="option good">Open the door</button><button class="option">Close the book</button></div>`,
+  speak: `<p class="arabic">صباح الخير</p><p class="muted">Speaking demo uses browser recording in the full portal. This preview only opens a simulated feedback panel.</p><button class="btn gold demo-action">Record answer</button>`,
+  build: `<p class="muted">Build the sentence: I study Arabic every day.</p><div class="options"><button class="option">أنا</button><button class="option">أدرس</button><button class="option">العربية</button><button class="option">كل يوم</button></div><button class="btn gold demo-action" style="margin-top:12px">Submit sentence</button>`
+};
+
+function openModal(text) {
+  document.getElementById('modalText').textContent = text || 'This demo action is interactive, but it does not persist real student data.';
+  document.getElementById('modal').classList.add('show');
+}
+
+function bindDemoActions() {
+  document.querySelectorAll('.demo-action').forEach(btn => btn.addEventListener('click', () => openModal()));
+}
+
+function bindExerciseTabs() {
+  const box = document.getElementById('exerciseBox');
+  if (!box) return;
+  function setExercise(key) {
+    box.innerHTML = exercises[key];
+    document.querySelectorAll('[data-exercise]').forEach(btn => btn.classList.toggle('active', btn.dataset.exercise === key));
+    const play = document.getElementById('playTts');
+    if (play) play.addEventListener('click', () => {
+      if (!('speechSynthesis' in window)) return;
+      const u = new SpeechSynthesisUtterance('افتح الباب');
+      u.lang = 'ar-SA';
+      u.rate = 0.78;
+      speechSynthesis.speak(u);
+    });
+    bindDemoActions();
+  }
+  document.querySelectorAll('[data-exercise]').forEach(btn => btn.addEventListener('click', () => setExercise(btn.dataset.exercise)));
+  setExercise('choice');
+}
+
+function setView(key) {
+  const view = views[key] || views.dashboard;
+  title.textContent = view.title;
+  subtitle.textContent = view.subtitle;
+  content.innerHTML = view.html;
+  document.querySelectorAll('[data-view]').forEach(btn => btn.classList.toggle('active', btn.dataset.view === key));
+  bindDemoActions();
+  bindExerciseTabs();
+}
+
+document.querySelectorAll('[data-view]').forEach(btn => btn.addEventListener('click', () => setView(btn.dataset.view)));
+document.getElementById('closeModal').addEventListener('click', () => document.getElementById('modal').classList.remove('show'));
+document.getElementById('toggleNav').addEventListener('click', () => nav.classList.toggle('collapsed'));
+setView('dashboard');
+</script>
+</body>
+</html>

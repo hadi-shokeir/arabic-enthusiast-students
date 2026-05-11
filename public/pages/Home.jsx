@@ -52,7 +52,7 @@ function HeroSection({ setPage }) {
           <p style={{ color: 'rgba(240,240,240,0.55)', fontSize: '1.05rem', lineHeight: 1.75, maxWidth: 440, marginBottom: 44 }}>
             {home.description || 'From your first letter to reading the Quran and conversing in dialect, structured courses that honour the depth and beauty of the Arabic language.'}
           </p>
-          <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div className="hero-actions" style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
             <button onClick={() => { window.location.href = '/portal?signup=1'; }} style={{
               fontFamily: 'DM Sans, sans-serif', fontSize: '0.8rem',
               letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600,
@@ -62,6 +62,16 @@ function HeroSection({ setPage }) {
               onMouseEnter={e => { e.target.style.filter = 'brightness(1.1)'; e.target.style.transform = 'translateY(-2px)'; }}
               onMouseLeave={e => { e.target.style.filter = ''; e.target.style.transform = 'translateY(0)'; }}
             >{home.primaryCta || 'Apply to Study'}</button>
+            <button onClick={() => { window.location.href = '/demo'; }} style={{
+              fontFamily: 'DM Sans, sans-serif', fontSize: '0.8rem',
+              letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600,
+              padding: '16px 28px', background: 'rgba(201,162,74,0.12)',
+              border: '1px solid rgba(201,162,74,0.45)', color: '#e5c978',
+              cursor: 'pointer', transition: 'all 0.2s',
+            }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(201,162,74,0.22)'; e.currentTarget.style.color = '#fff2c9'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(201,162,74,0.12)'; e.currentTarget.style.color = '#e5c978'; }}
+            >Try Without Signing Up</button>
             <button onClick={() => { setPage('courses'); window.scrollTo(0,0); }} style={{
               fontFamily: 'DM Sans, sans-serif', fontSize: '0.8rem',
               letterSpacing: '0.08em', textTransform: 'uppercase',
@@ -72,6 +82,16 @@ function HeroSection({ setPage }) {
               onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.5)'; e.currentTarget.style.color = '#ffffff'; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(240,240,240,0.2)'; e.currentTarget.style.color = 'rgba(240,240,240,0.6)'; }}
             >{home.secondaryCta || 'Explore Courses'}</button>
+            <button onClick={() => { window.location.href = '/demo/portal'; }} style={{
+              fontFamily: 'DM Sans, sans-serif', fontSize: '0.78rem',
+              letterSpacing: '0.06em', textTransform: 'uppercase',
+              padding: '14px 20px', background: 'transparent',
+              border: '1px solid rgba(240,240,240,0.16)', color: 'rgba(240,240,240,0.52)',
+              cursor: 'pointer', transition: 'all 0.2s',
+            }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.38)'; e.currentTarget.style.color = '#ffffff'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(240,240,240,0.16)'; e.currentTarget.style.color = 'rgba(240,240,240,0.52)'; }}
+            >Student Portal Demo</button>
           </div>
           {/* Subject pills */}
           <div style={{ marginTop: 48, paddingTop: 28, borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', gap: 8, flexWrap: 'wrap' }}>

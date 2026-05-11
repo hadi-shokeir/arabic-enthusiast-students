@@ -1,6 +1,108 @@
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 const KV = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
 const KV_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
 const SESSION_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+const FAST_MODEL = process.env.ANTHROPIC_FAST_MODEL || 'claude-haiku-4-5-20251001';
+const COMPLEX_MODEL = process.env.ANTHROPIC_COMPLEX_MODEL || 'claude-opus-4-7';
+const PROMPTS_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'prompts');
+const CACHEABLE_TYPES = new Set(['homework_hint', 'flashcard_translate', 'lesson_recommender']);
+
+function hashValue(value) {
+  return createHash('sha256').update(String(value || '')).digest('hex');
+}
+
+function loadPrompt(fileName, fallback) {
+  try {
+    return readFileSync(join(PROMPTS_DIR, fileName), 'utf8').trim();
+  } catch {
+    return fallback;
+  }
+}
+
+function renderPrompt(fileName, vars, fallback) {
+  const template = loadPrompt(fileName, fallback);
+  return template.replace(/\{\{(\w+)\}\}/g, (_, key) => {
+    const value = vars?.[key];
+    if (Array.isArray(value)) return value.join(', ');
+    if (value && typeof value === 'object') return JSON.stringify(value);
+    return value == null || value === '' ? 'not specified' : String(value);
+  });
+}
+
+function sanitizeValue(value, depth = 0) {
+  if (depth > 6) return '';
+  if (typeof value === 'string') {
+    return value
+      .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, ' ')
+      .slice(0, 8000);
+  }
+  if (Array.isArray(value)) return value.slice(0, 60).map(item => sanitizeValue(item, depth + 1));
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).slice(0, 80).map(([key, val]) => [String(key).slice(0, 80), sanitizeValue(val, depth + 1)])
+    );
+  }
+  return value;
+}
+
+async function kvCommand(command) {
+  if (!KV || !KV_TOKEN) return null;
+  const r = await fetch(KV, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${KV_TOKEN}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(command)
+  });
+  if (!r.ok) return null;
+  return r.json();
+}
+
+async function getJSON(key, fallback = null) {
+  try {
+    const d = await kvCommand(['GET', key]);
+    return d?.result ? JSON.parse(d.result) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+async function setJSON(key, value, seconds) {
+  try {
+    const command = seconds
+      ? ['SET', key, JSON.stringify(value), 'EX', seconds]
+      : ['SET', key, JSON.stringify(value)];
+    await kvCommand(command);
+  } catch {}
+}
+
+async function enforceRateLimit(token) {
+  if (!KV || !KV_TOKEN) return { ok: true };
+  const key = `ai_rate:${hashValue(token).slice(0, 24)}`;
+  const now = Date.now();
+  const previous = await getJSON(key, []);
+  const events = Array.isArray(previous) ? previous.filter(ts => now - Number(ts) < 60_000) : [];
+  if (events.length >= 30) return { ok: false, retryAfter: 60 };
+  events.push(now);
+  await setJSON(key, events, 120);
+  return { ok: true };
+}
+
+async function logUsage(token, type, model, usage) {
+  if (!KV || !KV_TOKEN) return;
+  const entry = {
+    at: new Date().toISOString(),
+    tokenHash: hashValue(token).slice(0, 16),
+    type,
+    model,
+    inputTokens: usage?.input_tokens || 0,
+    outputTokens: usage?.output_tokens || 0
+  };
+  await kvCommand(['LPUSH', 'ai_usage', JSON.stringify(entry)]);
+  await kvCommand(['LTRIM', 'ai_usage', 0, 999]);
+}
 
 async function validateToken(token) {
   if (!token || !KV || !KV_TOKEN) return false;
@@ -28,18 +130,21 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const { type, context, token } = req.body;
+    let { type, context, token } = req.body;
     if (!type || !context) return res.status(400).json({ error: 'Missing type or context' });
+    context = sanitizeValue(context);
 
     // Auth check — every AI call must have a valid session token
     const authed = await validateToken(token);
     if (!authed) return res.status(403).json({ error: 'Unauthorized' });
+    const rate = await enforceRateLimit(token);
+    if (!rate.ok) return res.status(429).json({ error: 'AI rate limit reached. Please try again in about a minute.' });
 
-    let model, systemPrompt, userMessage;
+    let model, systemPrompt, userMessage, chatMessages;
 
     switch (type) {
       case 'student_analysis':
-        model = 'claude-sonnet-4-6';
+        model = COMPLEX_MODEL;
         systemPrompt = 'You are an expert Arabic language teaching assistant. Analyze the student data and respond with a concise bulleted list (max 8 bullets). Focus on: current level assessment, strengths, areas needing work, and 2-3 specific teaching recommendations. Be direct and actionable.';
         userMessage = `Student: ${context.name}
 Level: ${context.level} | Type: ${context.type}
@@ -52,15 +157,20 @@ Homework notes: ${context.homeworkNotes || 'None'}`;
         break;
 
       case 'homework_feedback':
-        model = 'claude-haiku-4-5-20251001';
-        systemPrompt = 'You are an Arabic language teacher giving feedback on student homework. Be encouraging, specific, and concise. Max 5 bullet points. Point out what is good, what needs correction, and one tip for improvement.';
+        model = FAST_MODEL;
+        systemPrompt = renderPrompt('exercise-feedback.md', {
+          level: context.level || 'beginner',
+          dialect: context.type || context.dialect || 'Arabic',
+          feedbackLanguage: context.feedbackLanguage || 'English',
+          exerciseType: 'homework'
+        }, 'You are an Arabic language teacher giving feedback on student homework. Be encouraging, specific, and concise.');
         userMessage = `Homework task: ${context.title}
 Instructions: ${context.description || 'N/A'}
 Student submission: ${context.submission}`;
         break;
 
       case 'student_chat':
-        model = 'claude-haiku-4-5-20251001';
+        model = FAST_MODEL;
         systemPrompt = `You are Hadi's AI — the digital version of Hadi, an Arabic language tutor and linguist. You teach ${context.type || 'Arabic'} dialect at ${context.level || 'beginner'} level.
 
 Your personality mirrors Hadi exactly:
@@ -78,9 +188,16 @@ How you respond:
 
 Student info: studying ${context.type || 'Arabic'} at ${context.level || 'beginner'} level. Goals: ${context.goals || 'general Arabic learning'}.${context.learningWhy ? ' Why they\'re learning: ' + context.learningWhy + '.' : ''}${context.interests ? ' Interests: ' + context.interests + '.' : ''}`;
 
+        systemPrompt = renderPrompt('conversation-partner.md', {
+          level: context.level || 'beginner',
+          dialect: context.type || context.dialect || 'Arabic',
+          goals: context.goals || 'general Arabic learning',
+          feedbackLanguage: context.feedbackLanguage || 'English'
+        }, systemPrompt);
+
         // Build multi-turn messages from history
         const history = (context.history || []).slice(-40); // last 40 messages (~20 exchanges)
-        const chatMessages = [
+        chatMessages = [
           ...history.map(m => ({ role: m.r === 'user' ? 'user' : 'assistant', content: m.t })),
           { role: 'user', content: context.message }
         ];
@@ -89,13 +206,13 @@ Student info: studying ${context.type || 'Arabic'} at ${context.level || 'beginn
         break;
 
       case 'homework_hint':
-        model = 'claude-haiku-4-5-20251001';
+        model = FAST_MODEL;
         systemPrompt = `You are Hadi's AI — the digital version of Hadi, a structured but fun Arabic tutor. A student is stuck on their homework. Give ONE hint only — do NOT give the full answer. Be encouraging but also challenge them: tell them they're close and push them to think harder. Keep it to 1-2 sentences max.`;
         userMessage = `Homework: ${context.title}\n${context.description || ''}`;
         break;
 
       case 'student_tasks':
-        model = 'claude-haiku-4-5-20251001';
+        model = FAST_MODEL;
         systemPrompt = `You are Hadi's AI — the digital version of Hadi, an Arabic tutor who is structured, methodical, fun, and occasionally challenging. Generate exactly 5 concrete, practical practice tasks for this student to do this week. Each task must be on its own line, starting with a checkbox emoji ☐. Be very specific — not generic. Match tasks to their weakest skills and goals. Make at least one task a speaking or confidence challenge. No explanations, no headers, just 5 lines.`;
         userMessage = `Student: ${context.name}
 Level: ${context.level} | Dialect: ${context.type}
@@ -106,7 +223,7 @@ Lessons completed: ${context.lessonsTaken} | Attendance: ${context.attendance}%`
         break;
 
       case 'lesson_plan':
-        model = 'claude-sonnet-4-6';
+        model = COMPLEX_MODEL;
         systemPrompt = `You are Hadi, a structured Arabic language tutor. Generate a superbly practical 4-week plan for one private student.
 
 Use the evidence provided: active Arabic tracks, skill ratings, recent lesson logs, homework, open tasks, goals, teacher notes, attendance, and weaknesses.
@@ -118,6 +235,7 @@ Format:
 4. End with 5 concrete weekly tasks.
 
 Keep it specific, actionable, and realistic. Do not write generic advice.`;
+        systemPrompt = loadPrompt('lesson-plan.md', systemPrompt);
         userMessage = `Student: ${context.name}
 Level: ${context.level} | Arabic type: ${context.type}
 Active tracks: ${context.studyTypes || 'Not specified'}
@@ -141,7 +259,7 @@ Lessons completed: ${context.lessonsTaken}`;
         break;
 
       case 'lesson_feedback':
-        model = 'claude-sonnet-4-6';
+        model = COMPLEX_MODEL;
         systemPrompt = `You are Hadi's AI assistant for his Arabic tutoring business. After each lesson, Hadi writes notes and you update the student's learning plan.
 
 Respond with ONLY a valid JSON object, no markdown, no extra text:
@@ -172,13 +290,13 @@ Additional notes: ${context.teacherNotes || 'None'}`;
         break;
 
       case 'schedule_lesson':
-        model = 'claude-haiku-4-5-20251001';
+        model = FAST_MODEL;
         systemPrompt = `You are a scheduling assistant. Parse the user's natural language input and extract lesson scheduling details. Respond with ONLY a valid JSON object with these fields: { "studentName": string, "date": "YYYY-MM-DD", "time": "HH:MM", "duration": number (minutes), "notes": string }. Today is ${new Date().toISOString().split('T')[0]}. For relative dates like "tomorrow", "next Monday", calculate the actual date. If any field is unclear, use reasonable defaults (duration: 60, notes: ""). Do not include any explanation, just the JSON.`;
         userMessage = context.message;
         break;
 
       case 'student_quiz':
-        model = 'claude-sonnet-4-6';
+        model = COMPLEX_MODEL;
         systemPrompt = `You are an expert Arabic language teacher creating a unique, challenging quiz. Generate exactly 5 multiple-choice questions.
 
 ══ OUTPUT FORMAT ══
@@ -224,20 +342,69 @@ ${context.personalGoal ? `Personal goal: ${context.personalGoal}` : ''}${prevQSt
 Generate 5 questions (one of each type). Calibrate difficulty to "${context.level}". Use Modern Standard Arabic / الفصحى only, regardless of the student's broader profile type. If Quranic motivation or topic, include relevant content using standard Arabic terminology. Make every question unique and distinct.`;
         break;
 
+      case 'exercise_feedback':
+        model = FAST_MODEL;
+        systemPrompt = renderPrompt('exercise-feedback.md', {
+          level: context.level || 'beginner',
+          dialect: context.dialect || context.type || 'MSA',
+          feedbackLanguage: context.feedbackLanguage || 'English',
+          exerciseType: context.exerciseType || 'open response'
+        }, 'You are an Arabic exercise feedback agent. Grade the answer, explain mistakes, and suggest one targeted practice task.');
+        userMessage = `Exercise prompt: ${context.prompt || context.question || 'N/A'}
+Expected answer: ${context.expected || context.answer || 'N/A'}
+Student answer: ${context.studentAnswer || context.submission || 'N/A'}
+Recent mistakes: ${JSON.stringify(context.recentMistakes || [])}`;
+        break;
+
+      case 'lesson_recommender':
+        model = FAST_MODEL;
+        systemPrompt = renderPrompt('lesson-recommender.md', {
+          level: context.level || 'beginner',
+          dialect: context.dialect || context.type || 'MSA',
+          goals: context.goals || 'general Arabic learning',
+          weaknesses: context.weaknesses || context.weaknessPatterns || 'not specified',
+          srsDue: context.srsDue || [],
+          mistakes: context.mistakes || context.recentMistakes || [],
+          feedbackLanguage: context.feedbackLanguage || 'English'
+        }, 'You recommend the next 1 to 3 Arabic activities based on progress, mistakes, goals, and SRS due items.');
+        userMessage = `Student profile:
+${JSON.stringify(context.student || context.profile || {}, null, 2)}
+
+Progress summary:
+${JSON.stringify(context.progress || {}, null, 2)}
+
+Recent scores:
+${JSON.stringify(context.recentScores || [], null, 2)}`;
+        break;
+
+      case 'pronunciation_feedback':
+        model = FAST_MODEL;
+        systemPrompt = renderPrompt('pronunciation-feedback.md', {
+          level: context.level || 'beginner',
+          dialect: context.dialect || context.type || 'MSA',
+          expected: context.expected || '',
+          transcript: context.transcript || '',
+          feedbackLanguage: context.feedbackLanguage || 'English'
+        }, 'You compare a speech transcription to an expected Arabic phrase. Do not pretend to hear audio.');
+        userMessage = `Expected phrase: ${context.expected || ''}
+Browser transcription: ${context.transcript || ''}
+Known target sounds: ${JSON.stringify(context.targetSounds || [])}`;
+        break;
+
       case 'flashcard_generate':
-        model = 'claude-haiku-4-5-20251001';
+        model = FAST_MODEL;
         systemPrompt = `You are an Arabic language teacher creating flashcards. Generate exactly 12 flashcards for the given topic. Each card must have: "en" (English word or phrase), "ar" (Arabic with FULL diacritics/tashkeel), "translit" (romanised transliteration). Match the student's dialect and level. Respond with ONLY a valid JSON array, no markdown: [{"en":"...","ar":"...","translit":"..."}]`;
         userMessage = `Topic: ${context.topic}\nLevel: ${context.level} | Dialect: ${context.type}`;
         break;
 
       case 'flashcard_translate':
-        model = 'claude-haiku-4-5-20251001';
+        model = FAST_MODEL;
         systemPrompt = `You are an Arabic language teacher. Translate the given English word into Arabic. Respond with ONLY a valid JSON object, no markdown: {"en":"original word","ar":"Arabic with FULL diacritics","translit":"romanised transliteration","note":"brief usage note if helpful, otherwise empty string"}`;
         userMessage = `Word: "${context.word}"\nStudent level: ${context.level} | Dialect: ${context.type}`;
         break;
 
       case 'conjugation':
-        model = 'claude-sonnet-4-6';
+        model = COMPLEX_MODEL;
         systemPrompt = `You are an expert Arabic linguist and grammarian. The user will give you an Arabic word or its English meaning. Identify whether it is a verb (فعل) or noun (اسم) and generate its full conjugation or declension table with FULL diacritics (tashkeel) on every Arabic word.
 
 CRITICAL: Respond with ONLY a valid JSON object, no markdown, no explanation.
@@ -300,6 +467,16 @@ IMPORTANT: Generate ACTUAL correct forms for the requested word — do not copy 
       ? chatMessages
       : [{ role: 'user', content: userMessage }];
 
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return res.status(500).json({ error: 'ANTHROPIC_API_KEY is not configured' });
+    }
+
+    const cacheKey = `ai_cache:${type}:${hashValue(JSON.stringify({ context, model })).slice(0, 40)}`;
+    if (CACHEABLE_TYPES.has(type)) {
+      const cached = await getJSON(cacheKey);
+      if (cached?.result) return res.status(200).json({ result: cached.result, cached: true });
+    }
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -321,7 +498,12 @@ IMPORTANT: Generate ACTUAL correct forms for the requested word — do not copy 
     }
 
     const data = await response.json();
-    return res.status(200).json({ result: data.content[0].text });
+    const result = data.content?.[0]?.text || '';
+    await logUsage(token, type, model, data.usage);
+    if (CACHEABLE_TYPES.has(type) && result) {
+      await setJSON(cacheKey, { result, model, createdAt: new Date().toISOString() }, 24 * 60 * 60);
+    }
+    return res.status(200).json({ result });
 
   } catch (err) {
     return res.status(500).json({ error: err.message });

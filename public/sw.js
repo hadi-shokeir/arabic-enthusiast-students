@@ -1,8 +1,27 @@
-const CACHE = 'arabic-enthusiast-v6';
+const CACHE = 'arabic-enthusiast-v7';
+const STATIC_ASSETS = [
+  '/',
+  '/index.html',
+  '/portal',
+  '/portal.html',
+  '/demo',
+  '/demo/index.html',
+  '/demo/portal',
+  '/demo/portal/index.html',
+  '/site-content.js',
+  '/data.js',
+  '/components.jsx',
+  '/pages/Home.jsx',
+  '/pages/Courses.jsx',
+  '/pages/Pricing.jsx',
+  '/pages/About.jsx',
+  '/logo.jpeg',
+  '/manifest.json'
+];
 
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(['/', '/index.html', '/logo.jpeg', '/manifest.json']))
+    caches.open(CACHE).then(c => c.addAll(STATIC_ASSETS))
   );
   self.skipWaiting();
 });
@@ -16,7 +35,7 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
-// Network first, fallback to cache
+// Network first, fallback to cache. API calls stay online-only so student data is never stale.
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   if (e.request.url.includes('/api/')) return; // Never cache API calls

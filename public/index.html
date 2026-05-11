@@ -44,6 +44,12 @@ body {
 @keyframes pageIn { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
 input::placeholder, textarea::placeholder { color: rgba(245,240,232,0.2); }
 input, textarea { color-scheme: dark; }
+[dir="rtl"], .arabic, .ar {
+  direction: rtl;
+  unicode-bidi: plaintext;
+  font-family: 'Amiri', serif;
+}
+button, a, input, select, textarea { touch-action: manipulation; }
 body::before {
   content:''; position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0.025;
   background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
@@ -56,6 +62,55 @@ body::before {
   .nav-mobile { display: flex !important; }
   .nav-desktop { display: none !important; }
   nav { padding-left: 20px !important; padding-right: 20px !important; }
+}
+@media (max-width: 900px) {
+  main section { padding-left: 22px !important; padding-right: 22px !important; }
+  main section > div[style*="grid-template-columns: 1fr 1fr"],
+  main section div[style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+    gap: 34px !important;
+  }
+  main section div[style*="grid-template-columns: repeat(4"],
+  main section div[style*="grid-template-columns: repeat(3"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .hero-actions > button {
+    min-height: 44px !important;
+  }
+}
+@media (max-width: 520px) {
+  main section {
+    min-height: auto !important;
+    padding-top: 92px !important;
+    padding-bottom: 52px !important;
+  }
+  main h1 {
+    font-size: clamp(2.4rem, 12vw, 3.45rem) !important;
+    overflow-wrap: anywhere;
+  }
+  main p { font-size: 1rem !important; }
+  .hero-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+  .hero-actions > button {
+    width: 100%;
+    padding: 15px 18px !important;
+    white-space: normal;
+  }
+  main section div[style*="width: 420px"] {
+    width: min(82vw, 320px) !important;
+    height: min(82vw, 320px) !important;
+  }
+  main section div[style*="font-size: 10rem"] {
+    font-size: clamp(5rem, 30vw, 7.5rem) !important;
+  }
+  main section div[style*="grid-template-columns: repeat(4"],
+  main section div[style*="grid-template-columns: repeat(3"],
+  main section div[style*="grid-template-columns: repeat(7"] {
+    grid-template-columns: 1fr !important;
+  }
 }
 </style>
 </head>

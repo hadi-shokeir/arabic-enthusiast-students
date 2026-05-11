@@ -7,6 +7,22 @@
   "background_color": "#000000",
   "theme_color": "#000000",
   "orientation": "portrait",
+  "shortcuts": [
+    {
+      "name": "Student Portal",
+      "short_name": "Portal",
+      "description": "Open the Arabic Enthusiast student portal",
+      "url": "/portal",
+      "icons": [{ "src": "/logo.jpeg", "sizes": "192x192", "type": "image/jpeg" }]
+    },
+    {
+      "name": "Guest Demo",
+      "short_name": "Demo",
+      "description": "Try Arabic lessons without signing up",
+      "url": "/demo",
+      "icons": [{ "src": "/logo.jpeg", "sizes": "192x192", "type": "image/jpeg" }]
+    }
+  ],
   "icons": [
     { "src": "/logo.jpeg", "sizes": "192x192", "type": "image/jpeg", "purpose": "any maskable" },
     { "src": "/logo.jpeg", "sizes": "512x512", "type": "image/jpeg", "purpose": "any maskable" }
