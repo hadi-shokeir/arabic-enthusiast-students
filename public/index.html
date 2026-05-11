@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Arabic Enthusiast — Learn Arabic with Passion & Precision</title>
 <meta name="description" content="Professional Arabic language courses — Classical, Levantine, and Quranic. Learn with passion and precision." />
-<meta name="theme-color" content="#0a0805" />
+<meta name="theme-color" content="#f4f1e9" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black" />
 <meta name="apple-mobile-web-app-title" content="Arabic Enthusiast" />
@@ -17,6 +17,15 @@
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script>
+(function(){
+  try {
+    document.documentElement.dataset.siteTheme = localStorage.getItem('ae_site_theme') || 'light';
+  } catch {
+    document.documentElement.dataset.siteTheme = 'light';
+  }
+})();
+</script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -29,6 +38,10 @@ html { scroll-behavior: smooth; }
 body {
   background: #080808; color: var(--cream);
   font-family: 'DM Sans', sans-serif; overflow-x: hidden; min-height: 100vh;
+}
+html[data-site-theme="light"] body {
+  background: #f4f1e9 !important;
+  color: #17130c !important;
 }
 ::selection { background: rgba(201,162,74,0.32); color: #fff8ea; }
 ::-webkit-scrollbar { width: 6px; }
@@ -44,6 +57,8 @@ body {
 @keyframes pageIn { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
 input::placeholder, textarea::placeholder { color: rgba(245,240,232,0.2); }
 input, textarea { color-scheme: dark; }
+html[data-site-theme="light"] input,
+html[data-site-theme="light"] textarea { color-scheme: light; }
 [dir="rtl"], .arabic, .ar {
   direction: rtl;
   unicode-bidi: plaintext;
@@ -55,9 +70,96 @@ body::before {
   background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-size:200px;
 }
+html[data-site-theme="light"] body::before { opacity: 0.035; mix-blend-mode: multiply; }
 #root { position: relative; z-index: 1; }
 .nav-mobile { display: none; }
 .nav-desktop { display: flex; }
+.site-theme-toggle {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 250;
+  min-width: 92px;
+  min-height: 44px;
+  border: 1px solid rgba(229,201,120,0.42);
+  border-radius: 999px;
+  background: rgba(12,10,6,0.86);
+  color: #fff8ea;
+  box-shadow: 0 16px 38px rgba(0,0,0,0.24);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  backdrop-filter: blur(14px);
+}
+html[data-site-theme="light"] .site-theme-toggle {
+  background: rgba(255,253,248,0.9);
+  color: #17130c;
+  border-color: rgba(111,75,0,0.28);
+}
+html[data-site-theme="light"] nav {
+  background: rgba(255,253,248,0.9) !important;
+  border-bottom-color: rgba(111,75,0,0.12) !important;
+  backdrop-filter: blur(18px) !important;
+}
+html[data-site-theme="light"] nav img { filter: none !important; }
+html[data-site-theme="light"] nav span,
+html[data-site-theme="light"] nav button {
+  color: #3b2c12 !important;
+  border-color: rgba(111,75,0,0.24) !important;
+}
+html[data-site-theme="light"] main section {
+  background: transparent !important;
+}
+html[data-site-theme="light"] main h1,
+html[data-site-theme="light"] main h2,
+html[data-site-theme="light"] main h3,
+html[data-site-theme="light"] main div[style*="Playfair Display"],
+html[data-site-theme="light"] main div[style*="Cinzel"] {
+  color: #17130c !important;
+  text-shadow: none !important;
+}
+html[data-site-theme="light"] main p,
+html[data-site-theme="light"] main span,
+html[data-site-theme="light"] main div[style*="rgba(240,240,240"],
+html[data-site-theme="light"] main div[style*="rgba(255,255,255"] {
+  color: #625741 !important;
+}
+html[data-site-theme="light"] main em,
+html[data-site-theme="light"] main [style*="Amiri"] {
+  color: #2b2114 !important;
+  text-shadow: none !important;
+}
+html[data-site-theme="light"] main div[style*="background: rgba(18,18,18"],
+html[data-site-theme="light"] main div[style*="background: rgba(16,16,16"],
+html[data-site-theme="light"] main div[style*="background: rgba(12,12,12"],
+html[data-site-theme="light"] main div[style*="rgba(18, 18, 18"],
+html[data-site-theme="light"] main div[style*="rgba(16, 16, 16"] {
+  background: rgba(255,253,248,0.78) !important;
+  border-color: rgba(111,75,0,0.16) !important;
+  box-shadow: 0 16px 40px rgba(67,48,16,0.08);
+}
+html[data-site-theme="light"] main div[style*="border: 1px solid rgba(255"],
+html[data-site-theme="light"] main div[style*="border: 1px dashed rgba(255"] {
+  border-color: rgba(111,75,0,0.18) !important;
+}
+html[data-site-theme="light"] .hero-actions > button:not(:first-child) {
+  background: rgba(255,253,248,0.62) !important;
+  border-color: rgba(111,75,0,0.28) !important;
+  color: #3a2d1c !important;
+}
+html[data-site-theme="light"] footer {
+  background: #fffdf8 !important;
+  border-top-color: rgba(111,75,0,0.12) !important;
+}
+html[data-site-theme="light"] footer * {
+  color: #625741 !important;
+}
+html[data-site-theme="light"] footer div[style*="Cinzel"] {
+  color: #17130c !important;
+}
 @media (max-width: 768px) {
   .nav-mobile { display: flex !important; }
   .nav-desktop { display: none !important; }
@@ -116,6 +218,7 @@ body::before {
 </head>
 <body>
 <div id="root"></div>
+<button id="siteThemeToggle" class="site-theme-toggle" type="button" aria-label="Toggle dark theme">Dark</button>
 
 <script src="/site-content.js"></script>
 <script src="/data.js"></script>
@@ -198,6 +301,29 @@ function App() {
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+<script>
+(function(){
+  const key = 'ae_site_theme';
+  const btn = document.getElementById('siteThemeToggle');
+  const meta = document.querySelector('meta[name="theme-color"]');
+  function apply(theme) {
+    document.documentElement.dataset.siteTheme = theme;
+    if (meta) meta.setAttribute('content', theme === 'dark' ? '#0a0805' : '#f4f1e9');
+    if (btn) {
+      btn.textContent = theme === 'dark' ? 'Light' : 'Dark';
+      btn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+    }
+  }
+  let theme = 'light';
+  try { theme = localStorage.getItem(key) || 'light'; } catch {}
+  apply(theme);
+  btn?.addEventListener('click', () => {
+    const next = document.documentElement.dataset.siteTheme === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem(key, next); } catch {}
+    apply(next);
+  });
+})();
 </script>
 </body>
 </html>
