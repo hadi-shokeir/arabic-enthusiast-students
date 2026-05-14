@@ -116,23 +116,46 @@ function freeLessonExpiry(s, now = new Date()) {
 }
 function freeLessonsLeft(s, now = new Date()) {
   if (freeLessonExpiry(s, now).expired) return 0;
-  return Math.max(0, (s?.freeTotal || 0) - (s?.freeTaken || 0));
+  return Math.max(0, wholeNumber(s?.freeTotal) - wholeNumber(s?.freeTaken));
+}
+function wholeNumber(value) {
+  return Math.max(0, Math.floor(Number(value) || 0));
+}
+function normalizeStudentLessonBalance(s = {}) {
+  const lessonsTaken = wholeNumber(s.lessonsTaken);
+  const storedTotal = wholeNumber(s.lessonsTotal);
+  const storedRemaining = typeof s.remainingClasses === 'number' ? wholeNumber(s.remainingClasses) : null;
+  const derivedRemaining = Math.max(0, storedTotal - lessonsTaken);
+  const paidLeft = Math.max(derivedRemaining, storedRemaining ?? derivedRemaining);
+  const lessonsTotal = Math.max(storedTotal, lessonsTaken + paidLeft);
+  return {
+    ...s,
+    lessonsTotal,
+    lessonsTaken,
+    remainingClasses: Math.max(0, lessonsTotal - lessonsTaken),
+    freeTotal: wholeNumber(s.freeTotal),
+    freeTaken: wholeNumber(s.freeTaken),
+    lessonsOverdue: wholeNumber(s.lessonsOverdue)
+  };
 }
 function paidCreditsLeft(s) {
-  if (typeof s?.remainingClasses === 'number') return Math.max(0, s.remainingClasses || 0);
-  return Math.max(0, (s?.lessonsTotal || 0) - (s?.lessonsTaken || 0));
+  const n = normalizeStudentLessonBalance(s || {});
+  return Math.max(0, n.lessonsTotal - n.lessonsTaken);
 }
 function totalLessonCredits(s, now = new Date()) {
-  return paidCreditsLeft(s) + freeLessonsLeft(s, now);
+  const n = normalizeStudentLessonBalance(s || {});
+  return paidCreditsLeft(n) + freeLessonsLeft(n, now);
 }
 function deductLessonCredit(s, now = new Date()) {
-  const paidBefore = paidCreditsLeft(s);
-  const freeBefore = freeLessonsLeft(s, now);
+  const base = normalizeStudentLessonBalance(s || {});
+  const paidBefore = paidCreditsLeft(base);
+  const freeBefore = freeLessonsLeft(base, now);
   const before = paidBefore + freeBefore;
   if (paidBefore > 0) {
     const paidAfter = Math.max(0, paidBefore - 1);
+    const lessonsTaken = base.lessonsTaken + 1;
     return {
-      student: { ...s, remainingClasses: paidAfter, lessonsTaken: (s.lessonsTaken || 0) + 1 },
+      student: normalizeStudentLessonBalance({ ...base, lessonsTaken, remainingClasses: paidAfter }),
       before,
       after: paidAfter + freeBefore,
       creditType: 'paid'
@@ -140,14 +163,14 @@ function deductLessonCredit(s, now = new Date()) {
   }
   if (freeBefore > 0) {
     return {
-      student: { ...s, freeTaken: Math.min(s.freeTotal || 0, (s.freeTaken || 0) + 1) },
+      student: normalizeStudentLessonBalance({ ...base, freeTaken: Math.min(base.freeTotal, base.freeTaken + 1) }),
       before,
       after: Math.max(0, before - 1),
       creditType: 'free'
     };
   }
   return {
-    student: { ...s, remainingClasses: typeof s.remainingClasses === 'number' ? 0 : s.remainingClasses, lessonsOverdue: Math.max(0, (s.lessonsOverdue || 0) + 1) },
+    student: normalizeStudentLessonBalance({ ...base, remainingClasses: 0, lessonsOverdue: base.lessonsOverdue + 1 }),
     before,
     after: 0,
     creditType: 'overdue'
@@ -453,12 +476,14 @@ export default async function handler(req, res) {
       const stu = (studentData.students || []).find(s => s.id === studentId);
       if (!stu) return res.status(404).json({ error: 'Student not found' });
 
-      const before = typeof stu.remainingClasses === 'number' ? stu.remainingClasses : Math.max(0, (stu.lessonsTotal || 0) - (stu.lessonsTaken || 0));
+      const base = normalizeStudentLessonBalance(stu);
+      const before = paidCreditsLeft(base);
       const after  = Math.max(0, before + delta);
-      studentData = { ...studentData, students: studentData.students.map(s => s.id === studentId ? { ...s, remainingClasses: after } : s) };
+      const updatedStudent = normalizeStudentLessonBalance({ ...base, lessonsTotal: base.lessonsTaken + after, remainingClasses: after });
+      studentData = { ...studentData, students: studentData.students.map(s => s.id === studentId ? updatedStudent : s) };
       deductions  = [...deductions, { id: uid(), studentId: stu.id, studentName: stu.name, slotId: null, date: new Date().toISOString().split('T')[0], time: null, duration: null, deductedAt: new Date().toISOString(), classesBefore: before, classesAfter: after, type: delta > 0 ? 'top_up' : 'manual_deduct', note }];
       await Promise.all([saveStudentData(studentData), saveDeductions(deductions)]);
-      return res.json({ ok: true, remaining: after });
+      return res.json({ ok: true, remaining: after, remainingClasses: updatedStudent.remainingClasses, lessonsTotal: updatedStudent.lessonsTotal, lessonsTaken: updatedStudent.lessonsTaken });
     }
 
     // ─────────────────────────────────────────────────────────────────────────

@@ -1139,7 +1139,7 @@ async function pushImages(settings) {
 
 // ─── Helpers ───
 const SK = "tutor-v5";
-const DATA_VERSION = 20;
+const DATA_VERSION = 21;
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 const fmt = d => d ? new Date(d).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}) : "—";
 const today = () => new Date().toISOString().split("T")[0];
@@ -1184,9 +1184,30 @@ function withQuestDefaults(student) {
   out.questProgress = normalizeQuestProgress(out.questProgress);
   return out;
 }
+function wholeNumber(value) {
+  return Math.max(0, Math.floor(Number(value) || 0));
+}
+function normalizeStudentLessonBalance(student) {
+  const out = {...(student || {})};
+  const lessonsTaken = wholeNumber(out.lessonsTaken);
+  const storedTotal = wholeNumber(out.lessonsTotal);
+  const storedRemaining = typeof out.remainingClasses === "number" ? wholeNumber(out.remainingClasses) : null;
+  const derivedRemaining = Math.max(0, storedTotal - lessonsTaken);
+  const paidLeft = Math.max(derivedRemaining, storedRemaining ?? derivedRemaining);
+  const lessonsTotal = Math.max(storedTotal, lessonsTaken + paidLeft);
+  return {
+    ...out,
+    lessonsTotal,
+    lessonsTaken,
+    remainingClasses: Math.max(0, lessonsTotal - lessonsTaken),
+    freeTotal: wholeNumber(out.freeTotal),
+    freeTaken: wholeNumber(out.freeTaken),
+    lessonsOverdue: wholeNumber(out.lessonsOverdue)
+  };
+}
 function withStudentDefaults(student) {
   const out = withQuestDefaults(withSkillDefaults(student));
-  return {...out, lessonsOverdue: Math.max(0, out.lessonsOverdue || 0)};
+  return normalizeStudentLessonBalance(out);
 }
 
 // FIX #10: Configurable currency
@@ -1439,9 +1460,14 @@ function migrateData(data) {
     d.students = (d.students||[]).map(withStudentDefaults);
     d._version = DATA_VERSION;
   }
+  if (v < 21) {
+    d.students = (d.students||[]).map(withStudentDefaults);
+    d._version = DATA_VERSION;
+  }
   if (!d.studioItems) d.studioItems = [];
   d.siteContent = normalizeSiteContent(d.siteContent);
   d.students = (d.students||[]).map(withStudentDefaults);
+  d._version = DATA_VERSION;
   return d;
 }
 
@@ -1540,25 +1566,26 @@ function freeExpiry(s) {
 function freeLeft(s) {
   const fe = freeExpiry(s);
   if (fe.expired) return 0;
-  return Math.max(0, (s.freeTotal||0) - (s.freeTaken||0));
+  return Math.max(0, wholeNumber(s.freeTotal) - wholeNumber(s.freeTaken));
 }
 function paidLessonsLeft(s) {
   if (!s) return 0;
-  if (typeof s.remainingClasses === "number") return Math.max(0, s.remainingClasses || 0);
-  return Math.max(0, (s.lessonsTotal||0) - (s.lessonsTaken||0));
+  const derived = Math.max(0, wholeNumber(s.lessonsTotal) - wholeNumber(s.lessonsTaken));
+  if (typeof s.remainingClasses === "number") return Math.max(derived, wholeNumber(s.remainingClasses));
+  return derived;
 }
 function activeFreeLessonTotal(s) {
-  const taken = Math.max(0, s?.freeTaken || 0);
-  return freeExpiry(s || {}).expired ? taken : Math.max(taken, s?.freeTotal || 0);
+  const taken = wholeNumber(s?.freeTaken);
+  return freeExpiry(s || {}).expired ? taken : Math.max(taken, wholeNumber(s?.freeTotal));
 }
 function lessonStats(s) {
-  const paidTotal = Math.max(0, s?.lessonsTotal || 0);
-  const paidTaken = Math.max(0, s?.lessonsTaken || 0);
   const paidLeft = paidLessonsLeft(s);
-  const freeTotal = Math.max(0, s?.freeTotal || 0);
-  const freeTaken = Math.max(0, s?.freeTaken || 0);
+  const paidTaken = wholeNumber(s?.lessonsTaken);
+  const paidTotal = Math.max(wholeNumber(s?.lessonsTotal), paidTaken + paidLeft);
+  const freeTotal = wholeNumber(s?.freeTotal);
+  const freeTaken = wholeNumber(s?.freeTaken);
   const freeRemaining = freeLeft(s || {});
-  const overdue = Math.max(0, s?.lessonsOverdue || 0);
+  const overdue = wholeNumber(s?.lessonsOverdue);
   const plannedTotal = paidTotal + freeTaken + freeRemaining;
   const usedCredits = paidTaken + freeTaken;
   const taken = usedCredits + overdue;
@@ -1568,8 +1595,8 @@ function lessonStats(s) {
   return {paidTotal, paidTaken, paidLeft, freeTotal, freeTaken, freeLeft:freeRemaining, overdue, usedCredits, total, taken, left, pct};
 }
 function applyTotalLessonsTaken(s, totalTaken) {
-  const nextTaken = Math.max(0, Math.floor(+totalTaken || 0));
-  const paidCap = Math.max(0, s?.lessonsTotal || 0);
+  const nextTaken = wholeNumber(totalTaken);
+  const paidCap = wholeNumber(s?.lessonsTotal);
   const freeCap = activeFreeLessonTotal(s || {});
   const paidTaken = Math.min(nextTaken, paidCap);
   const freeTaken = Math.min(freeCap, Math.max(0, nextTaken - paidTaken));
@@ -1579,40 +1606,46 @@ function applyTotalLessonsTaken(s, totalTaken) {
     lessonsTaken: paidTaken,
     freeTaken,
     lessonsOverdue: overdue,
-    remainingClasses: typeof s?.remainingClasses === "number" ? Math.max(0, paidCap - paidTaken) : s?.remainingClasses
+    remainingClasses: Math.max(0, paidCap - paidTaken)
   };
 }
 function setPaidLessonTotal(s, nextTotal) {
   const currentTaken = lessonStats(s || {}).taken;
-  return applyTotalLessonsTaken({...s, lessonsTotal: Math.max(0, +nextTotal || 0)}, currentTaken);
+  return applyTotalLessonsTaken({...s, lessonsTotal: wholeNumber(nextTotal)}, currentTaken);
 }
 function takeLessonCredit(s) {
   const paidLeft = paidLessonsLeft(s);
   if (paidLeft > 0) {
+    const lessonsTaken = wholeNumber(s.lessonsTaken) + 1;
+    const remainingClasses = Math.max(0, paidLeft - 1);
     return {
       ...s,
-      lessonsTaken: (s.lessonsTaken||0) + 1,
-      remainingClasses: typeof s.remainingClasses === "number" ? Math.max(0, paidLeft - 1) : s.remainingClasses
+      lessonsTotal: Math.max(wholeNumber(s.lessonsTotal), lessonsTaken + remainingClasses),
+      lessonsTaken,
+      remainingClasses
     };
   }
   const freeRemaining = freeLeft(s || {});
   if (freeRemaining > 0) {
-    return {...s, freeTaken: Math.min(s.freeTotal||0, (s.freeTaken||0) + 1)};
+    return {...s, freeTaken: Math.min(wholeNumber(s.freeTotal), wholeNumber(s.freeTaken) + 1)};
   }
   return {
     ...s,
-    lessonsOverdue: Math.max(0, (s.lessonsOverdue||0) + 1),
-    remainingClasses: typeof s.remainingClasses === "number" ? 0 : s.remainingClasses
+    lessonsOverdue: wholeNumber(s.lessonsOverdue) + 1,
+    remainingClasses: 0
   };
 }
 function restoreLessonCredit(s) {
-  if ((s.lessonsOverdue||0) > 0) return {...s, lessonsOverdue: Math.max(0, (s.lessonsOverdue||0) - 1)};
-  if ((s.freeTaken||0) > 0) return {...s, freeTaken: Math.max(0, (s.freeTaken||0) - 1)};
+  if (wholeNumber(s.lessonsOverdue) > 0) return {...s, lessonsOverdue: Math.max(0, wholeNumber(s.lessonsOverdue) - 1)};
+  if (wholeNumber(s.freeTaken) > 0) return {...s, freeTaken: Math.max(0, wholeNumber(s.freeTaken) - 1)};
   const paidLeft = paidLessonsLeft(s);
+  const lessonsTaken = Math.max(0, wholeNumber(s.lessonsTaken) - 1);
+  const remainingClasses = paidLeft + 1;
   return {
     ...s,
-    lessonsTaken: Math.max(0, (s.lessonsTaken||0) - 1),
-    remainingClasses: typeof s.remainingClasses === "number" ? paidLeft + 1 : s.remainingClasses
+    lessonsTotal: Math.max(wholeNumber(s.lessonsTotal), lessonsTaken + remainingClasses),
+    lessonsTaken,
+    remainingClasses
   };
 }
 
@@ -1810,7 +1843,7 @@ function recordSkillSnapshot(s) {
 function genEncouragement(s, data) {
   const name = s.name.split(" ")[0];
   const avg = skillAvg(s);
-  const taken = s.lessonsTaken + (s.freeTaken||0);
+  const taken = lessonStats(s).usedCredits;
   const cur = data.curriculum||[];
   const assigned = cur.filter(c=>(s.assignedLessons||[]).includes(c.id));
   const doneCount = (s.completedLessons||[]).filter(id=>(s.assignedLessons||[]).includes(id)).length;
@@ -2014,7 +2047,7 @@ function exportProfilePDF(s, data, shareWA) {
   const assigned = cur.filter(c=>(s.assignedLessons||[]).includes(c.id));
   const completed = (s.completedLessons||[]);
   const doneCount = assigned.filter(c=>completed.includes(c.id)).length;
-  const totalTaken = s.lessonsTaken + (s.freeTaken||0);
+  const totalTaken = lessonStats(s).usedCredits;
   const att = attendanceStats(s.id, data.lessons);
   const avg = skillAvg(s);
   const histArr = s.skillHistory || [];
@@ -8299,8 +8332,8 @@ function StudentProfile({data, setData, profileId, auth}) {
         </div>
         <div class="fr3">
           <div class="fg"><label>Total Lessons Taken</label><input type="number" value=${lessonSummary.taken||0} onInput=${e=>{const next=applyTotalLessonsTaken(s, e.target.value); updMany({lessonsTaken:next.lessonsTaken, remainingClasses:next.remainingClasses, freeTaken:next.freeTaken, lessonsOverdue:next.lessonsOverdue})}}/></div>
-          <div class="fg"><label>Free Lessons Given</label><input type="number" value=${s.freeTotal||0} onInput=${e=>{const next=applyTotalLessonsTaken({...s, freeTotal:Math.max(0,+e.target.value)}, lessonSummary.taken); updMany({freeTotal:next.freeTotal, lessonsTaken:next.lessonsTaken, remainingClasses:next.remainingClasses, freeTaken:next.freeTaken, lessonsOverdue:next.lessonsOverdue})}}/></div>
-          <div class="fg"><label>Free Lessons Taken</label><input type="number" value=${s.freeTaken||0} onInput=${e=>upd("freeTaken",Math.max(0,Math.min(s.freeTotal||0,+e.target.value)))}/></div>
+          <div class="fg"><label>Free Lessons Given</label><input type="number" value=${s.freeTotal||0} onInput=${e=>{const next=applyTotalLessonsTaken({...s, freeTotal:wholeNumber(e.target.value)}, lessonSummary.taken); updMany({freeTotal:next.freeTotal, lessonsTaken:next.lessonsTaken, remainingClasses:next.remainingClasses, freeTaken:next.freeTaken, lessonsOverdue:next.lessonsOverdue})}}/></div>
+          <div class="fg"><label>Free Lessons Taken</label><input type="number" value=${s.freeTaken||0} onInput=${e=>upd("freeTaken",Math.max(0,Math.min(wholeNumber(s.freeTotal),wholeNumber(e.target.value))))}/></div>
         </div>
         <div style=${{marginTop:4,padding:"10px 12px",borderRadius:8,background:lessonSummary.overdue?"#fff5f5":"var(--g50)",border:"1.5px solid "+(lessonSummary.overdue?"#ffcdd2":"var(--g200)"),fontSize:12,color:lessonSummary.overdue?"var(--bd)":"var(--g600)",fontWeight:700}}>Total lesson credit: ${lessonSummary.left} left of ${lessonSummary.total} (${lessonSummary.paidLeft} paid + ${lessonSummary.freeLeft} free)${lessonSummary.overdue?h` · Lessons overdue: ${lessonSummary.overdue}`:""}</div>
       </div>
@@ -8858,17 +8891,15 @@ function Students({data, setData, onProfile, auth}) {
           : "Top-up — "+lessonDiff+" lesson"+(lessonDiff>1?"s":"")+" added";
         newPayments = [...data.payments, {id:uid(),studentId:form.id,amount,date:today(),method:"Cash",notes:note,lessonsAdded:lessonDiff,status:payStatus}];
       }
-      const saved = {
+      const saved = normalizeStudentLessonBalance({
         ...form,
-        remainingClasses: Math.max(0, form.remainingClasses || 0),
-        lessonsOverdue: Math.max(0, form.lessonsOverdue || 0),
         enrollmentStatus: form.enrollmentStatus==="pending" ? "active" : form.enrollmentStatus
-      };
+      });
       setData({...data, students: data.students.map(s=>s.id===form.id?saved:s), payments: newPayments});
     } else {
       const amount = form.lessonsTotal * form.lessonRate;
       const newPayment = {id:uid(),studentId:form.id,amount,date:today(),method:"Cash",notes:"Initial enrollment — "+form.lessonsTotal+" lessons",lessonsAdded:form.lessonsTotal,status:payStatus};
-      setData({...data, students:[...data.students,{...form, remainingClasses:typeof form.remainingClasses==="number" ? Math.max(0, form.remainingClasses) : Math.max(0, (form.lessonsTotal||0) - (form.lessonsTaken||0)), lessonsOverdue:Math.max(0, form.lessonsOverdue||0), studentNumber: nextStudentNumber(data.students)}], payments: amount>0 ? [...data.payments,newPayment] : data.payments});
+      setData({...data, students:[...data.students,normalizeStudentLessonBalance({...form, studentNumber: nextStudentNumber(data.students)})], payments: amount>0 ? [...data.payments,newPayment] : data.payments});
       // Optionally create a login account for the new student
       if (loginPw && form.email && auth?.token) {
         const r = await apiPost("/api/users", {token: auth.token, action:"create", name:form.name.trim(), email:form.email.toLowerCase().trim(), password:loginPw, role:"student", phone:form.whatsapp||""});
@@ -8886,9 +8917,9 @@ function Students({data, setData, onProfile, auth}) {
   })}); };
   const adjTotal = (sid, delta) => { setData({...data, students: data.students.map(s => {
     if (s.id!==sid) return s;
-    return setPaidLessonTotal(s, Math.max(0, (s.lessonsTotal||0)+delta));
+    return setPaidLessonTotal(s, Math.max(0, wholeNumber(s.lessonsTotal)+delta));
   })}); };
-  const adjFreeTaken = (sid, delta) => { setData({...data, students: data.students.map(s => { if(s.id!==sid) return s; const fe=freeExpiry(s); if(fe.expired && delta>0) return s; const nv=Math.max(0, Math.min((s.freeTotal||0), (s.freeTaken||0)+delta)); return {...s, freeTaken:nv}; })}); };
+  const adjFreeTaken = (sid, delta) => { setData({...data, students: data.students.map(s => { if(s.id!==sid) return s; const fe=freeExpiry(s); if(fe.expired && delta>0) return s; const nv=Math.max(0, Math.min(wholeNumber(s.freeTotal), wholeNumber(s.freeTaken)+delta)); return {...s, freeTaken:nv}; })}); };
 
   // FIX #4: Quick complete creates a lesson record if none exists
   const completeLesson = (sid) => {
@@ -9099,7 +9130,7 @@ function Students({data, setData, onProfile, auth}) {
           <button type="button" style=${{padding:"5px 14px",borderRadius:6,border:"none",cursor:"pointer",fontWeight:700,fontSize:12,background:payStatus==="Paid"?"#4caf50":"#ff9800",color:"#fff"}} onClick=${()=>setPayStatus(p=>p==="Paid"?"Pending":"Paid")}>${payStatus==="Paid"?"✓ Paid":"⏳ Pending"}</button>
         </div>`;
       })()}
-      <div class="fr" style=${{borderLeft:"3px solid var(--ok)",paddingLeft:12}}><div class="fg"><label style=${{color:"var(--ok)"}}>Free Lessons Given</label><input type="number" value=${form.freeTotal||0} onInput=${e=>setForm(applyTotalLessonsTaken({...form,freeTotal:Math.max(0,+e.target.value)}, lessonStats(form).taken))}/></div><div class="fg"><label style=${{color:"var(--ok)"}}>Free Lessons Taken</label><input type="number" value=${form.freeTaken||0} onInput=${e=>setForm({...form,freeTaken:Math.max(0,Math.min(form.freeTotal||0,+e.target.value))})}/></div></div>
+      <div class="fr" style=${{borderLeft:"3px solid var(--ok)",paddingLeft:12}}><div class="fg"><label style=${{color:"var(--ok)"}}>Free Lessons Given</label><input type="number" value=${form.freeTotal||0} onInput=${e=>setForm(applyTotalLessonsTaken({...form,freeTotal:wholeNumber(e.target.value)}, lessonStats(form).taken))}/></div><div class="fg"><label style=${{color:"var(--ok)"}}>Free Lessons Taken</label><input type="number" value=${form.freeTaken||0} onInput=${e=>setForm({...form,freeTaken:Math.max(0,Math.min(wholeNumber(form.freeTotal),wholeNumber(e.target.value)))})}/></div></div>
       ${(()=>{const fs=lessonStats(form);return h`<div style=${{marginBottom:10,padding:"9px 12px",borderRadius:8,background:fs.overdue?"#fff5f5":"var(--g50)",border:"1.5px solid "+(fs.overdue?"#ffcdd2":"var(--g200)"),fontSize:12,fontWeight:700,color:fs.overdue?"var(--bd)":"var(--g600)"}}>Available: ${fs.left} left (${fs.paidLeft} paid + ${fs.freeLeft} free)${fs.overdue?" · Lessons overdue: "+fs.overdue:""}</div>`})()}
       <div class="fr"><div class="fg"><label>Start Date</label><input type="date" value=${form.startDate} onInput=${e=>setForm({...form,startDate:e.target.value})}/></div><div class="fg"><label>Status</label><select value=${form.active?"active":"inactive"} onChange=${e=>setForm({...form,active:e.target.value==="active"})}><option value="active">Active</option><option value="inactive">Inactive</option></select></div></div>
       ${!data.students.find(s=>s.id===form.id) && h`<div style=${{marginTop:16,paddingTop:14,borderTop:"1.5px dashed var(--g200)"}}>
@@ -9249,7 +9280,7 @@ function Scheduling({data, setData, auth}) {
   const loadCreditsFromCloud = async () => {
     try {
       const r = await apiPost("/api/data", {token: auth.token, action:"restore"});
-      if (r.data) setData(r.data);
+      if (r.data) setData(migrateData(r.data));
     } catch {}
   };
 
@@ -9261,7 +9292,12 @@ function Scheduling({data, setData, auth}) {
       const r = await apiPost("/api/schedule", {token: auth.token, action:"adjustCredits", studentId:creditModal.studentId, delta:+creditDelta, note:creditNote});
       if (r.error) flash(r.error, true);
       else {
-        setData({...data, students: data.students.map(s => s.id===creditModal.studentId ? {...s, remainingClasses:r.remaining} : s)});
+        setData({...data, students: data.students.map(s => s.id===creditModal.studentId ? normalizeStudentLessonBalance({
+          ...s,
+          lessonsTotal: r.lessonsTotal ?? s.lessonsTotal,
+          lessonsTaken: r.lessonsTaken ?? s.lessonsTaken,
+          remainingClasses: r.remainingClasses ?? r.remaining
+        }) : s)});
         flash(`Credits updated — ${creditModal.name} now has ${r.remaining} class${r.remaining===1?"":"es"}.`);
         setCreditModal(null); setCreditDelta(0); setCreditNote("");
       }
@@ -9710,11 +9746,11 @@ function Payments({data, setData}) {
       // Adjust lessons if lessonsAdded changed
       const diff = (form.lessonsAdded||0) - (ex.lessonsAdded||0);
       if(diff !== 0) {
-        nS = nS.map(s=>s.id===form.studentId?{...s,lessonsTotal:Math.max(0,s.lessonsTotal+diff),remainingClasses:Math.max(0,(typeof s.remainingClasses==="number"?s.remainingClasses:Math.max(0,(s.lessonsTotal||0)-(s.lessonsTaken||0)))+diff)}:s);
+        nS = nS.map(s=>s.id===form.studentId?setPaidLessonTotal(s, Math.max(0, wholeNumber(s.lessonsTotal)+diff)):s);
       }
     } else {
       nP=[...data.payments,{...form}];
-      if(form.lessonsAdded>0) nS=nS.map(s=>s.id===form.studentId?{...s,lessonsTotal:s.lessonsTotal+form.lessonsAdded,remainingClasses:(typeof s.remainingClasses==="number"?s.remainingClasses:Math.max(0,(s.lessonsTotal||0)-(s.lessonsTaken||0)))+form.lessonsAdded,totalPaid:s.totalPaid+form.amount}:s);
+      if(form.lessonsAdded>0) nS=nS.map(s=>s.id===form.studentId?{...setPaidLessonTotal(s, wholeNumber(s.lessonsTotal)+wholeNumber(form.lessonsAdded)),totalPaid:(s.totalPaid||0)+form.amount}:s);
     }
     setData({...data,payments:nP,students:nS}); setShow(false); setForm(mkPayment());
   };

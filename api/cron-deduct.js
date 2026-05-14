@@ -28,20 +28,42 @@ function freeLessonExpiry(s, now = new Date()) {
 }
 function freeLessonsLeft(s, now = new Date()) {
   if (freeLessonExpiry(s, now).expired) return 0;
-  return Math.max(0, (s?.freeTotal || 0) - (s?.freeTaken || 0));
+  return Math.max(0, wholeNumber(s?.freeTotal) - wholeNumber(s?.freeTaken));
+}
+function wholeNumber(value) {
+  return Math.max(0, Math.floor(Number(value) || 0));
+}
+function normalizeStudentLessonBalance(s = {}) {
+  const lessonsTaken = wholeNumber(s.lessonsTaken);
+  const storedTotal = wholeNumber(s.lessonsTotal);
+  const storedRemaining = typeof s.remainingClasses === 'number' ? wholeNumber(s.remainingClasses) : null;
+  const derivedRemaining = Math.max(0, storedTotal - lessonsTaken);
+  const paidLeft = Math.max(derivedRemaining, storedRemaining ?? derivedRemaining);
+  const lessonsTotal = Math.max(storedTotal, lessonsTaken + paidLeft);
+  return {
+    ...s,
+    lessonsTotal,
+    lessonsTaken,
+    remainingClasses: Math.max(0, lessonsTotal - lessonsTaken),
+    freeTotal: wholeNumber(s.freeTotal),
+    freeTaken: wholeNumber(s.freeTaken),
+    lessonsOverdue: wholeNumber(s.lessonsOverdue)
+  };
 }
 function paidCreditsLeft(s) {
-  if (typeof s?.remainingClasses === 'number') return Math.max(0, s.remainingClasses || 0);
-  return Math.max(0, (s?.lessonsTotal || 0) - (s?.lessonsTaken || 0));
+  const n = normalizeStudentLessonBalance(s || {});
+  return Math.max(0, n.lessonsTotal - n.lessonsTaken);
 }
 function deductLessonCredit(s, now = new Date()) {
-  const paidBefore = paidCreditsLeft(s);
-  const freeBefore = freeLessonsLeft(s, now);
+  const base = normalizeStudentLessonBalance(s || {});
+  const paidBefore = paidCreditsLeft(base);
+  const freeBefore = freeLessonsLeft(base, now);
   const before = paidBefore + freeBefore;
   if (paidBefore > 0) {
     const paidAfter = Math.max(0, paidBefore - 1);
+    const lessonsTaken = base.lessonsTaken + 1;
     return {
-      student: { ...s, remainingClasses: paidAfter, lessonsTaken: (s.lessonsTaken || 0) + 1 },
+      student: normalizeStudentLessonBalance({ ...base, lessonsTaken, remainingClasses: paidAfter }),
       before,
       after: paidAfter + freeBefore,
       creditType: 'paid'
@@ -49,14 +71,14 @@ function deductLessonCredit(s, now = new Date()) {
   }
   if (freeBefore > 0) {
     return {
-      student: { ...s, freeTaken: Math.min(s.freeTotal || 0, (s.freeTaken || 0) + 1) },
+      student: normalizeStudentLessonBalance({ ...base, freeTaken: Math.min(base.freeTotal, base.freeTaken + 1) }),
       before,
       after: Math.max(0, before - 1),
       creditType: 'free'
     };
   }
   return {
-    student: { ...s, remainingClasses: typeof s.remainingClasses === 'number' ? 0 : s.remainingClasses, lessonsOverdue: Math.max(0, (s.lessonsOverdue || 0) + 1) },
+    student: normalizeStudentLessonBalance({ ...base, remainingClasses: 0, lessonsOverdue: base.lessonsOverdue + 1 }),
     before,
     after: 0,
     creditType: 'overdue'
