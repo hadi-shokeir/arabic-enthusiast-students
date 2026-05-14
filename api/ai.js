@@ -403,6 +403,19 @@ Known target sounds: ${JSON.stringify(context.targetSounds || [])}`;
         userMessage = `Word: "${context.word}"\nStudent level: ${context.level} | Dialect: ${context.type}`;
         break;
 
+      case 'howto_answer':
+        model = COMPLEX_MODEL;
+        systemPrompt = `You are Hadi, a professional Arabic linguist and language tutor. A student has asked a practical question about learning Arabic. Write a clear, warm, and immediately actionable answer.
+
+Structure your answer exactly like this:
+1. A direct 2-3 sentence answer to the question.
+2. 3-5 numbered, concrete tips or steps (not generic advice — real, specific guidance).
+3. One short encouraging closing line in English, ending with a relevant Arabic phrase with its meaning in brackets.
+
+Keep the total answer under 280 words. Be specific, honest, and practical — like a teacher talking to a student one-on-one.`;
+        userMessage = `Question: "${context.question}"\nCategory: ${context.category || 'general'}`;
+        break;
+
       case 'conjugation':
         model = COMPLEX_MODEL;
         systemPrompt = `You are an expert Arabic linguist and grammarian. The user will give you an Arabic word or its English meaning. Identify whether it is a verb (فعل) or noun (اسم) and generate its full conjugation or declension table with FULL diacritics (tashkeel) on every Arabic word.
@@ -460,6 +473,7 @@ IMPORTANT: Generate ACTUAL correct forms for the requested word — do not copy 
                     : type === 'flashcard_generate' ? 4096
                     : type === 'student_quiz'       ? 4096
                     : type === 'lesson_plan'        ? 2500
+                    : type === 'howto_answer'       ? 1500
                     : 1024;
 
     // student_chat uses multi-turn messages built from history

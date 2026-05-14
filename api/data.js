@@ -98,6 +98,16 @@ export default async function handler(req, res) {
           const newItems = (data.homework || []).filter(hw => myId && hw.studentId === myId && !existingIds.has(hw.id));
           return [...merged, ...newItems];
         })(),
+        howTo: (() => {
+          const existing = current.howTo || [];
+          const incoming = data.howTo || [];
+          const existingIds = new Set(existing.map(q => q.id));
+          const myStudent = (current.students || []).find(s => s.email && s.email.toLowerCase() === studentEmail.toLowerCase());
+          const myId = myStudent?.id;
+          // Students can only append new pending questions — never modify existing entries
+          const newQuestions = incoming.filter(q => myId && q.studentId === myId && q.status === 'pending' && !existingIds.has(q.id));
+          return [...existing, ...newQuestions];
+        })(),
         lessonRequests: (() => {
           const myStudent = (current.students || []).find(s => s.email && s.email.toLowerCase() === studentEmail.toLowerCase());
           const myId = myStudent?.id;

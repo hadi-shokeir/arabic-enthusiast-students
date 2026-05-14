@@ -1139,7 +1139,7 @@ async function pushImages(settings) {
 
 // ─── Helpers ───
 const SK = "tutor-v5";
-const DATA_VERSION = 21;
+const DATA_VERSION = 22;
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 const fmt = d => d ? new Date(d).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}) : "—";
 const today = () => new Date().toISOString().split("T")[0];
@@ -1295,7 +1295,7 @@ const DEFS = {
 };
 const defaultSiteContent = () => window.AE?.cloneSiteContent ? window.AE.cloneSiteContent() : {};
 const normalizeSiteContent = content => window.AE?.normalizeSiteContent ? window.AE.normalizeSiteContent(content) : (content || defaultSiteContent());
-const DD = {students:[],lessons:[],payments:[],curriculum:[],groups:[],homework:[],lessonRequests:[],resources:[],lessonLogs:[],studioItems:[],siteContent:defaultSiteContent(),settings:{...DEFS},_version:DATA_VERSION};
+const DD = {students:[],lessons:[],payments:[],curriculum:[],groups:[],homework:[],lessonRequests:[],resources:[],lessonLogs:[],studioItems:[],howTo:[],siteContent:defaultSiteContent(),settings:{...DEFS},_version:DATA_VERSION};
 
 // ─── IndexedDB Storage ───
 const DB_NAME = "TutorDB", DB_STORE = "appdata", DB_KEY = "main";
@@ -1464,7 +1464,12 @@ function migrateData(data) {
     d.students = (d.students||[]).map(withStudentDefaults);
     d._version = DATA_VERSION;
   }
+  if (v < 22) {
+    if (!d.howTo) d.howTo = [];
+    d._version = DATA_VERSION;
+  }
   if (!d.studioItems) d.studioItems = [];
+  if (!d.howTo) d.howTo = [];
   d.siteContent = normalizeSiteContent(d.siteContent);
   d.students = (d.students||[]).map(withStudentDefaults);
   d._version = DATA_VERSION;
@@ -5416,6 +5421,7 @@ const SP_NAV = [
   {id:'foundation',icon:'🌿',label:'Foundation',group:'LEARN'},
   {id:'script',icon:'ب',label:'Script',group:'LEARN'},
   {id:'culture',icon:'🕌',label:'Culture',group:'EXPLORE'},
+  {id:'howto',icon:'💡',label:'How-To Guide',group:'EXPLORE'},
   {id:'library',icon:'📚',label:'Library',group:'MY LESSONS'},
   {id:'book',icon:'📅',label:'Book a Lesson',group:'MY LESSONS'},
   {id:'curriculum',icon:'📋',label:'Curriculum',group:'MY LESSONS'},
@@ -5430,6 +5436,7 @@ const SP_MORE_NAV = [
   {id:'foundation',icon:'R',label:'Foundation',desc:'Vocabulary, roots, and grammar basics.'},
   {id:'script',icon:'ب',label:'Arabic Script',desc:'Letters, forms, and script confidence.'},
   {id:'culture',icon:'C',label:'Culture',desc:'Expressions, context, and cultural notes.'},
+  {id:'howto',icon:'💡',label:'How-To Guide',desc:'Answers to common Arabic learning questions, reviewed and answered by Hadi.'},
   {id:'curriculum',icon:'L',label:'Curriculum',desc:'Assigned lessons and class materials.'},
   {id:'preferences',icon:'J',label:'My Journey',desc:'Goals, interests, study style, and motivation.'},
   {id:'settings',icon:'S',label:'Settings',desc:'Profile, timezone, notifications, and theme.'},
@@ -5857,6 +5864,201 @@ function buildTraceSegmentScores(g, k, width, height, gb, ib, coverageScore, lin
   if (shapeScore != null) segments.unshift({id:"shape",label:"Shape",score:shapeScore,hint:shapeScore>=0.72?"Shape matches well":"Match the letter silhouette"});
   if (boxMetrics?.proportion != null) segments.push({id:"proportion",label:"Proportion",score:boxMetrics.proportion,hint:boxMetrics.proportion>=0.72?"Good proportions":"Adjust height and width"});
   return segments;
+}
+
+// ════════════════════════════════════════
+// HOW-TO GUIDE — Student View
+// ════════════════════════════════════════
+function HowToStudentView({student:s, data, setData}) {
+  const CATS = [["all","All"],["study-tips","Study Tips"],["grammar","Grammar"],["vocabulary","Vocabulary"],["pronunciation","Pronunciation"],["general","General"]];
+  const [filter, setFilter] = useState("all");
+  const [search, setSearch] = useState("");
+  const [expanded, setExpanded] = useState(null);
+  const [question, setQuestion] = useState("");
+  const [category, setCategory] = useState("general");
+  const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const items = (data.howTo||[]).filter(q=>q.status==="answered"&&(filter==="all"||q.category===filter)&&(!search||q.question.toLowerCase().includes(search.toLowerCase())||q.answer.toLowerCase().includes(search.toLowerCase()))).sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||new Date(b.answeredAt)-new Date(a.answeredAt));
+
+  const submit = () => {
+    if(!question.trim()||submitting) return;
+    setSubmitting(true);
+    const entry = {id:uid(),question:question.trim(),askedBy:s.name,studentId:s.id,askedAt:new Date().toISOString(),status:"pending",answer:"",answeredAt:null,aiGenerated:false,category,pinned:false};
+    setData({...data,howTo:[...(data.howTo||[]),entry]});
+    setQuestion("");
+    setSubmitted(true);
+    setSubmitting(false);
+    setTimeout(()=>setSubmitted(false),5000);
+  };
+
+  return h`<div style=${{maxWidth:760,margin:"0 auto"}}>
+    <div style=${{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:700,marginBottom:6,color:"var(--sp-txt)"}}>How-To Guide 💡</div>
+    <div style=${{fontSize:14,color:"var(--sp-txt2)",marginBottom:22,lineHeight:1.7}}>Practical answers to common Arabic learning questions — reviewed and answered by Hadi.</div>
+
+    <input value=${search} onInput=${e=>setSearch(e.target.value)} placeholder="Search questions..." style=${{width:"100%",boxSizing:"border-box",background:"var(--sp-surface)",border:"1px solid var(--sp-border)",borderRadius:10,padding:"10px 14px",color:"var(--sp-txt)",fontFamily:"inherit",fontSize:14,outline:"none",marginBottom:14}}/>
+
+    <div class="sp2-tabs" style=${{marginBottom:20}}>
+      ${CATS.map(([id,label])=>h`<button key=${id} class=${"sp2-tab "+(filter===id?"on":"")} onClick=${()=>setFilter(id)}>${label}</button>`)}
+    </div>
+
+    ${items.length===0?h`<div class="sp2-card" style=${{textAlign:"center",padding:40,color:"var(--sp-txt2)"}}>
+      <div style=${{fontSize:36,marginBottom:12}}>💡</div>
+      <div style=${{fontWeight:700,fontSize:16,color:"var(--sp-txt)",marginBottom:8}}>${search?"No results found":"No answered questions yet"}</div>
+      <div style=${{fontSize:13,lineHeight:1.6}}>${search?"Try a different search term.":"Be the first to ask a question below!"}</div>
+    </div>`:items.map(q=>h`<div key=${q.id} class="sp2-card" style=${{marginBottom:12,cursor:"pointer",border:"1px solid "+(expanded===q.id?"var(--sp-amber)":"var(--sp-border)"),transition:"border-color 0.2s"}} onClick=${()=>setExpanded(expanded===q.id?null:q.id)}>
+      <div style=${{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:10}}>
+        <div style=${{flex:1}}>
+          ${q.pinned?h`<span class="sp2-badge sp2-badge-a" style=${{fontSize:9,marginBottom:6,display:"inline-block"}}>📌 Pinned</span>`:null}
+          <div style=${{fontWeight:700,fontSize:15,color:"var(--sp-txt)",lineHeight:1.5}}>${q.question}</div>
+          <div style=${{display:"flex",gap:6,flexWrap:"wrap",marginTop:6}}>
+            ${q.category&&q.category!=="general"?h`<span class="sp2-badge sp2-badge-t" style=${{fontSize:10}}>${CATS.find(([id])=>id===q.category)?.[1]||q.category}</span>`:null}
+            ${q.aiGenerated?h`<span class="sp2-badge" style=${{fontSize:9,background:"rgba(124,58,237,0.12)",color:"#7c3aed",border:"1px solid rgba(124,58,237,0.2)"}}>🤖 AI-assisted</span>`:null}
+          </div>
+        </div>
+        <div style=${{fontSize:18,color:"var(--sp-txt3)",flexShrink:0,marginTop:2}}>${expanded===q.id?"▲":"▼"}</div>
+      </div>
+      ${expanded===q.id?h`<div style=${{borderTop:"1px solid var(--sp-border)",marginTop:14,paddingTop:14}}>
+        <div style=${{fontSize:14,lineHeight:1.9,color:"var(--sp-txt)",whiteSpace:"pre-wrap"}}>${q.answer}</div>
+        <div style=${{fontSize:11,color:"var(--sp-txt3)",marginTop:10}}>Answered by Hadi${q.answeredAt?" · "+new Date(q.answeredAt).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}):""}</div>
+      </div>`:null}
+    </div>`)}
+
+    <div class="sp2-card" style=${{marginTop:28,border:"2px dashed var(--sp-border)"}}>
+      <div style=${{fontWeight:700,fontSize:15,color:"var(--sp-txt)",marginBottom:4}}>Ask a Question 🙋</div>
+      <div style=${{fontSize:13,color:"var(--sp-txt2)",marginBottom:14}}>Hadi will review your question and post the answer here for all students to benefit from.</div>
+      ${submitted?h`<div style=${{background:"rgba(22,163,74,0.12)",border:"1px solid rgba(22,163,74,0.3)",borderRadius:10,padding:"12px 16px",color:"#15803d",fontWeight:700,fontSize:14}}>✅ Question submitted! Hadi will answer it soon and it'll appear here.</div>`:h`<div>
+        <select value=${category} onChange=${e=>setCategory(e.target.value)} style=${{width:"100%",marginBottom:10,background:"var(--sp-surface)",border:"1px solid var(--sp-border)",borderRadius:10,padding:"10px 14px",color:"var(--sp-txt)",fontFamily:"inherit",fontSize:14,outline:"none"}}>
+          ${CATS.filter(([id])=>id!=="all").map(([id,label])=>h`<option key=${id} value=${id}>${label}</option>`)}
+        </select>
+        <textarea value=${question} onInput=${e=>setQuestion(e.target.value)} onKeyDown=${e=>{if(e.key==="Enter"&&e.ctrlKey)submit();}} placeholder="e.g. How do I get started with Classical Arabic? What is the best way to memorise vocabulary?" rows="3" style=${{width:"100%",boxSizing:"border-box",background:"var(--sp-surface)",border:"1px solid var(--sp-border)",borderRadius:10,padding:"11px 14px",color:"var(--sp-txt)",fontFamily:"inherit",fontSize:14,outline:"none",resize:"vertical"}}></textarea>
+        <button class="sp2-btn sp2-btn-p" style=${{marginTop:10,width:"100%",justifyContent:"center"}} onClick=${submit} disabled=${submitting||!question.trim()}>${submitting?"Submitting...":"Submit Question"}</button>
+      </div>`}
+    </div>
+  </div>`;
+}
+
+// ════════════════════════════════════════
+// HOW-TO GUIDE — Tutor Admin
+// ════════════════════════════════════════
+function HowToAdmin({data, setData, auth}) {
+  const CATS = [["study-tips","Study Tips"],["grammar","Grammar"],["vocabulary","Vocabulary"],["pronunciation","Pronunciation"],["general","General"]];
+  const [adminTab, setAdminTab] = useState("pending");
+  const [answers, setAnswers] = useState({});
+  const [aiLoading, setAiLoading] = useState({});
+  const [editId, setEditId] = useState(null);
+  const [editText, setEditText] = useState("");
+
+  const howTo = data.howTo||[];
+  const pending = howTo.filter(q=>q.status==="pending");
+  const answered = howTo.filter(q=>q.status==="answered").sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||new Date(b.answeredAt)-new Date(a.answeredAt));
+
+  const upd = (id,patch) => setData({...data,howTo:howTo.map(q=>q.id===id?{...q,...patch}:q)});
+
+  const publish = id => {
+    const ans = (answers[id]||"").trim();
+    if(!ans) return;
+    upd(id,{status:"answered",answer:ans,answeredAt:new Date().toISOString(),aiGenerated:false});
+    setAnswers(a=>({...a,[id]:""}));
+    if(adminTab==="pending"&&howTo.filter(q=>q.status==="pending").length===1) setAdminTab("answered");
+  };
+
+  const generateAI = async item => {
+    setAiLoading(l=>({...l,[item.id]:true}));
+    try {
+      const d = await apiPost("/api/ai",{type:"howto_answer",context:{question:item.question,category:item.category}});
+      if(d?.result) setAnswers(a=>({...a,[item.id]:d.result}));
+    } catch{}
+    setAiLoading(l=>({...l,[item.id]:false}));
+  };
+
+  const publishAI = async item => {
+    setAiLoading(l=>({...l,[item.id]:true}));
+    try {
+      const d = await apiPost("/api/ai",{type:"howto_answer",context:{question:item.question,category:item.category}});
+      if(d?.result) upd(item.id,{status:"answered",answer:d.result,answeredAt:new Date().toISOString(),aiGenerated:true});
+    } catch{}
+    setAiLoading(l=>({...l,[item.id]:false}));
+  };
+
+  const saveEdit = id => {
+    if(!editText.trim()) return;
+    upd(id,{answer:editText.trim(),answeredAt:new Date().toISOString()});
+    setEditId(null);
+  };
+
+  return h`<div>
+    <div class="tutor-page-head">
+      <div>
+        <h1>How-To Guide 💡</h1>
+        <p>Review student questions, write or generate answers with AI, and publish them for all students to see.</p>
+      </div>
+      <div style=${{display:"flex",gap:8,alignItems:"center"}}>
+        ${pending.length>0?h`<span class="tg" style=${{background:"rgba(239,68,68,0.12)",color:"#ef4444",border:"1px solid rgba(239,68,68,0.25)",fontWeight:800}}>${pending.length} pending</span>`:null}
+      </div>
+    </div>
+
+    <div class="tabs" style=${{marginBottom:20}}>
+      ${[["pending","Pending"+(pending.length?" ("+pending.length+")":"")],["answered","Published ("+answered.length+")"]].map(([id,label])=>h`<button key=${id} class=${"tab "+(adminTab===id?"on":"")} onClick=${()=>setAdminTab(id)}>${label}</button>`)}
+    </div>
+
+    ${adminTab==="pending"&&h`<div>
+      ${pending.length===0?h`<div class="empty"><h3>NO PENDING QUESTIONS</h3><p>When students submit questions they'll appear here for you to answer.</p></div>`:
+      pending.map(item=>h`<div key=${item.id} class="card" style=${{marginBottom:18}}>
+        <div style=${{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12,gap:12}}>
+          <div style=${{flex:1}}>
+            <div style=${{fontWeight:700,fontSize:15,lineHeight:1.5}}>${item.question}</div>
+            <div style=${{fontSize:12,color:"var(--g500)",marginTop:4,display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
+              <span>Asked by <strong>${item.askedBy||"Anonymous"}</strong></span>
+              ${item.askedAt?h`<span>${new Date(item.askedAt).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}</span>`:null}
+              ${item.category&&item.category!=="general"?h`<span class="tg" style=${{fontSize:10,padding:"1px 7px"}}>${CATS.find(([id])=>id===item.category)?.[1]||item.category}</span>`:null}
+            </div>
+          </div>
+          <button class="btn" style=${{fontSize:11,padding:"4px 10px",color:"#ef4444",border:"1px solid rgba(239,68,68,0.25)",flexShrink:0}} onClick=${()=>upd(item.id,{status:"dismissed"})}>Dismiss</button>
+        </div>
+        <textarea value=${answers[item.id]||""} onInput=${e=>setAnswers(a=>({...a,[item.id]:e.target.value}))} placeholder="Write your answer here, or click Generate with AI to get a draft..." rows="5" style=${{width:"100%",boxSizing:"border-box",fontFamily:"var(--fb)",fontSize:14,padding:"10px 12px",borderRadius:10,border:"1px solid var(--g200)",resize:"vertical",outline:"none",lineHeight:1.7}}></textarea>
+        <div style=${{display:"flex",gap:8,marginTop:10,flexWrap:"wrap"}}>
+          <button class="btn btn-p" onClick=${()=>publish(item.id)} disabled=${!(answers[item.id]||"").trim()}>✅ Publish Answer</button>
+          <button class="btn" onClick=${()=>generateAI(item)} disabled=${aiLoading[item.id]} style=${{background:"rgba(124,58,237,0.08)",color:"#7c3aed",border:"1px solid rgba(124,58,237,0.2)",fontWeight:700}}>
+            ${aiLoading[item.id]?"Generating...":"🤖 Draft with AI"}
+          </button>
+          <button class="btn" onClick=${()=>publishAI(item)} disabled=${aiLoading[item.id]} style=${{background:"rgba(124,58,237,0.15)",color:"#6d28d9",border:"1px solid rgba(109,40,217,0.25)",fontWeight:700}}>
+            ${aiLoading[item.id]?"...":"⚡ Generate & Publish"}
+          </button>
+        </div>
+      </div>`)}
+    </div>`}
+
+    ${adminTab==="answered"&&h`<div>
+      ${answered.length===0?h`<div class="empty"><h3>NO PUBLISHED ANSWERS</h3><p>Answer pending questions to publish them here for all students.</p></div>`:
+      answered.map(item=>h`<div key=${item.id} class="card" style=${{marginBottom:14,border:item.pinned?"2px solid var(--bd)":"1px solid var(--g200)"}}>
+        <div style=${{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10,marginBottom:10}}>
+          <div style=${{flex:1}}>
+            ${item.pinned?h`<span class="tg" style=${{fontSize:9,marginBottom:4,display:"inline-block"}}>📌 Pinned</span>`:null}
+            <div style=${{fontWeight:700,fontSize:14,lineHeight:1.5}}>${item.question}</div>
+            <div style=${{fontSize:11,color:"var(--g500)",marginTop:3,display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
+              <span>By ${item.askedBy||"Anonymous"}</span>
+              ${item.answeredAt?h`<span>${new Date(item.answeredAt).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}</span>`:null}
+              ${item.aiGenerated?h`<span style=${{color:"#7c3aed"}}>🤖 AI-generated</span>`:null}
+              ${item.category&&item.category!=="general"?h`<span class="tg" style=${{fontSize:9,padding:"1px 6px"}}>${CATS.find(([id])=>id===item.category)?.[1]||item.category}</span>`:null}
+            </div>
+          </div>
+          <div style=${{display:"flex",gap:6,flexShrink:0}}>
+            <button class="btn" style=${{fontSize:11,padding:"4px 8px"}} onClick=${()=>upd(item.id,{pinned:!item.pinned})}>${item.pinned?"Unpin":"📌 Pin"}</button>
+            <button class="btn" style=${{fontSize:11,padding:"4px 8px"}} onClick=${()=>{setEditId(item.id);setEditText(item.answer);}}>Edit</button>
+            <button class="btn" style=${{fontSize:11,padding:"4px 8px",color:"#ef4444"}} onClick=${()=>{if(confirm("Delete this Q&A? Students will no longer see it."))setData({...data,howTo:howTo.filter(q=>q.id!==item.id)});}}>Delete</button>
+          </div>
+        </div>
+        ${editId===item.id?h`<div>
+          <textarea value=${editText} onInput=${e=>setEditText(e.target.value)} rows="5" style=${{width:"100%",boxSizing:"border-box",fontFamily:"var(--fb)",fontSize:14,padding:"10px 12px",borderRadius:10,border:"1px solid var(--g200)",resize:"vertical",outline:"none",lineHeight:1.7}}></textarea>
+          <div style=${{display:"flex",gap:8,marginTop:8}}>
+            <button class="btn btn-p" onClick=${()=>saveEdit(item.id)}>Save Changes</button>
+            <button class="btn" onClick=${()=>setEditId(null)}>Cancel</button>
+          </div>
+        </div>`:h`<div style=${{fontSize:13,color:"var(--g700)",lineHeight:1.85,background:"var(--g50)",borderRadius:8,padding:"10px 14px",whiteSpace:"pre-wrap",borderLeft:"3px solid var(--bd)"}}>${item.answer}</div>`}
+      </div>`)}
+    </div>`}
+  </div>`;
 }
 
 function ArabicTracingLab({student:s, data, setData, sourceText, title, compact}) {
@@ -8014,9 +8216,8 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
       </div>
     </div>`;
 
-    // ── SHOP ──
+    if(spTab==='howto') return h`<${HowToStudentView} student=${s} data=${data} setData=${setData}/>`;
 
-    // ── LIBRARY ──
     if(spTab==='more') return h`<div style=${{maxWidth:760,margin:"0 auto"}}>
       <div style=${{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:700,marginBottom:6,color:"var(--sp-txt)"}}>More</div>
       <div style=${{fontSize:13,color:"var(--sp-txt2)",marginBottom:18,lineHeight:1.7}}>Extra tools and account settings are here when you need them.</div>
@@ -11795,10 +11996,12 @@ function App() {
   const bookedLessonReqs = data ? (data.lessonRequests||[]).filter(r=>r.source==="scheduler" && r.status==="booked").length : 0;
   const studentNoteCount = data ? data.students.filter(s=>s.studentNote&&s.studentNote.trim()).length : 0;
   const totalRequestsBadge = pendingUsers + pendingLessonReqs + bookedLessonReqs + studentNoteCount + submittedHw;
+  const pendingHowTo = (data.howTo||[]).filter(q=>q.status==="pending").length;
   const badges = {
     students: 0,
     homework: submittedHw,
     lessons: pendingLessonReqs + bookedLessonReqs,
+    howto: pendingHowTo,
     settings: pushNeedsSetup() ? 1 : 0,
   };
 
@@ -11812,6 +12015,7 @@ function App() {
     ["studio","Learning Studio","ai"],
     ["practice","Games, Quizzes & Exercises","ai"],
     ["homework","Homework & Tasks","hw"],
+    ["howto","How-To Guide","hw"],
     ["settings","Settings","set"]
   ];
   // Remap old view names for activeNav highlight
@@ -11838,6 +12042,7 @@ function App() {
     ${view==="practice" && h`<${PracticeAdmin} data=${data} onProfile=${openProfile}/>`}
     ${view==="homework" && h`<${HomeworkView} data=${data} onProfile=${openProfile}/>`}
     ${view==="requests" && h`<${RequestsInbox} auth=${auth} data=${data} setData=${update} onProfile=${openProfile} onSchedule=${()=>goNav("lessons")}/>`}
+    ${view==="howto" && h`<${HowToAdmin} data=${data} setData=${update} auth=${auth}/>`}
     ${view==="settings" && h`<${Settings} data=${data} setData=${update}/>`}
   `;
 
@@ -11937,6 +12142,7 @@ function App() {
         ${view==="practice" && h`<${PracticeAdmin} data=${data} onProfile=${openProfile}/>`}
         ${view==="homework" && h`<${HomeworkView} data=${data} onProfile=${openProfile}/>`}
         ${view==="requests" && h`<${RequestsInbox} auth=${auth} data=${data} setData=${update} onProfile=${openProfile} onSchedule=${()=>goNav("lessons")}/>`}
+        ${view==="howto" && h`<${HowToAdmin} data=${data} setData=${update} auth=${auth}/>`}
         ${view==="settings" && h`<${Settings} data=${data} setData=${update}/>`}
       </div>
       <nav class="mob-nav">
