@@ -157,14 +157,14 @@ tr.ck{cursor:pointer}tr.ck:hover td{background:var(--g100)}
 /* Quick complete btn */
 .btn-done{background:var(--ok);color:#fff;border-color:var(--ok);font-size:10px;padding:4px 10px}.btn-done:hover{background:#008844}
 /* Skill bar */
-.skill-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-.skill-label{width:80px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--g600)}
-.skill-dots{display:flex;gap:4px}
-.skill-dot{width:28px;height:28px;border:2px solid var(--bk);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;transition:all .15s}
-.skill-dot.on{background:var(--bk);color:var(--wh)}
-.skill-dot:hover{background:var(--g200)}
-.skill-dot.on:hover{background:var(--g700)}
-.skill-level{font-size:10px;color:var(--g500);margin-left:6px;min-width:70px}
+.skill-row{display:flex;align-items:center;gap:10px;margin-bottom:11px}
+.skill-label{width:84px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--g600);line-height:1.3}
+.skill-dots{display:flex;gap:5px}
+.skill-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--g300);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;transition:all .18s;color:var(--g400);background:transparent}
+.skill-dot.on{background:var(--track,var(--bk));color:#fff;border-color:var(--track,var(--bk));box-shadow:0 2px 8px rgba(0,0,0,0.18)}
+.skill-dot:hover{border-color:var(--track,var(--bk));color:var(--track,var(--bk));transform:scale(1.13)}
+.skill-dot.on:hover{filter:brightness(0.88);transform:scale(1.08)}
+.skill-level{font-size:10px;color:var(--g500);margin-left:4px;min-width:66px;font-weight:600}
 /* Assessment card */
 .assess-card{background:var(--wh);border:2px solid var(--g200);padding:16px;margin-bottom:14px;border-left:4px solid var(--g300)}
 .assess-card.private{border-left-color:var(--bd);background:#fffafa}
@@ -182,13 +182,13 @@ tr.ck{cursor:pointer}tr.ck:hover td{background:var(--g100)}
 .assessment-section-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
 .assessment-section-tab{border:1px solid var(--g200);border-radius:999px;background:var(--wh);color:var(--g500);font-size:11px;font-weight:800;padding:6px 11px;cursor:pointer;font-family:var(--fb);transition:all .16s}
 .assessment-section-tab.on{background:var(--track,#c9a24a);border-color:var(--track,#c9a24a);color:#fff}
-.assessment-chart-panel{background:var(--g50);border:1px solid var(--g100);border-radius:12px;padding:6px 2px;margin-bottom:0;--chart-label:var(--g700);--chart-grid:var(--g200);--chart-ring:var(--g300)}
-.assessment-skill-card{padding:12px!important}
-.assessment-skill-body{display:grid;grid-template-columns:170px minmax(0,1fr);gap:12px;align-items:start}
-.assessment-skill-rows{display:grid;grid-template-columns:repeat(2,minmax(220px,1fr));gap:6px 12px}
-.assessment-skill-card .skill-row{gap:7px;margin-bottom:0}
-.assessment-skill-card .skill-label{width:88px;font-size:10px;letter-spacing:.7px}
-.assessment-skill-card .skill-dot{width:22px;height:22px;border-width:1.5px;font-size:9px}
+.assessment-chart-panel{background:linear-gradient(160deg,var(--g50) 0%,#fff 100%);border:1px solid var(--g100);border-radius:18px;padding:16px 10px 12px;margin-bottom:0;--chart-label:var(--g700);--chart-grid:var(--g200);--chart-ring:var(--g300);display:flex;flex-direction:column;align-items:center;gap:6px}
+.assessment-skill-card{padding:20px!important}
+.assessment-skill-body{display:grid;grid-template-columns:196px minmax(0,1fr);gap:24px;align-items:start}
+.assessment-skill-rows{display:grid;grid-template-columns:repeat(2,minmax(200px,1fr));gap:8px 16px;padding-top:4px}
+.assessment-skill-card .skill-row{gap:7px;margin-bottom:0;align-items:center}
+.assessment-skill-card .skill-label{width:90px;font-size:10px;letter-spacing:.6px}
+.assessment-skill-card .skill-dot{width:23px;height:23px;border-width:1.5px;font-size:8px;border-radius:50%}
 .assessment-skill-card .skill-level{font-size:9px;min-width:56px;margin-left:2px}
 .students-table-card table{font-size:12px}
 .students-table-card th{padding:6px 8px;font-size:9px;letter-spacing:1px}
@@ -583,12 +583,13 @@ body:has(.sp2-root){overflow:hidden}
 .tutor-root .assessment-track-meta,.tutor-root .assessment-track-kicker{color:var(--sp-txt2)!important}
 .tutor-root .assessment-section-tab{background:var(--sp-surface);border-color:var(--sp-border);color:var(--sp-txt2)}
 .tutor-root .assessment-section-tab.on{background:var(--track,var(--sp-amber));border-color:var(--track,var(--sp-amber));color:#fff}
-.tutor-root .assessment-chart-panel{background:var(--sp-surface);border-color:var(--sp-border);--chart-label:var(--sp-txt2);--chart-grid:rgba(229,201,120,0.16);--chart-ring:rgba(229,201,120,0.32)}
+.tutor-root .assessment-chart-panel{background:var(--sp-surface);border-color:var(--sp-border);--chart-label:var(--sp-txt2);--chart-grid:rgba(229,201,120,0.16);--chart-ring:rgba(229,201,120,0.32);box-shadow:0 4px 18px rgba(0,0,0,0.18)}
 .tutor-root .assessment-axis-config{background:var(--sp-surface);border-color:var(--sp-border);--axis-chip-bg:var(--sp-card);--axis-chip-text:var(--sp-txt2);--axis-chip-border:var(--sp-border)}
 .tutor-root .assessment-axis-note{color:var(--sp-txt2)}
 .tutor-root .skill-label{color:var(--sp-txt2)}
-.tutor-root .skill-dot{border-color:var(--sp-border-h);color:var(--sp-txt2);border-radius:9px}
-.tutor-root .skill-dot.on{background:var(--sp-amber);border-color:var(--sp-amber);color:#17130c}
+.tutor-root .skill-dot{border-color:var(--sp-border-h);color:var(--sp-txt3);border-radius:50%}
+.tutor-root .skill-dot:hover{border-color:var(--track,var(--sp-amber));color:var(--track,var(--sp-amber))}
+.tutor-root .skill-dot.on{background:var(--track,var(--sp-amber));border-color:var(--track,var(--sp-amber));color:#17130c;box-shadow:0 2px 8px rgba(229,201,120,0.3)}
 .tutor-root .ai-plan-metric{background:var(--sp-surface);border-color:var(--sp-border)}
 .tutor-root .ai-plan-metric .lb{color:var(--sp-txt2)}
 .tutor-root .ai-plan-metric .vl{color:var(--sp-amber-l)}
@@ -677,10 +678,10 @@ tr.ck:hover td,.tutor-root tr.ck:hover td{
   background:var(--sp-glow,rgba(201,162,74,0.1))!important;
 }
 .assessment-chart-panel{
-  box-shadow:inset 0 1px 0 rgba(255,255,255,0.12),inset 0 -18px 30px rgba(0,0,0,0.04),0 12px 24px rgba(31,24,12,0.08);
+  box-shadow:0 4px 18px rgba(0,0,0,0.07),inset 0 1px 0 rgba(255,255,255,0.9);
 }
 .assessment-chart-panel svg{
-  filter:drop-shadow(0 10px 10px rgba(0,0,0,0.11));
+  filter:drop-shadow(0 6px 14px rgba(0,0,0,0.12));
 }
 .assessment-track-toggle,.assessment-section-tab{
   box-shadow:0 10px 18px rgba(31,24,12,0.08),inset 0 1px 0 rgba(255,255,255,0.12);
@@ -891,8 +892,9 @@ tr.ck:hover td,.tutor-root tr.ck:hover td{
   .mo-bd{padding:14px!important}
   .mo-ft{padding:12px 14px!important}
   .skill-dots{flex-wrap:wrap}
-  .assessment-skill-body{grid-template-columns:1fr}
+  .assessment-skill-body{grid-template-columns:1fr;gap:16px}
   .assessment-skill-rows{grid-template-columns:1fr}
+  .assessment-chart-panel{padding:12px 8px 10px}
   .assessment-section-tab{padding:8px 11px;font-size:11px}
   .kit-hero{padding:16px;border-radius:16px}
   .kit-title{font-size:29px}
@@ -1720,41 +1722,57 @@ function SpiderChart({axes, size, color}) {
   size = size||240; color = color||"#2196f3";
   const n = axes.length;
   if (!n || n < 3) return h`<div style=${{textAlign:"center",color:"#bbb",fontSize:12,padding:"20px 0"}}>Enable at least 3 skills to see the chart</div>`;
-  const cx = size/2, cy = size/2, r = size*0.33, lr = size*0.47;
+  const cx = size/2, cy = size/2, r = size*0.33, lr = size*0.49;
   const ang = i => (Math.PI*2*i/n) - Math.PI/2;
   const pt  = (i,v) => { const a=ang(i), d=(v/5)*r; return [+(cx+d*Math.cos(a)).toFixed(2), +(cy+d*Math.sin(a)).toFixed(2)]; };
+  const gradId = "sc-grad-"+color.replace(/[^a-z0-9]/gi,"");
 
   // Grid rings
   const rings = [1,2,3,4,5].map(ring => {
     const pts = axes.map((_,i)=>pt(i,ring).join(",")).join(" ");
-    return h`<polygon key=${ring} points=${pts} fill="none" stroke=${ring===5?"var(--chart-ring,#b8d0f0)":"var(--chart-grid,#ebebeb)"} strokeWidth=${ring===5?1.5:0.8}/>`;
+    const isOuter = ring===5;
+    return h`<polygon key=${ring} points=${pts} fill="none"
+      stroke=${isOuter?"var(--chart-ring,#b8d0f0)":"var(--chart-grid,#e8e8e8)"}
+      strokeWidth=${isOuter?1.8:0.7}
+      strokeDasharray=${isOuter?"none":"none"}/>`;
   });
   // Axis lines
   const axisLines = axes.map((_,i) => {
     const [x,y]=pt(i,5);
-    return h`<line key=${"ax"+i} x1=${cx} y1=${cy} x2=${x} y2=${y} stroke="var(--chart-grid,#d8d8d8)" strokeWidth="1"/>`;
+    return h`<line key=${"ax"+i} x1=${cx} y1=${cy} x2=${x} y2=${y} stroke="var(--chart-grid,#e0e0e0)" strokeWidth="0.8"/>`;
   });
   // Data polygon
   const dataPts = axes.map((a,i)=>pt(i,a.value||0).join(",")).join(" ");
-  // Dots and labels
+  // Dots
   const dots = axes.map((ax,i) => {
     const [dx,dy]=pt(i,ax.value||0);
-    return h`<circle key=${"d"+i} cx=${dx} cy=${dy} r="4.5" fill=${color} stroke="#fff" strokeWidth="2"/>`;
+    if (!(ax.value||0)) return null;
+    return h`<circle key=${"d"+i} cx=${dx} cy=${dy} r="5" fill=${color} stroke="#fff" strokeWidth="2.2" style=${{filter:"drop-shadow(0 1px 3px "+color+"66)"}}/>`;
   });
+  // Value labels (shown inside dot area)
   const valLabels = axes.map((ax,i) => {
     const [dx,dy]=pt(i,ax.value||0);
     if (!(ax.value||0)) return null;
-    return h`<text key=${"vl"+i} x=${dx} y=${dy-8} textAnchor="middle" dominantBaseline="middle" fontSize="9" fill=${color} fontWeight="700">${ax.value}</text>`;
+    return h`<text key=${"vl"+i} x=${dx} y=${dy-10} textAnchor="middle" dominantBaseline="middle" fontSize="8.5" fill=${color} fontWeight="800" style=${{letterSpacing:0}}>${ax.value}</text>`;
   });
+  // Axis labels
   const axLabels = axes.map((ax,i) => {
     const a=ang(i), lx=+(cx+lr*Math.cos(a)).toFixed(2), ly=+(cy+lr*Math.sin(a)).toFixed(2);
-    const ta=Math.cos(a)>0.15?"start":Math.cos(a)<-0.15?"end":"middle";
-    return h`<text key=${"l"+i} x=${lx} y=${ly} textAnchor=${ta} dominantBaseline="middle" fontSize="10.5" fill="var(--chart-label,#333)" fontFamily="system-ui,sans-serif" fontWeight="700">${ax.short}</text>`;
+    const ta=Math.cos(a)>0.18?"start":Math.cos(a)<-0.18?"end":"middle";
+    const dy2=Math.sin(a)>0.3?12:Math.sin(a)<-0.3?-4:0;
+    return h`<text key=${"l"+i} x=${lx} y=${ly+dy2} textAnchor=${ta} dominantBaseline="middle" fontSize="10" fill="var(--chart-label,#444)" fontFamily="system-ui,sans-serif" fontWeight="800" style=${{letterSpacing:0}}>${ax.short}</text>`;
   });
 
   return h`<svg xmlns="http://www.w3.org/2000/svg" width=${size} height=${size} viewBox=${"0 0 "+size+" "+size} style=${{display:"block",margin:"auto",overflow:"visible"}}>
+    <defs>
+      <radialGradient id=${gradId} cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stopColor=${color} stopOpacity="0.22"/>
+        <stop offset="100%" stopColor=${color} stopOpacity="0.07"/>
+      </radialGradient>
+    </defs>
     ${rings}${axisLines}
-    <polygon points=${dataPts} fill=${color+"40"} stroke=${color} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round"/>
+    <polygon points=${dataPts} fill=${"url(#"+gradId+")"} stroke=${color} strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round"/>
+    <polygon points=${dataPts} fill="none" stroke=${color+"55"} strokeWidth="5" strokeLinejoin="round" strokeLinecap="round"/>
     ${dots}${valLabels}${axLabels}
   </svg>`;
 }
@@ -1784,7 +1802,9 @@ function SkillCategoryCard({type, title, icon, color, s, upd, updMany, recordSna
     </div>
     <div class="assessment-skill-body">
       <div class="assessment-chart-panel">
-        <${SpiderChart} axes=${chartAxes} size=${170} color=${color}/>
+        <div style=${{fontSize:9,fontWeight:800,textTransform:"uppercase",letterSpacing:1.2,color,opacity:0.7,marginBottom:2}}>Skill Map</div>
+        <${SpiderChart} axes=${chartAxes} size=${176} color=${color}/>
+        <div style=${{fontSize:10,fontWeight:700,color:"var(--g500)",marginTop:2}}>Avg ${avg} / 5</div>
       </div>
       <div class="assessment-skill-rows">
         ${active.map(a=>h`<div key=${a.key} class="skill-row">
