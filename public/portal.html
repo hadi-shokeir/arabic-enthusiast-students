@@ -1084,9 +1084,73 @@ tr.ck:hover td,.tutor-root tr.ck:hover td{
   .sc-actions .btn,.kit-actions .sp2-btn{width:100%;justify-content:center}
   .auth-tabs,.tabs{gap:0}
   .auth-tab,.tab{min-width:max-content;padding-left:10px!important;padding-right:10px!important}
-  .kit-tool-rack,.kit-shelf,.quest-shop-grid,.quest-memory-grid{grid-template-columns:1fr!important}
   .sp2-mob-it{min-width:58px}
 }
+/* ── PhoneInput ── */
+.phone-wrap{position:relative;display:flex;gap:0}
+.phone-cc-btn{flex-shrink:0;display:flex;align-items:center;gap:5px;padding:0 11px;border:1px solid var(--ae-line-soft,rgba(111,75,0,0.18));border-right:none;cursor:pointer;font-size:13px;font-family:var(--fb);white-space:nowrap;border-radius:10px 0 0 10px;background:rgba(255,255,255,0.72);color:#17130c;transition:background .15s;height:46px}
+.phone-cc-btn:hover{background:rgba(255,255,255,0.92)}
+.phone-num-inp{flex:1;border-radius:0 10px 10px 0 !important;border-left:none !important}
+.phone-dd{position:absolute;top:calc(100% + 4px);left:0;z-index:300;background:#fffdf8;border:1px solid rgba(111,75,0,0.22);border-radius:14px;box-shadow:0 12px 36px rgba(0,0,0,0.16);min-width:270px;max-height:256px;display:flex;flex-direction:column;overflow:hidden}
+.phone-dd-search{padding:8px 10px;border-bottom:1px solid rgba(111,75,0,0.12);flex-shrink:0}
+.phone-dd-search input{width:100%;border:1px solid rgba(111,75,0,0.18);border-radius:8px;padding:7px 10px;font-size:12px;outline:none;font-family:var(--fb);background:rgba(255,255,255,0.72);color:#17130c}
+.phone-dd-list{overflow-y:auto;flex:1}
+.phone-dd-opt{display:flex;align-items:center;gap:9px;padding:9px 12px;cursor:pointer;font-size:13px;font-family:var(--fb);border:none;background:none;width:100%;text-align:left;color:#17130c}
+.phone-dd-opt:hover,.phone-dd-opt:focus{background:rgba(201,162,74,0.08);outline:none}
+.phone-dd-opt.sel{background:rgba(201,162,74,0.14);font-weight:700}
+.phone-dd-dial{font-size:11px;color:#8d8067;margin-left:auto;flex-shrink:0}
+.phone-dd-empty{padding:16px 12px;font-size:12px;color:#8d8067;text-align:center}
+/* auth dark theme overrides */
+.auth-wrap[data-auth-theme="dark"] .phone-cc-btn{background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.1);color:#f0f0f0}
+.auth-wrap[data-auth-theme="dark"] .phone-dd{background:#1a1610;border-color:rgba(229,201,120,0.24)}
+.auth-wrap[data-auth-theme="dark"] .phone-dd-opt{color:#f0f0f0}
+.auth-wrap[data-auth-theme="dark"] .phone-dd-opt:hover{background:rgba(255,255,255,0.07)}
+.auth-wrap[data-auth-theme="dark"] .phone-dd-search input{background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.12);color:#f0f0f0}
+.auth-wrap[data-auth-theme="dark"] .phone-dd-search input::placeholder{color:rgba(240,240,240,0.3)}
+/* sp2 (student portal) phone input */
+.sp2-phone-wrap .phone-cc-btn{background:var(--sp-surface);border-color:var(--sp-border);color:var(--sp-txt);height:44px}
+.sp2-phone-wrap .phone-num-inp{background:var(--sp-surface) !important;border-color:var(--sp-border) !important;color:var(--sp-txt) !important}
+.sp2-phone-wrap .phone-dd{background:var(--sp-card);border-color:var(--sp-border-h)}
+.sp2-phone-wrap .phone-dd-opt{color:var(--sp-txt)}
+.sp2-phone-wrap .phone-dd-opt:hover{background:var(--sp-surface)}
+.sp2-phone-wrap .phone-dd-search input{background:var(--sp-surface);border-color:var(--sp-border);color:var(--sp-txt)}
+/* ── Verbs table ── */
+.verb-table{width:100%;border-collapse:collapse}
+.verb-table th{text-align:left;padding:10px 14px;font-size:10px;text-transform:uppercase;letter-spacing:1.4px;font-weight:700;border-bottom:1px solid var(--sp-border);color:var(--sp-txt3)}
+.verb-table td{padding:11px 14px;border-bottom:1px solid var(--sp-border)}
+.verb-table tr:last-child td{border-bottom:none}
+.verb-play-btn{width:38px;height:38px;border-radius:50%;border:2px solid var(--sp-border);background:transparent;color:var(--sp-txt2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;flex-shrink:0}
+.verb-play-btn:hover{border-color:var(--sp-amber);color:var(--sp-amber)}
+.verb-play-btn.playing{background:var(--sp-amber);border-color:var(--sp-amber);color:#fff}
+.verb-ar{font-family:'Amiri',serif;font-size:22px;direction:rtl;font-weight:700;color:var(--sp-txt);line-height:1.5}
+.verb-en{font-size:13px;color:var(--sp-txt2)}
+@media(max-width:600px){
+  .verb-table th:nth-child(2),.verb-table td:nth-child(2){display:none}
+  .verb-ar{font-size:20px}
+}
+/* ── Unified Resources ── */
+.res-filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.res-filter-pill{border:1.5px solid var(--sp-border);border-radius:999px;background:transparent;color:var(--sp-txt3);font-size:11px;font-weight:700;padding:6px 13px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;letter-spacing:.05em}
+.res-filter-pill:hover{border-color:var(--sp-amber);color:var(--sp-amber)}
+.res-filter-pill.on{background:var(--sp-amber);border-color:var(--sp-amber);color:#fff}
+.res-search{flex:1;min-width:160px;padding:7px 12px;border:1px solid var(--sp-border);border-radius:999px;background:var(--sp-surface);color:var(--sp-txt);font-family:'DM Sans',sans-serif;font-size:12px;outline:none}
+.res-search:focus{border-color:var(--sp-amber)}
+.res-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.res-item{background:var(--sp-card);border:1px solid var(--sp-border);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;transition:border-color .18s,transform .15s}
+.res-item:hover{border-color:var(--sp-border-h);transform:translateY(-2px)}
+.res-item-thumb{position:relative;width:100%;padding-bottom:48%;background:var(--sp-mid);overflow:hidden;flex-shrink:0}
+.res-item-thumb img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover}
+.res-item-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px;background:rgba(0,0,0,0.55);border-radius:50%;display:flex;align-items:center;justify-content:center}
+.res-item-body{padding:12px 14px;flex:1;display:flex;flex-direction:column;gap:6px}
+.res-item-title{font-weight:800;font-size:13px;line-height:1.35;color:var(--sp-txt)}
+.res-item-desc{font-size:11.5px;color:var(--sp-txt2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.res-item-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:auto;padding-top:6px}
+.res-item-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.res-act-btn{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:999px;font-size:11px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;border:1px solid var(--sp-border);background:transparent;color:var(--sp-txt2);transition:all .15s;letter-spacing:.04em}
+.res-act-btn:hover{border-color:var(--sp-amber);color:var(--sp-amber)}
+.res-act-btn.primary{background:var(--sp-amber);border-color:var(--sp-amber);color:#fff}
+.res-act-btn.primary:hover{filter:brightness(1.1)}
+@media(max-width:480px){.res-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -1141,7 +1205,7 @@ async function pushImages(settings) {
 
 // ─── Helpers ───
 const SK = "tutor-v5";
-const DATA_VERSION = 22;
+const DATA_VERSION = 23;
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 const fmt = d => d ? new Date(d).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}) : "—";
 const today = () => new Date().toISOString().split("T")[0];
@@ -1277,7 +1341,7 @@ const DEFS = {
 };
 const defaultSiteContent = () => window.AE?.cloneSiteContent ? window.AE.cloneSiteContent() : {};
 const normalizeSiteContent = content => window.AE?.normalizeSiteContent ? window.AE.normalizeSiteContent(content) : (content || defaultSiteContent());
-const DD = {students:[],lessons:[],payments:[],curriculum:[],groups:[],homework:[],lessonRequests:[],resources:[],lessonLogs:[],studioItems:[],howTo:[],siteContent:defaultSiteContent(),settings:{...DEFS},_version:DATA_VERSION};
+const DD = {students:[],lessons:[],payments:[],curriculum:[],groups:[],homework:[],lessonRequests:[],resources:[],lessonLogs:[],studioItems:[],howTo:[],verbs:[],siteContent:defaultSiteContent(),settings:{...DEFS},_version:DATA_VERSION};
 
 // ─── IndexedDB Storage ───
 const DB_NAME = "TutorDB", DB_STORE = "appdata", DB_KEY = "main";
@@ -1450,8 +1514,13 @@ function migrateData(data) {
     if (!d.howTo) d.howTo = [];
     d._version = DATA_VERSION;
   }
+  if (v < 23) {
+    if (!d.verbs) d.verbs = [];
+    d._version = DATA_VERSION;
+  }
   if (!d.studioItems) d.studioItems = [];
   if (!d.howTo) d.howTo = [];
+  if (!d.verbs) d.verbs = [];
   d.siteContent = normalizeSiteContent(d.siteContent);
   d.students = (d.students||[]).map(withStudentDefaults);
   d._version = DATA_VERSION;
@@ -2758,6 +2827,115 @@ function LessonPlanAI({student, data}) {
   </div>`;
 }
 
+// ════════════════════════════════════════
+// PHONE INPUT — searchable country-code picker
+// ════════════════════════════════════════
+const COUNTRY_CODES = [
+  {code:"LB",name:"Lebanon",dial:"+961",flag:"🇱🇧"},{code:"JO",name:"Jordan",dial:"+962",flag:"🇯🇴"},
+  {code:"SY",name:"Syria",dial:"+963",flag:"🇸🇾"},{code:"PS",name:"Palestine",dial:"+970",flag:"🇵🇸"},
+  {code:"EG",name:"Egypt",dial:"+20",flag:"🇪🇬"},{code:"SA",name:"Saudi Arabia",dial:"+966",flag:"🇸🇦"},
+  {code:"AE",name:"UAE",dial:"+971",flag:"🇦🇪"},{code:"KW",name:"Kuwait",dial:"+965",flag:"🇰🇼"},
+  {code:"QA",name:"Qatar",dial:"+974",flag:"🇶🇦"},{code:"BH",name:"Bahrain",dial:"+973",flag:"🇧🇭"},
+  {code:"OM",name:"Oman",dial:"+968",flag:"🇴🇲"},{code:"IQ",name:"Iraq",dial:"+964",flag:"🇮🇶"},
+  {code:"YE",name:"Yemen",dial:"+967",flag:"🇾🇪"},{code:"LY",name:"Libya",dial:"+218",flag:"🇱🇾"},
+  {code:"TN",name:"Tunisia",dial:"+216",flag:"🇹🇳"},{code:"MA",name:"Morocco",dial:"+212",flag:"🇲🇦"},
+  {code:"DZ",name:"Algeria",dial:"+213",flag:"🇩🇿"},{code:"SD",name:"Sudan",dial:"+249",flag:"🇸🇩"},
+  {code:"MR",name:"Mauritania",dial:"+222",flag:"🇲🇷"},{code:"SO",name:"Somalia",dial:"+252",flag:"🇸🇴"},
+  {code:"DJ",name:"Djibouti",dial:"+253",flag:"🇩🇯"},{code:"KM",name:"Comoros",dial:"+269",flag:"🇰🇲"},
+  {code:"US",name:"United States",dial:"+1",flag:"🇺🇸"},{code:"CA",name:"Canada",dial:"+1",flag:"🇨🇦"},
+  {code:"GB",name:"United Kingdom",dial:"+44",flag:"🇬🇧"},{code:"AU",name:"Australia",dial:"+61",flag:"🇦🇺"},
+  {code:"NZ",name:"New Zealand",dial:"+64",flag:"🇳🇿"},{code:"DE",name:"Germany",dial:"+49",flag:"🇩🇪"},
+  {code:"FR",name:"France",dial:"+33",flag:"🇫🇷"},{code:"SE",name:"Sweden",dial:"+46",flag:"🇸🇪"},
+  {code:"NO",name:"Norway",dial:"+47",flag:"🇳🇴"},{code:"DK",name:"Denmark",dial:"+45",flag:"🇩🇰"},
+  {code:"NL",name:"Netherlands",dial:"+31",flag:"🇳🇱"},{code:"BE",name:"Belgium",dial:"+32",flag:"🇧🇪"},
+  {code:"CH",name:"Switzerland",dial:"+41",flag:"🇨🇭"},{code:"AT",name:"Austria",dial:"+43",flag:"🇦🇹"},
+  {code:"ES",name:"Spain",dial:"+34",flag:"🇪🇸"},{code:"IT",name:"Italy",dial:"+39",flag:"🇮🇹"},
+  {code:"PT",name:"Portugal",dial:"+351",flag:"🇵🇹"},{code:"GR",name:"Greece",dial:"+30",flag:"🇬🇷"},
+  {code:"PL",name:"Poland",dial:"+48",flag:"🇵🇱"},{code:"TR",name:"Turkey",dial:"+90",flag:"🇹🇷"},
+  {code:"RU",name:"Russia",dial:"+7",flag:"🇷🇺"},{code:"UA",name:"Ukraine",dial:"+380",flag:"🇺🇦"},
+  {code:"IR",name:"Iran",dial:"+98",flag:"🇮🇷"},{code:"AF",name:"Afghanistan",dial:"+93",flag:"🇦🇫"},
+  {code:"PK",name:"Pakistan",dial:"+92",flag:"🇵🇰"},{code:"IN",name:"India",dial:"+91",flag:"🇮🇳"},
+  {code:"BD",name:"Bangladesh",dial:"+880",flag:"🇧🇩"},{code:"MY",name:"Malaysia",dial:"+60",flag:"🇲🇾"},
+  {code:"ID",name:"Indonesia",dial:"+62",flag:"🇮🇩"},{code:"SG",name:"Singapore",dial:"+65",flag:"🇸🇬"},
+  {code:"PH",name:"Philippines",dial:"+63",flag:"🇵🇭"},{code:"NG",name:"Nigeria",dial:"+234",flag:"🇳🇬"},
+  {code:"GH",name:"Ghana",dial:"+233",flag:"🇬🇭"},{code:"KE",name:"Kenya",dial:"+254",flag:"🇰🇪"},
+  {code:"ZA",name:"South Africa",dial:"+27",flag:"🇿🇦"},{code:"ET",name:"Ethiopia",dial:"+251",flag:"🇪🇹"},
+  {code:"BR",name:"Brazil",dial:"+55",flag:"🇧🇷"},{code:"MX",name:"Mexico",dial:"+52",flag:"🇲🇽"},
+  {code:"AR",name:"Argentina",dial:"+54",flag:"🇦🇷"},{code:"CO",name:"Colombia",dial:"+57",flag:"🇨🇴"},
+  {code:"JP",name:"Japan",dial:"+81",flag:"🇯🇵"},{code:"CN",name:"China",dial:"+86",flag:"🇨🇳"},
+];
+
+function parsePhoneValue(v) {
+  if (!v) return {cc:null, num:""};
+  const sorted = [...COUNTRY_CODES].sort((a,b)=>b.dial.length-a.dial.length);
+  const match = sorted.find(c=>v.startsWith(c.dial));
+  if (match) return {cc:match, num:v.slice(match.dial.length)};
+  return {cc:null, num:v};
+}
+
+// variant: "auth" | "sp" (student portal) | "tutor" (default)
+function PhoneInput({value, onChange, placeholder, required, variant, label, labelAr}) {
+  const parsed = parsePhoneValue(value||"");
+  const [cc, setCc] = useState(parsed.cc);
+  const [num, setNum] = useState(parsed.num);
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const searchRef = useRef(null);
+
+  useEffect(() => { if (open && searchRef.current) searchRef.current.focus(); }, [open]);
+
+  const filtered = COUNTRY_CODES.filter(c =>
+    !search || c.name.toLowerCase().includes(search.toLowerCase()) || c.dial.includes(search)
+  );
+
+  const emit = (newCc, newNum) => {
+    const n = newNum.replace(/^\+/, "");
+    onChange(newCc ? newCc.dial + n : (newNum ? "+" + n : ""));
+  };
+
+  const selectCC = (c) => { setCc(c); setOpen(false); setSearch(""); emit(c, num); };
+  const onNum = (e) => { const n = e.target.value; setNum(n); emit(cc, n); };
+
+  const isAuth = variant === "auth";
+  const isSp = variant === "sp";
+
+  const inpStyle = isAuth
+    ? {flex:1,borderRadius:"0 0 0 0",borderLeft:"none"}
+    : isSp
+    ? {flex:1,padding:"10px 12px",border:"1px solid var(--sp-border)",borderLeft:"none",borderRadius:"0 10px 10px 0",background:"var(--sp-surface)",color:"var(--sp-txt)",fontFamily:"'DM Sans',sans-serif",fontSize:13,outline:"none"}
+    : {flex:1,padding:"10px 12px",border:"1px solid var(--ae-line-soft)",borderLeft:"none",borderRadius:"0 10px 10px 0",background:"#fffefa",fontSize:13,outline:"none",fontFamily:"var(--fa),var(--fb)"};
+
+  const btnStyle = isAuth ? {} : isSp
+    ? {background:"var(--sp-surface)",borderColor:"var(--sp-border)",color:"var(--sp-txt)"}
+    : {background:"#fffefa",borderColor:"var(--ae-line-soft)",color:"var(--ae-ink)"};
+
+  return h`<div class=${isSp?"phone-wrap sp2-phone-wrap":"phone-wrap"}>
+    <button type="button" class="phone-cc-btn" style=${btnStyle} onClick=${()=>setOpen(o=>!o)} title="Select country code">
+      ${cc ? h`<span>${cc.flag}</span><span style=${{fontSize:12}}>${cc.dial}</span>` : h`<span style=${{fontSize:12,opacity:.65}}>${required?"🌍 Code *":"🌍 Code"}</span>`}
+      <span style=${{fontSize:9,opacity:.5,marginLeft:2}}>▾</span>
+    </button>
+    ${isAuth
+      ? h`<input class="auth-inp phone-num-inp" type="tel" value=${num} onInput=${onNum} placeholder=${cc?(placeholder||"Phone number"):(placeholder||"Select country first")} style=${{borderLeft:"none",borderRadius:"0 10px 10px 0"}}/>`
+      : h`<input type="tel" value=${num} onInput=${onNum} placeholder=${cc?(placeholder||"Phone number"):(placeholder||"Select country first")} style=${inpStyle}/>`
+    }
+    ${open && h`<div class="phone-dd">
+      <div class="phone-dd-search">
+        <input ref=${searchRef} value=${search} onInput=${e=>setSearch(e.target.value)} placeholder="Search country…" autocomplete="off"/>
+      </div>
+      <div class="phone-dd-list">
+        ${filtered.length===0
+          ? h`<div class="phone-dd-empty">No results for "${search}"</div>`
+          : filtered.map(c=>h`<button key=${c.code} type="button" class=${"phone-dd-opt"+(cc&&cc.code===c.code?" sel":"")} onClick=${()=>selectCC(c)}>
+              <span style=${{fontSize:18}}>${c.flag}</span>
+              <span style=${{flex:1,textAlign:"left"}}>${c.name}</span>
+              <span class="phone-dd-dial">${c.dial}</span>
+            </button>`)
+        }
+      </div>
+    </div>`}
+  </div>`;
+}
+
 function AuthScreen({onAuth}) {
   const initMode = (() => { try { return new URLSearchParams(window.location.search).get('signup') === '1' ? 'request' : 'login'; } catch { return 'login'; } })();
   const [mode, setMode] = useState(initMode); // login | request | setup
@@ -2798,6 +2976,7 @@ function AuthScreen({onAuth}) {
   const doRequest = async () => {
     if (!name || !email || !password) return setError("Name, email and password are required");
     if (password.length < 6) return setError("Password must be at least 6 characters");
+    if (!phone) return setError("WhatsApp number is required · رقم الهاتف مطلوب");
     setLoading(true); reset();
     try {
       const d = await apiPost("/api/auth", {action:"request", name, phone, email, password, learnType, gender, message});
@@ -2895,8 +3074,8 @@ function AuthScreen({onAuth}) {
           </div>
         </div>
         <div style=${fgStyle}>
-          <label class="auth-label">WhatsApp Number (optional, with country code)</label>
-          <input class="auth-inp" value=${phone} onInput=${e=>setPhone(e.target.value)} placeholder="e.g. +961 70 123 456" type="tel"/>
+          <label class="auth-label">WhatsApp Number * <span style=${{fontSize:"0.65rem",opacity:.7,fontWeight:400,letterSpacing:0,direction:"rtl",display:"inline-block"}}>رقم الواتساب</span></label>
+          <${PhoneInput} value=${phone} onChange=${setPhone} variant="auth" placeholder="Phone number" required=${true}/>
         </div>
         <div style=${fgStyle}>
           <label class="auth-label">Email Address *</label>
@@ -4132,75 +4311,290 @@ function LibraryConjugation({student: s}) {
 }
 
 // ════════════════════════════════════════
+// VERBS TAB — student-facing pronunciation table
+// ════════════════════════════════════════
+function VerbsTab({data}) {
+  const verbs = (data.verbs||[]).filter(v=>v.arabic&&v.meaning);
+  const [playingId, setPlayingId] = useState(null);
+  const audioRef = useRef(null);
+
+  const play = (verb) => {
+    if (!verb.audioUrl) return;
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    if (playingId === verb.id) { setPlayingId(null); return; }
+    const a = new Audio(verb.audioUrl);
+    audioRef.current = a;
+    setPlayingId(verb.id);
+    a.play().catch(()=>setPlayingId(null));
+    a.onended = () => setPlayingId(null);
+    a.onerror = () => setPlayingId(null);
+  };
+
+  useEffect(() => () => { if (audioRef.current) audioRef.current.pause(); }, []);
+
+  if (verbs.length === 0) return h`<div class="sp2-card" style=${{textAlign:"center",padding:40}}>
+    <div style=${{fontSize:36,marginBottom:12}}>🔊</div>
+    <div style=${{fontWeight:700,fontSize:15,color:"var(--sp-txt)",marginBottom:6}}>No verbs yet</div>
+    <div style=${{fontSize:13,color:"var(--sp-txt2)"}}>Hadi will add verb recordings here for you to practise pronunciation.</div>
+  </div>`;
+
+  return h`<div>
+    <div style=${{marginBottom:16}}>
+      <div style=${{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700,color:"var(--sp-txt)",marginBottom:4}}>Verb Pronunciation</div>
+      <div style=${{fontSize:13,color:"var(--sp-txt2)"}}>Press ▶ to hear Hadi's recording of each verb.</div>
+    </div>
+    <div class="sp2-card" style=${{padding:0,overflow:"hidden"}}>
+      <table class="verb-table">
+        <thead><tr>
+          <th>Arabic</th>
+          <th>Meaning</th>
+          <th style=${{width:56,textAlign:"center"}}>▶</th>
+        </tr></thead>
+        <tbody>
+          ${verbs.map(v=>h`<tr key=${v.id}>
+            <td><div class="verb-ar">${v.arabic}</div></td>
+            <td><div class="verb-en">${v.meaning}</div></td>
+            <td style=${{textAlign:"center"}}>
+              ${v.audioUrl
+                ? h`<button class=${"verb-play-btn"+(playingId===v.id?" playing":"")} onClick=${()=>play(v)} title=${playingId===v.id?"Pause":"Play pronunciation"}>
+                    ${playingId===v.id
+                      ? h`<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><rect x="5" y="4" width="4" height="16"/><rect x="15" y="4" width="4" height="16"/></svg>`
+                      : h`<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><polygon points="5 3 19 12 5 21"/></svg>`
+                    }
+                  </button>`
+                : h`<span style=${{fontSize:11,color:"var(--sp-txt3)"}}>—</span>`
+              }
+            </td>
+          </tr>`)}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+// ════════════════════════════════════════
+// VERBS ADMIN — tutor upload + manage
+// ════════════════════════════════════════
+function VerbsAdmin({data, setData, auth}) {
+  const verbs = data.verbs || [];
+  const [form, setForm] = useState({arabic:"", meaning:""});
+  const [uploading, setUploading] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [mediaRec, setMediaRec] = useState(null);
+  const [audioBlob, setAudioBlob] = useState(null);
+  const [audioPreview, setAudioPreview] = useState(null);
+  const [editId, setEditId] = useState(null);
+  const [err, setErr] = useState("");
+  const [ok, setOk] = useState("");
+  const fileRef = useRef(null);
+
+  const resetForm = () => { setForm({arabic:"",meaning:""}); setAudioBlob(null); setAudioPreview(null); setEditId(null); setErr(""); };
+
+  const startRecording = async () => {
+    setErr("");
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+      const chunks = [];
+      const mr = new MediaRecorder(stream);
+      mr.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+      mr.onstop = () => {
+        stream.getTracks().forEach(t=>t.stop());
+        const blob = new Blob(chunks, {type: mr.mimeType || "audio/webm"});
+        setAudioBlob(blob);
+        setAudioPreview(URL.createObjectURL(blob));
+        setRecording(false);
+      };
+      setMediaRec(mr);
+      mr.start();
+      setRecording(true);
+    } catch (e) {
+      setErr("Microphone access denied. Use the file upload instead.");
+    }
+  };
+
+  const stopRecording = () => { if (mediaRec) { mediaRec.stop(); setMediaRec(null); } };
+
+  const onFileChange = (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    if (f.size > 20e6) { setErr("Max file size is 20MB"); return; }
+    setAudioBlob(f);
+    setAudioPreview(URL.createObjectURL(f));
+  };
+
+  const save = async () => {
+    if (!form.arabic.trim() || !form.meaning.trim()) return setErr("Arabic verb and meaning are required");
+    setUploading(true); setErr(""); setOk("");
+    try {
+      let audioUrl = editId ? (verbs.find(v=>v.id===editId)?.audioUrl || "") : "";
+      if (audioBlob) {
+        const reader = new FileReader();
+        const base64 = await new Promise(res => { reader.onloadend = () => res(reader.result.split(",")[1]); reader.readAsDataURL(audioBlob); });
+        const ext = audioBlob.type.includes("webm") ? "webm" : audioBlob.type.includes("mp4") ? "mp4" : "mp3";
+        const d = await apiPost("/api/verbs", {token: auth.token, action:"upload", audioBase64:base64, mimeType:audioBlob.type, fileName:`verb_${Date.now()}.${ext}`});
+        if (d.error) throw new Error(d.error);
+        audioUrl = d.url;
+      }
+      const verb = {id: editId||uid(), arabic: form.arabic.trim(), meaning: form.meaning.trim(), audioUrl, createdAt: editId ? undefined : new Date().toISOString()};
+      const next = editId
+        ? verbs.map(v=>v.id===editId?{...v,...verb}:v)
+        : [...verbs, verb];
+      setData({...data, verbs: next});
+      setOk(editId ? "Verb updated." : "Verb added.");
+      resetForm();
+    } catch (e) { setErr(e.message); }
+    finally { setUploading(false); }
+  };
+
+  const remove = async (v) => {
+    if (!confirm(`Delete "${v.arabic}"?`)) return;
+    if (v.audioUrl) { try { await apiPost("/api/verbs", {token:auth.token, action:"delete", url:v.audioUrl}); } catch {} }
+    setData({...data, verbs: verbs.filter(x=>x.id!==v.id)});
+  };
+
+  const startEdit = (v) => { setForm({arabic:v.arabic, meaning:v.meaning}); setAudioBlob(null); setAudioPreview(null); setEditId(v.id); setErr(""); setOk(""); };
+
+  return h`<div>
+    <div class="card" style=${{marginBottom:14}}>
+      <h3 style=${{marginBottom:14}}>🎙️ ${editId?"Edit Verb":"Add New Verb"}</h3>
+      ${err&&h`<div style=${{background:"#fff0f0",border:"1px solid #f5a5a5",color:"#c62828",padding:"10px 14px",marginBottom:12,fontSize:13,borderRadius:8}}>${err}</div>`}
+      ${ok&&h`<div style=${{background:"#f0fff4",border:"1px solid #a5d6b5",color:"#256c45",padding:"10px 14px",marginBottom:12,fontSize:13,borderRadius:8}}>${ok}</div>`}
+      <div class="fr">
+        <div class="fg">
+          <label>Arabic Verb (with harakat)</label>
+          <input value=${form.arabic} onInput=${e=>setForm({...form,arabic:e.target.value})} placeholder="e.g. كَتَبَ" dir="rtl" style=${{fontFamily:"'Amiri',serif",fontSize:20,textAlign:"right"}}/>
+        </div>
+        <div class="fg">
+          <label>Meaning / Translation</label>
+          <input value=${form.meaning} onInput=${e=>setForm({...form,meaning:e.target.value})} placeholder="e.g. to write"/>
+        </div>
+      </div>
+      <div class="fg">
+        <label>Audio Recording</label>
+        <div style=${{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
+          ${recording
+            ? h`<button class="btn btn-d" onClick=${stopRecording}>⏹ Stop Recording</button><span style=${{fontSize:12,color:"var(--bd)",animation:"pulse 1s infinite"}}>● Recording…</span>`
+            : h`<button class="btn" onClick=${startRecording}>🎙 Record</button>`
+          }
+          <button class="btn" onClick=${()=>fileRef.current?.click()}>📎 Upload file</button>
+          <input ref=${fileRef} type="file" accept="audio/*" style=${{display:"none"}} onChange=${onFileChange}/>
+          ${audioPreview&&h`<audio controls src=${audioPreview} style=${{height:34,flex:1,minWidth:160}}></audio>`}
+          ${audioBlob&&!audioPreview&&h`<span style=${{fontSize:12,color:"var(--ok)"}}>✓ File ready</span>`}
+        </div>
+        <div style=${{fontSize:11,color:"var(--g500)",marginTop:5}}>Supports mp3, m4a, webm, wav. Max 20MB. Recording directly in browser also works.</div>
+      </div>
+      <div style=${{display:"flex",gap:8}}>
+        <button class="btn btn-p" onClick=${save} disabled=${uploading}>${uploading?"Saving…":"💾 "+(editId?"Update":"Add Verb")}</button>
+        ${editId&&h`<button class="btn" onClick=${resetForm}>Cancel</button>`}
+      </div>
+    </div>
+
+    ${verbs.length>0&&h`<div class="card" style=${{padding:0}}>
+      <div style=${{padding:"14px 18px",borderBottom:"2px solid var(--bk)"}}>
+        <h3 style=${{margin:0}}>All Verbs (${verbs.length})</h3>
+      </div>
+      <div style=${{overflowX:"auto"}}><table>
+        <thead><tr><th>Arabic</th><th>Meaning</th><th>Audio</th><th></th></tr></thead>
+        <tbody>
+          ${verbs.map(v=>h`<tr key=${v.id}>
+            <td style=${{fontFamily:"'Amiri',serif",fontSize:20,direction:"rtl"}}>${v.arabic}</td>
+            <td>${v.meaning}</td>
+            <td>${v.audioUrl?h`<audio controls src=${v.audioUrl} style=${{height:30,width:160}}>`:h`<span style=${{color:"var(--g400)",fontSize:12}}>No audio</span>`}</td>
+            <td style=${{whiteSpace:"nowrap"}}>
+              <button class="btn btn-xs" onClick=${()=>startEdit(v)} style=${{marginRight:4}}>Edit</button>
+              <button class="btn btn-xs btn-d" onClick=${()=>remove(v)}>Delete</button>
+            </td>
+          </tr>`)}
+        </tbody>
+      </table></div>
+    </div>`}
+  </div>`;
+}
+
+// ════════════════════════════════════════
 // LIBRARY TAB — PDF downloads, Flashcards, Conjugation
 // ════════════════════════════════════════
 function StudentLibraryTab({student: s, data, setData, initialTopic}) {
   const [libTab, setLibTab] = useState("flashcards");
-  // PDFs from curriculum uploads + PDFs uploaded via Resources section
-  const curriculumPdfs = (data.curriculum||[]).filter(c=>c.fileData&&c.fileName&&(c.fileName.toLowerCase().endsWith(".pdf")||c.fileData.startsWith("data:application/pdf")));
-  // A resource is a PDF if: type==="pdf", OR it has a fileData (base64 blob), OR filename ends in .pdf
+  const [resSearch, setResSearch] = useState("");
+  const [resType, setResType] = useState("All");
+
+  // Build unified resource list: PDFs (curriculum + resources) + links + videos
   const isResPdf = r => r.type==="pdf" || (r.fileData&&r.fileData.length>0) || (r.fileName&&r.fileName.toLowerCase().endsWith(".pdf"));
-  const resourcePdfs = (data.resources||[]).filter(isResPdf);
-  const allPdfs = [...curriculumPdfs.map(c=>({...c,_src:"curriculum"})), ...resourcePdfs.map(r=>({...r,_src:"resource"}))];
-  // Links tab: only non-PDF resources (links + YouTube) — no fileData, no .pdf filename
-  const linkResources = (data.resources||[]).filter(r=>!isResPdf(r));
+  const curriculumPdfs = (data.curriculum||[]).filter(c=>c.fileData&&c.fileName&&(c.fileName.toLowerCase().endsWith(".pdf")||c.fileData.startsWith("data:application/pdf")));
+  const allResources = [
+    ...curriculumPdfs.map(c=>({...c, _kind:"pdf", _label:"PDF"})),
+    ...(data.resources||[]).map(r=>({
+      ...r,
+      _kind: isResPdf(r) ? "pdf" : r.type==="youtube" ? "video" : "link",
+      _label: isResPdf(r) ? "PDF" : r.type==="youtube" ? "Video" : "Link",
+    }))
+  ];
+  const resCategories = ["All", "PDF", "Video", "Link", ...new Set(allResources.map(r=>r.category).filter(Boolean))];
+  const resFiltered = allResources.filter(r => {
+    const matchType = resType==="All" || r._label===resType || r.category===resType;
+    const q = resSearch.toLowerCase();
+    const matchQ = !q || (r.title||r.name||r.fileName||"").toLowerCase().includes(q) || (r.description||r.ogDescription||"").toLowerCase().includes(q) || (r.category||"").toLowerCase().includes(q);
+    return matchType && matchQ;
+  });
   const safeDomain = url => { try { return new URL(url).hostname.replace(/^www\./,""); } catch { return url; } };
 
-  return h`<div style=${{maxWidth:800,margin:"0 auto"}}>
+  return h`<div style=${{maxWidth:860,margin:"0 auto"}}>
     <div class="lib-tab-nav">
-      ${[["flashcards","🃏 Flashcards"],["dictation","🎧 Dictation"],["conjugation","📖 تصريف"],["pdfs","📎 PDFs"],["links","🔗 Links"]].map(([id,label])=>h`
+      ${[["flashcards","🃏 Flashcards"],["dictation","🎧 Dictation"],["conjugation","📖 تصريف"],["verbs","🔊 Verbs"],["resources","📂 Resources"]].map(([id,label])=>h`
         <button key=${id} class=${"lib-tab"+(libTab===id?" on":"")} onClick=${()=>setLibTab(id)}>${label}</button>
       `)}
     </div>
+
     ${libTab==="flashcards"&&h`<${LibraryFlashcards} student=${s} data=${data} setData=${setData} initialTopic=${initialTopic}/>`}
     ${libTab==="dictation"&&h`<${DictationTab} student=${s} data=${data} setData=${setData}/>`}
     ${libTab==="conjugation"&&h`<${LibraryConjugation} student=${s}/>`}
-    ${libTab==="pdfs"&&h`<div>
-      ${allPdfs.length===0?h`<div style=${{padding:40,textAlign:"center",color:"var(--sp-txt3)"}}>
-        <div style=${{fontSize:36,marginBottom:12,opacity:0.4}}>📎</div>
-        <div style=${{fontSize:"0.85rem",lineHeight:1.7}}>No PDFs yet — Hadi will upload study materials here.</div>
-      </div>`:h`<div>
-        <div style=${{marginBottom:16,fontSize:"0.78rem",color:"var(--sp-txt3)",letterSpacing:"0.05em"}}>Download your study materials below.</div>
-        <div style=${{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:1}}>
-          ${allPdfs.map(c=>h`<div key=${c.id} onClick=${()=>downloadFile(c.fileName||"resource.pdf",c.fileData)}
-            style=${{display:"flex",flexDirection:"column",alignItems:"center",gap:10,background:"var(--sp-card)",border:"1px solid rgba(255,255,255,0.08)",padding:"24px 16px",cursor:"pointer",transition:"border-color 0.2s"}}
-            onMouseEnter=${e=>e.currentTarget.style.borderColor="rgba(255,255,255,0.3)"}
-            onMouseLeave=${e=>e.currentTarget.style.borderColor="rgba(255,255,255,0.08)"}>
-            <div style=${{width:48,height:48,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.14)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>📄</div>
-            <div style=${{fontWeight:600,fontSize:"0.82rem",color:"var(--sp-txt)",textAlign:"center",wordBreak:"break-word",lineHeight:1.4}}>${c.title||c.name||c.fileName}</div>
-            ${c.category?h`<span style=${{padding:"2px 10px",background:"rgba(255,255,255,0.05)",color:"var(--sp-amber)",border:"1px solid rgba(255,255,255,0.14)",fontSize:"0.6rem",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase"}}>${c.category}</span>`:null}
-            ${c.description?h`<div style=${{fontSize:"0.72rem",color:"var(--sp-txt3)",textAlign:"center",lineHeight:1.5}}>${c.description}</div>`:null}
-            <div style=${{fontSize:"0.72rem",color:"var(--sp-amber)",fontWeight:700,letterSpacing:"0.06em"}}>⬇ Download</div>
-          </div>`)}
-        </div>
-      </div>`}
-    </div>`}
-    ${libTab==="links"&&h`<div>
-      ${linkResources.length===0?h`<div style=${{padding:40,textAlign:"center",color:"var(--sp-txt3)"}}>
-        <div style=${{fontSize:36,marginBottom:12,opacity:0.4}}>🔗</div>
-        <div style=${{fontSize:"0.85rem",lineHeight:1.7}}>No links yet — Hadi will add videos and websites here for you to explore.</div>
-      </div>`:h`<div>
-        <div style=${{marginBottom:14,fontSize:"0.78rem",color:"var(--sp-txt3)",letterSpacing:"0.05em"}}>Recommended videos and websites from Hadi.</div>
-        <div style=${{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:1}}>
-          ${linkResources.map(r=>{
-            const thumb = r.ogImage || (r.type==="youtube"&&r.videoId ? `https://img.youtube.com/vi/${r.videoId}/hqdefault.jpg` : "");
-            return h`<div key=${r.id} class="res-card" onClick=${()=>window.open(r.url,"_blank")}>
-              ${thumb?h`<div class="res-thumb">
-                <img src=${thumb} alt="" onError=${e=>{e.target.parentNode.style.display="none"}}/>
-                ${r.type==="youtube"?h`<div class="res-play"><svg viewBox="0 0 24 24" fill="white" style=${{width:22,height:22,marginLeft:3}}><polygon points="5 3 19 12 5 21 5 3"/></svg></div>`:null}
-              </div>`:null}
-              <div class="res-body">
-                <div class="res-title">${r.title||r.ogTitle||r.url}</div>
-                ${(r.description||r.ogDescription)?h`<div class="res-desc">${r.description||r.ogDescription}</div>`:null}
-                <div class="res-meta">
-                  ${r.category?h`<span style=${{padding:"2px 8px",background:"rgba(255,255,255,0.05)",color:"var(--sp-amber)",border:"1px solid rgba(255,255,255,0.14)",borderRadius:0,fontSize:"0.6rem",fontWeight:700,letterSpacing:"0.06em",textTransform:"uppercase"}}>${r.category}</span>`:null}
-                  <span style=${{fontSize:"0.7rem",color:"var(--sp-txt3)"}}>${r.type==="youtube"?"▶ YouTube":"🔗 "+safeDomain(r.url)}</span>
-                </div>
-              </div>
-            </div>`;
-          })}
-        </div>
-      </div>`}
+    ${libTab==="verbs"&&h`<${VerbsTab} data=${data}/>`}
+
+    ${libTab==="resources"&&h`<div>
+      ${allResources.length===0
+        ? h`<div class="sp2-card" style=${{textAlign:"center",padding:40}}>
+            <div style=${{fontSize:36,marginBottom:12}}>📂</div>
+            <div style=${{fontWeight:700,fontSize:15,color:"var(--sp-txt)",marginBottom:6}}>No resources yet</div>
+            <div style=${{fontSize:13,color:"var(--sp-txt2)"}}>Hadi will upload PDFs, videos, and links here for you.</div>
+          </div>`
+        : h`<div>
+            <div class="res-filter-bar">
+              <input class="res-search" value=${resSearch} onInput=${e=>setResSearch(e.target.value)} placeholder="Search resources…"/>
+              ${resCategories.slice(0,6).map(c=>h`<button key=${c} class=${"res-filter-pill"+(resType===c?" on":"")} onClick=${()=>setResType(c)}>${c}</button>`)}
+            </div>
+            ${resFiltered.length===0
+              ? h`<div style=${{padding:32,textAlign:"center",color:"var(--sp-txt3)",fontSize:13}}>No resources match "${resSearch||resType}".</div>`
+              : h`<div class="res-grid">
+                  ${resFiltered.map(r=>{
+                    const isPdf = r._kind==="pdf";
+                    const isVideo = r._kind==="video";
+                    const thumb = r.ogImage || (isVideo&&r.videoId ? `https://img.youtube.com/vi/${r.videoId}/hqdefault.jpg` : "");
+                    return h`<div key=${r.id||r.fileName} class="res-item">
+                      ${thumb?h`<div class="res-item-thumb">
+                        <img src=${thumb} alt="" onError=${e=>{e.target.parentNode.style.display="none"}}/>
+                        ${isVideo?h`<div class="res-item-play"><svg viewBox="0 0 24 24" fill="white" width="20" height="20"><polygon points="5 3 19 12 5 21"/></svg></div>`:null}
+                      </div>`:null}
+                      <div class="res-item-body">
+                        <div class="res-item-title">${r.title||r.name||r.fileName||r.url||"Resource"}</div>
+                        ${(r.description||r.ogDescription)?h`<div class="res-item-desc">${r.description||r.ogDescription}</div>`:null}
+                        <div class="res-item-meta">
+                          <span class="res-filter-pill" style=${{padding:"2px 9px",fontSize:"0.6rem",cursor:"default"}}>${r._label}</span>
+                          ${r.category?h`<span class="res-filter-pill" style=${{padding:"2px 9px",fontSize:"0.6rem",cursor:"default"}}>${r.category}</span>`:null}
+                          ${!isPdf&&r.url?h`<span style=${{fontSize:"0.7rem",color:"var(--sp-txt3)"}}>${safeDomain(r.url)}</span>`:null}
+                        </div>
+                        <div class="res-item-actions">
+                          ${isPdf&&r.fileData?h`<button class="res-act-btn primary" onClick=${()=>downloadFile(r.fileName||"resource.pdf",r.fileData)}>⬇ Download</button>`:null}
+                          ${isPdf&&r.fileData?h`<button class="res-act-btn" onClick=${()=>{const w=window.open("","_blank");const b=atob(r.fileData.split(",")[1]||r.fileData);const arr=new Uint8Array(b.length);for(let i=0;i<b.length;i++)arr[i]=b.charCodeAt(i);const blob=new Blob([arr],{type:"application/pdf"});w.location=URL.createObjectURL(blob);}}>👁 View</button>`:null}
+                          ${r.url&&!isPdf?h`<button class="res-act-btn primary" onClick=${()=>window.open(r.url,"_blank")}>${isVideo?"▶ Watch":"🔗 Open"}</button>`:null}
+                        </div>
+                      </div>
+                    </div>`;
+                  })}
+                </div>`
+            }
+          </div>`
+      }
     </div>`}
   </div>`;
 }
@@ -4913,8 +5307,8 @@ function StudentSettingsTab({student: s, data, setData, auth}) {
         </div>
         ${(s.whatsapp||s.phone)?h`<span class="sp2-badge sp2-badge-g">✓ Set</span>`:h`<span class="sp2-badge sp2-badge-r">Missing</span>`}
       </div>
-      <div style=${{display:"flex",gap:10}}>
-        <input type="tel" value=${phoneDraft} onInput=${e=>setPhoneDraft(e.target.value)} placeholder="+1 555 123 4567" style=${{flex:1,padding:"10px 12px",border:"1px solid var(--sp-border)",borderRadius:10,background:"var(--sp-surface)",color:"var(--sp-txt)",fontFamily:"'Outfit',sans-serif",fontSize:13,outline:"none"}}/>
+      <div style=${{display:"flex",gap:10,alignItems:"center"}}>
+        <div style=${{flex:1}}><${PhoneInput} value=${phoneDraft} onChange=${setPhoneDraft} variant="sp" placeholder="Phone number"/></div>
         <button class="sp2-btn sp2-btn-p" onClick=${savePhone} disabled=${!phoneDraft.trim()}>${phoneSaved?"✓ Saved!":"Save"}</button>
       </div>
     </div>
@@ -7461,8 +7855,8 @@ function StudentProfile({data, setData, profileId, auth}) {
           <div class="fg"><label>Email</label><input type="email" value=${s.email||""} onInput=${e=>upd("email",e.target.value)} placeholder="student@email.com"/></div>
         </div>
         <div class="fr">
-          <div class="fg"><label>Phone Number</label><input value=${s.phone||""} onInput=${e=>upd("phone",e.target.value)} placeholder="+961..."/></div>
-          <div class="fg"><label>WhatsApp</label><input value=${s.whatsapp||""} onInput=${e=>upd("whatsapp",e.target.value)} placeholder="+961..."/></div>
+          <div class="fg"><label>Phone Number</label><${PhoneInput} value=${s.phone||""} onChange=${v=>upd("phone",v)} variant="tutor" placeholder="Phone number"/></div>
+          <div class="fg"><label>WhatsApp</label><${PhoneInput} value=${s.whatsapp||""} onChange=${v=>upd("whatsapp",v)} variant="tutor" placeholder="Phone number"/></div>
         </div>
         <div class="fr3">
           <div class="fg"><label>Arabic Type / Goal</label><select value=${s.type||S.types[0]} onChange=${e=>upd("type",e.target.value)}>${S.types.map(t=>h`<option key=${t}>${t}</option>`)}</select></div>
@@ -10605,9 +10999,11 @@ function MaterialsAdmin({data, setData, auth}) {
     <div class="auth-tabs" style=${{marginBottom:0,borderRadius:0,borderBottom:"2px solid var(--g200)"}}>
       <div class=${"auth-tab "+(tab==="curriculum"?"on":"")} onClick=${()=>setTab("curriculum")}>📚 Curriculum</div>
       <div class=${"auth-tab "+(tab==="resources"?"on":"")} onClick=${()=>setTab("resources")}>🔗 Resources</div>
+      <div class=${"auth-tab "+(tab==="verbs"?"on":"")} onClick=${()=>setTab("verbs")}>🎙 Verbs</div>
     </div>
     ${tab==="curriculum" && h`<${Curriculum} data=${data} setData=${setData}/>`}
     ${tab==="resources" && h`<${Resources} data=${data} setData=${setData} auth=${auth}/>`}
+    ${tab==="verbs" && h`<${VerbsAdmin} data=${data} setData=${setData} auth=${auth}/>`}
   </div>`;
 }
 
