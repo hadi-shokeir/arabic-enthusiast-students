@@ -1151,6 +1151,27 @@ tr.ck:hover td,.tutor-root tr.ck:hover td{
 .res-act-btn.primary{background:var(--sp-amber);border-color:var(--sp-amber);color:#fff}
 .res-act-btn.primary:hover{filter:brightness(1.1)}
 @media(max-width:480px){.res-grid{grid-template-columns:1fr}}
+/* ── Goals / Learning Paths ── */
+.goal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-top:16px}
+.goal-card{border:1.5px solid var(--sp-border);border-radius:16px;padding:18px;background:var(--sp-card);cursor:pointer;transition:border-color .15s,transform .15s,box-shadow .15s;position:relative}
+.goal-card:hover{border-color:var(--sp-border-h);transform:translateY(-2px);box-shadow:0 14px 32px rgba(0,0,0,.14)}
+.goal-card.selected{border-color:var(--sp-amber);box-shadow:0 0 0 3px rgba(201,162,74,.18)}
+.goal-card.selected .goal-check{opacity:1}
+.goal-check{position:absolute;top:14px;right:14px;width:22px;height:22px;border-radius:50%;background:var(--sp-amber);display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;opacity:0;transition:opacity .15s}
+.goal-cefr{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:var(--sp-glow);border:1px solid var(--sp-border);color:var(--sp-txt3);margin-bottom:10px}
+.goal-reg{display:inline-block;font-size:10px;padding:3px 8px;border-radius:999px;margin-left:5px}
+.goal-reg.neutral{background:rgba(148,163,184,.12);color:var(--sp-txt3)}
+.goal-reg.lebanese{background:rgba(201,162,74,.12);color:var(--sp-amber)}
+.goal-reg.msa{background:rgba(59,130,246,.12);color:#60a5fa}
+.goal-reg.classical-quranic{background:rgba(16,185,129,.12);color:#34d399}
+.goal-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--sp-txt);margin-bottom:7px;line-height:1.3}
+.goal-desc{font-size:12px;color:var(--sp-txt2);line-height:1.65}
+.goal-prog-bar{height:5px;border-radius:999px;background:var(--sp-border);margin-top:14px;overflow:hidden}
+.goal-prog-fill{height:100%;border-radius:999px;background:var(--sp-amber);transition:width .4s}
+.goal-prog-label{font-size:11px;color:var(--sp-txt3);margin-top:5px}
+.goal-next-step{margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--sp-glow);border:1px solid var(--sp-border-h);font-size:12px}
+.goal-next-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--sp-amber);margin-bottom:4px}
+@media(max-width:480px){.goal-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -1205,7 +1226,7 @@ async function pushImages(settings) {
 
 // ─── Helpers ───
 const SK = "tutor-v5";
-const DATA_VERSION = 23;
+const DATA_VERSION = 24;
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 const fmt = d => d ? new Date(d).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}) : "—";
 const today = () => new Date().toISOString().split("T")[0];
@@ -1253,6 +1274,7 @@ function normalizeStudentLessonBalance(student) {
 }
 function withStudentDefaults(student) {
   const out = withSkillDefaults(student);
+  if (!out.goalProgress) out.goalProgress = [];
   return normalizeStudentLessonBalance(out);
 }
 
@@ -1341,7 +1363,17 @@ const DEFS = {
 };
 const defaultSiteContent = () => window.AE?.cloneSiteContent ? window.AE.cloneSiteContent() : {};
 const normalizeSiteContent = content => window.AE?.normalizeSiteContent ? window.AE.normalizeSiteContent(content) : (content || defaultSiteContent());
-const DD = {students:[],lessons:[],payments:[],curriculum:[],groups:[],homework:[],lessonRequests:[],resources:[],lessonLogs:[],studioItems:[],howTo:[],verbs:[],siteContent:defaultSiteContent(),settings:{...DEFS},_version:DATA_VERSION};
+const DEFAULT_GOALS = [
+  {id:'goal-1',title:'Read & Write the Arabic Script',description:'Recognize and write all 28 letters in every position, read short vowelled words, and sound out unfamiliar ones.',cefr:'Pre-A1–A1',register:'neutral',sortOrder:1},
+  {id:'goal-2',title:'Get By in Lebanon (Survival Lebanese)',description:'Greet people, introduce yourself, order food, ask prices and directions, and handle simple daily needs in spoken Lebanese.',cefr:'A1',register:'lebanese',sortOrder:2},
+  {id:'goal-3',title:'Hold an Everyday Lebanese Conversation',description:'Talk about your day, family, and plans in short connected speech, and follow a patient native speaker on familiar topics.',cefr:'A2',register:'lebanese',sortOrder:3},
+  {id:'goal-4',title:'Read Everyday Modern Standard Arabic',description:'Read signs, menus, headlines, and short articles, and grasp the gist of straightforward written MSA.',cefr:'A2–B1',register:'msa',sortOrder:4},
+  {id:'goal-5',title:'Recite the Quran Correctly (Tajweed Foundations)',description:'Pronounce letters from their correct articulation points, apply basic tajweed rules, and read short surahs accurately.',cefr:'A1–A2',register:'classical-quranic',sortOrder:5},
+  {id:'goal-6',title:'Understand Quranic Arabic',description:'Recognize common Quranic roots and morphology, parse simple ayat, and follow frequent Quranic vocabulary without leaning on translation.',cefr:'B1',register:'classical-quranic',sortOrder:6},
+  {id:'goal-7',title:'Write Professional Arabic for Work',description:'Write clear emails and short formal messages and handle workplace introductions and requests in the right register.',cefr:'B1–B2',register:'msa',sortOrder:7},
+  {id:'goal-8',title:'Converse & Follow Media with Confidence',description:'Express and defend opinions, narrate events, and follow the main ideas of podcasts, shows, and longer texts on familiar topics.',cefr:'B2',register:'msa',sortOrder:8},
+];
+const DD = {students:[],lessons:[],payments:[],curriculum:[],groups:[],homework:[],lessonRequests:[],resources:[],lessonLogs:[],studioItems:[],howTo:[],verbs:[],goals:DEFAULT_GOALS,contentItems:[],goalPaths:[],siteContent:defaultSiteContent(),settings:{...DEFS},_version:DATA_VERSION};
 
 // ─── IndexedDB Storage ───
 const DB_NAME = "TutorDB", DB_STORE = "appdata", DB_KEY = "main";
@@ -1518,9 +1550,19 @@ function migrateData(data) {
     if (!d.verbs) d.verbs = [];
     d._version = DATA_VERSION;
   }
+  if (v < 24) {
+    if (!d.goals || d.goals.length === 0) d.goals = DEFAULT_GOALS;
+    if (!d.contentItems) d.contentItems = [];
+    if (!d.goalPaths) d.goalPaths = [];
+    d.students = (d.students||[]).map(s => ({...s, goalProgress: s.goalProgress || []}));
+    d._version = DATA_VERSION;
+  }
   if (!d.studioItems) d.studioItems = [];
   if (!d.howTo) d.howTo = [];
   if (!d.verbs) d.verbs = [];
+  if (!d.goals) d.goals = DEFAULT_GOALS;
+  if (!d.contentItems) d.contentItems = [];
+  if (!d.goalPaths) d.goalPaths = [];
   d.siteContent = normalizeSiteContent(d.siteContent);
   d.students = (d.students||[]).map(withStudentDefaults);
   d._version = DATA_VERSION;
@@ -4311,6 +4353,268 @@ function LibraryConjugation({student: s}) {
 }
 
 // ════════════════════════════════════════
+// GOALS — student-facing learning path picker
+// ════════════════════════════════════════
+const REGISTER_LABELS = {neutral:'Modern Standard',lebanese:'Lebanese',msa:'MSA (Written)',  'classical-quranic':'Quranic'};
+const CONTENT_TYPE_ICONS = {lesson:'📖',video:'▶️',file:'📄',exercise:'✍️'};
+const SKILL_ICONS = {listening:'🎧',speaking:'🗣️',reading:'📖',writing:'✍️',grammar:'📐',vocab:'📚'};
+
+function GoalsTab({student: s, data, setData, auth}) {
+  const goals = (data.goals || []).sort((a,b)=>a.sortOrder-b.sortOrder);
+  const myProgress = s.goalProgress || [];
+  const [view, setView] = useState('pick'); // 'pick' | 'detail'
+  const [activeGoalId, setActiveGoalId] = useState(null);
+
+  const isEnrolled = gid => myProgress.some(p=>p.goalId===gid);
+  const getProgress = gid => myProgress.find(p=>p.goalId===gid) || {goalId:gid,completedItems:[]};
+
+  const toggleGoal = (goal) => {
+    const already = isEnrolled(goal.id);
+    let next;
+    if (already) {
+      next = myProgress.filter(p=>p.goalId!==goal.id);
+    } else {
+      next = [...myProgress, {goalId:goal.id, completedItems:[], startedAt:new Date().toISOString()}];
+    }
+    const updatedStudent = {...s, goalProgress:next};
+    const updatedStudents = (data.students||[]).map(st=>st.id===s.id?updatedStudent:st);
+    setData({...data, students:updatedStudents});
+  };
+
+  const markComplete = (goalId, itemId) => {
+    const prog = getProgress(goalId);
+    const alreadyDone = prog.completedItems.includes(itemId);
+    const nextItems = alreadyDone ? prog.completedItems.filter(x=>x!==itemId) : [...prog.completedItems, itemId];
+    const next = myProgress.map(p=>p.goalId===goalId?{...p,completedItems:nextItems}:p);
+    const updatedStudent = {...s, goalProgress:next};
+    setData({...data, students:(data.students||[]).map(st=>st.id===s.id?updatedStudent:st)});
+  };
+
+  const getPathItems = goalId => {
+    const paths = (data.goalPaths||[]).filter(p=>p.goalId===goalId).sort((a,b)=>a.sortOrder-b.sortOrder);
+    return paths.map(p=>(data.contentItems||[]).find(c=>c.id===p.contentId)).filter(Boolean);
+  };
+
+  if (view === 'detail' && activeGoalId) {
+    const goal = goals.find(g=>g.id===activeGoalId);
+    if (!goal) { setView('pick'); return null; }
+    const prog = getProgress(activeGoalId);
+    const items = getPathItems(activeGoalId);
+    const done = items.filter(c=>prog.completedItems.includes(c.id)).length;
+    const pct = items.length ? Math.round(done/items.length*100) : 0;
+    const nextItem = items.find(c=>!prog.completedItems.includes(c.id));
+    return h`<div>
+      <button class="sp2-btn sp2-btn-g sp2-btn-sm" style=${{marginBottom:16}} onClick=${()=>setView('pick')}>← All Goals</button>
+      <div class="sp2-card" style=${{borderLeft:"4px solid var(--sp-amber)",marginBottom:16}}>
+        <div style=${{display:"flex",gap:8,marginBottom:10,flexWrap:"wrap"}}>
+          <span class="goal-cefr">${goal.cefr}</span>
+          <span class=${"goal-reg "+goal.register}>${REGISTER_LABELS[goal.register]||goal.register}</span>
+        </div>
+        <div style=${{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:"var(--sp-txt)",marginBottom:8}}>${goal.title}</div>
+        <div style=${{fontSize:13,color:"var(--sp-txt2)",lineHeight:1.7,marginBottom:14}}>${goal.description}</div>
+        ${items.length>0?h`<div>
+          <div class="goal-prog-bar"><div class="goal-prog-fill" style=${{width:pct+"%"}}></div></div>
+          <div class="goal-prog-label">${done} of ${items.length} steps completed · ${pct}%</div>
+        </div>`:h`<div style=${{fontSize:12,color:"var(--sp-txt3)",fontStyle:"italic"}}>No content items added to this path yet — Hadi is curating it.</div>`}
+      </div>
+      ${nextItem?h`<div class="goal-next-step" style=${{marginBottom:16}}>
+        <div class="goal-next-label">Next Step</div>
+        <div style=${{display:"flex",alignItems:"center",gap:10}}>
+          <span style=${{fontSize:20}}>${CONTENT_TYPE_ICONS[nextItem.type]||'📌'}</span>
+          <div style=${{flex:1}}>
+            <div style=${{fontWeight:700,color:"var(--sp-txt)",fontSize:14}}>${nextItem.title}</div>
+            <div style=${{fontSize:11,color:"var(--sp-txt3)"}}>${nextItem.type} · ${SKILL_ICONS[nextItem.skill]||''} ${nextItem.skill}</div>
+          </div>
+          ${nextItem.url?h`<a href=${nextItem.url} target="_blank" rel="noopener" class="sp2-btn sp2-btn-p" style=${{fontSize:12,padding:"7px 14px",textDecoration:"none"}}>Open</a>`:null}
+        </div>
+      </div>`:null}
+      ${items.length>0?h`<div class="sp2-card" style=${{padding:"6px 0"}}>
+        <div style=${{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:"var(--sp-txt3)",padding:"10px 18px",borderBottom:"1px solid var(--sp-border)"}}>All Steps</div>
+        ${items.map((item,i)=>{
+          const done = prog.completedItems.includes(item.id);
+          return h`<div key=${item.id} style=${{display:"flex",alignItems:"center",gap:12,padding:"12px 18px",borderBottom:i<items.length-1?"1px solid var(--sp-border)":"none",opacity:done?.7:1}}>
+            <button onClick=${()=>markComplete(activeGoalId,item.id)} style=${{width:22,height:22,borderRadius:50,border:"2px solid "+(done?"var(--sp-amber)":"var(--sp-border)"),background:done?"var(--sp-amber)":"transparent",flexShrink:0,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:12,transition:"all .15s"}}>${done?"✓":""}</button>
+            <span style=${{fontSize:18,flexShrink:0}}>${CONTENT_TYPE_ICONS[item.type]||'📌'}</span>
+            <div style=${{flex:1}}>
+              <div style=${{fontWeight:600,color:"var(--sp-txt)",fontSize:13,textDecoration:done?"line-through":"none"}}>${item.title}</div>
+              <div style=${{fontSize:11,color:"var(--sp-txt3)"}}>${item.type} · ${SKILL_ICONS[item.skill]||''} ${item.skill}${item.topic?" · "+item.topic:""}</div>
+            </div>
+            ${item.url?h`<a href=${item.url} target="_blank" rel="noopener" style=${{fontSize:11,color:"var(--sp-amber)",textDecoration:"none",flexShrink:0}}>Open →</a>`:null}
+          </div>`;
+        })}
+      </div>`:null}
+    </div>`;
+  }
+
+  return h`<div>
+    <div style=${{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700,color:"var(--sp-txt)",marginBottom:6}}>Learning Goals</div>
+    <div style=${{fontSize:13,color:"var(--sp-txt2)",marginBottom:20,lineHeight:1.65}}>Choose the goals that match what you want to achieve. You can pick more than one.</div>
+    <div class="goal-grid">
+      ${goals.map(goal=>{
+        const enrolled = isEnrolled(goal.id);
+        const prog = getProgress(goal.id);
+        const items = getPathItems(goal.id);
+        const done = items.filter(c=>prog.completedItems.includes(c.id)).length;
+        const pct = items.length ? Math.round(done/items.length*100) : 0;
+        return h`<div key=${goal.id} class=${"goal-card "+(enrolled?"selected":"")} onClick=${()=>{setActiveGoalId(goal.id);setView('detail');}}>
+          <div class="goal-check">✓</div>
+          <div style=${{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>
+            <span class="goal-cefr">${goal.cefr}</span>
+            <span class=${"goal-reg "+goal.register}>${REGISTER_LABELS[goal.register]||goal.register}</span>
+          </div>
+          <div class="goal-title">${goal.title}</div>
+          <div class="goal-desc">${goal.description}</div>
+          ${enrolled&&items.length>0?h`<div>
+            <div class="goal-prog-bar"><div class="goal-prog-fill" style=${{width:pct+"%"}}></div></div>
+            <div class="goal-prog-label">${done}/${items.length} · ${pct}%</div>
+          </div>`:null}
+          <div style=${{marginTop:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <button onClick=${(e)=>{e.stopPropagation();toggleGoal(goal);}} class=${"sp2-btn sp2-btn-sm "+(enrolled?"sp2-btn-g":"sp2-btn-p")} style=${{fontSize:11}}>${enrolled?"✓ Enrolled":"+ Enroll"}</button>
+            <span style=${{fontSize:11,color:"var(--sp-txt3)"}}>${items.length} steps</span>
+          </div>
+        </div>`;
+      })}
+    </div>
+  </div>`;
+}
+
+// ── Tutor: Goals & Paths Admin ──
+function GoalsAdmin({data, setData}) {
+  const goals = (data.goals||[]).sort((a,b)=>a.sortOrder-b.sortOrder);
+  const [selGoal, setSelGoal] = useState(null);
+  const [showAddItem, setShowAddItem] = useState(false);
+  const [showAddGoal, setShowAddGoal] = useState(false);
+  const [itemForm, setItemForm] = useState({title:'',type:'lesson',skill:'reading',level:'a1',register:'neutral',topic:'',url:''});
+  const [goalForm, setGoalForm] = useState({title:'',description:'',cefr:'A1',register:'neutral',sortOrder:''});
+  const [err, setErr] = useState('');
+
+  const saveItem = () => {
+    if (!itemForm.title.trim()) return setErr('Title required');
+    const item = {...itemForm, id: uid(), createdAt: new Date().toISOString()};
+    setData({...data, contentItems:[...(data.contentItems||[]), item]});
+    setItemForm({title:'',type:'lesson',skill:'reading',level:'a1',register:'neutral',topic:'',url:''});
+    setShowAddItem(false); setErr('');
+  };
+
+  const saveGoal = () => {
+    if (!goalForm.title.trim()) return setErr('Title required');
+    const g = {...goalForm, id: uid(), sortOrder: parseInt(goalForm.sortOrder)||goals.length+1};
+    setData({...data, goals:[...(data.goals||[]), g]});
+    setGoalForm({title:'',description:'',cefr:'A1',register:'neutral',sortOrder:''});
+    setShowAddGoal(false); setErr('');
+  };
+
+  const addToPath = (goalId, contentId) => {
+    const existing = (data.goalPaths||[]).filter(p=>p.goalId===goalId);
+    if (existing.some(p=>p.contentId===contentId)) return;
+    const entry = {id:uid(), goalId, contentId, sortOrder:existing.length+1};
+    setData({...data, goalPaths:[...(data.goalPaths||[]), entry]});
+  };
+
+  const removeFromPath = (pathId) => {
+    setData({...data, goalPaths:(data.goalPaths||[]).filter(p=>p.id!==pathId)});
+  };
+
+  const deleteItem = (itemId) => {
+    setData({...data, contentItems:(data.contentItems||[]).filter(c=>c.id!==itemId), goalPaths:(data.goalPaths||[]).filter(p=>p.contentId!==itemId)});
+  };
+
+  const activeGoal = selGoal ? goals.find(g=>g.id===selGoal) : null;
+  const pathItems = selGoal ? (data.goalPaths||[]).filter(p=>p.goalId===selGoal).sort((a,b)=>a.sortOrder-b.sortOrder).map(p=>({...(data.contentItems||[]).find(c=>c.id===p.contentId)||{}, _pathId:p.id})).filter(c=>c.id) : [];
+  const unlinked = selGoal ? (data.contentItems||[]).filter(c=>!(data.goalPaths||[]).some(p=>p.goalId===selGoal&&p.contentId===c.id)) : [];
+
+  return h`<div>
+    <div style=${{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18,flexWrap:"wrap",gap:10}}>
+      <h3 style=${{fontFamily:"var(--fh)",fontSize:18,letterSpacing:1,margin:0}}>LEARNING GOALS & PATHS</h3>
+      <div style=${{display:"flex",gap:8}}>
+        <button class="btn btn-sm btn-p" onClick=${()=>{setShowAddItem(v=>!v);setShowAddGoal(false);}}>+ Content Item</button>
+        <button class="btn btn-sm btn-g" onClick=${()=>{setShowAddGoal(v=>!v);setShowAddItem(false);}}>+ Goal</button>
+      </div>
+    </div>
+    ${err?h`<div class="err" style=${{marginBottom:12}}>${err}</div>`:null}
+
+    ${showAddItem&&h`<div class="card" style=${{marginBottom:18,padding:18}}>
+      <h4 style=${{margin:"0 0 14px",fontSize:14}}>New Content Item</h4>
+      <div style=${{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+        <div class="fg" style=${{gridColumn:"1/-1"}}><label>Title</label><input class="inp" value=${itemForm.title} onInput=${e=>setItemForm({...itemForm,title:e.target.value})} placeholder="e.g. The 28 Letters: Forms & Sounds"/></div>
+        <div class="fg"><label>Type</label><select class="inp" value=${itemForm.type} onChange=${e=>setItemForm({...itemForm,type:e.target.value})}>${['lesson','video','file','exercise'].map(t=>h`<option key=${t} value=${t}>${t}</option>`)}</select></div>
+        <div class="fg"><label>Skill</label><select class="inp" value=${itemForm.skill} onChange=${e=>setItemForm({...itemForm,skill:e.target.value})}>${['listening','speaking','reading','writing','grammar','vocab'].map(t=>h`<option key=${t} value=${t}>${t}</option>`)}</select></div>
+        <div class="fg"><label>Level</label><select class="inp" value=${itemForm.level} onChange=${e=>setItemForm({...itemForm,level:e.target.value})}>${['pre-a1','a1','a2','b1','b2','c1'].map(t=>h`<option key=${t} value=${t}>${t}</option>`)}</select></div>
+        <div class="fg"><label>Register</label><select class="inp" value=${itemForm.register} onChange=${e=>setItemForm({...itemForm,register:e.target.value})}>${['neutral','lebanese','msa','classical-quranic'].map(t=>h`<option key=${t} value=${t}>${t}</option>`)}</select></div>
+        <div class="fg"><label>Topic</label><input class="inp" value=${itemForm.topic} onInput=${e=>setItemForm({...itemForm,topic:e.target.value})} placeholder="e.g. alphabet"/></div>
+        <div class="fg"><label>URL (optional)</label><input class="inp" value=${itemForm.url} onInput=${e=>setItemForm({...itemForm,url:e.target.value})} placeholder="https://..."/></div>
+      </div>
+      <div style=${{display:"flex",gap:8,marginTop:14}}>
+        <button class="btn btn-p" onClick=${saveItem}>Save Item</button>
+        <button class="btn btn-g btn-sm" onClick=${()=>{setShowAddItem(false);setErr('');}}>Cancel</button>
+      </div>
+    </div>`}
+
+    ${showAddGoal&&h`<div class="card" style=${{marginBottom:18,padding:18}}>
+      <h4 style=${{margin:"0 0 14px",fontSize:14}}>New Goal</h4>
+      <div style=${{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+        <div class="fg" style=${{gridColumn:"1/-1"}}><label>Title</label><input class="inp" value=${goalForm.title} onInput=${e=>setGoalForm({...goalForm,title:e.target.value})}/></div>
+        <div class="fg" style=${{gridColumn:"1/-1"}}><label>Description (student-facing outcome)</label><textarea class="inp" value=${goalForm.description} onInput=${e=>setGoalForm({...goalForm,description:e.target.value})} rows="2"/></div>
+        <div class="fg"><label>CEFR Level</label><input class="inp" value=${goalForm.cefr} onInput=${e=>setGoalForm({...goalForm,cefr:e.target.value})} placeholder="e.g. A1–A2"/></div>
+        <div class="fg"><label>Register</label><select class="inp" value=${goalForm.register} onChange=${e=>setGoalForm({...goalForm,register:e.target.value})}>${['neutral','lebanese','msa','classical-quranic'].map(t=>h`<option key=${t} value=${t}>${t}</option>`)}</select></div>
+        <div class="fg"><label>Sort Order</label><input class="inp" type="number" value=${goalForm.sortOrder} onInput=${e=>setGoalForm({...goalForm,sortOrder:e.target.value})} placeholder="9"/></div>
+      </div>
+      <div style=${{display:"flex",gap:8,marginTop:14}}>
+        <button class="btn btn-p" onClick=${saveGoal}>Save Goal</button>
+        <button class="btn btn-g btn-sm" onClick=${()=>{setShowAddGoal(false);setErr('');}}>Cancel</button>
+      </div>
+    </div>`}
+
+    <div style=${{display:"grid",gridTemplateColumns:"260px 1fr",gap:18,alignItems:"start"}}>
+      <div>
+        <div style=${{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:"var(--g500)",marginBottom:10}}>Goals (${goals.length})</div>
+        ${goals.map(g=>h`<div key=${g.id} class=${"card"} style=${{padding:"10px 14px",marginBottom:8,cursor:"pointer",borderLeft:selGoal===g.id?"4px solid var(--bd)":"4px solid transparent",background:selGoal===g.id?"var(--bk)":"",transition:"all .12s"}} onClick=${()=>setSelGoal(g.id)}>
+          <div style=${{fontWeight:700,fontSize:13,color:"var(--bk-txt)",marginBottom:3}}>${g.title}</div>
+          <div style=${{fontSize:11,color:"var(--g500)"}}>${g.cefr} · ${g.register} · ${(data.goalPaths||[]).filter(p=>p.goalId===g.id).length} items</div>
+        </div>`)}
+      </div>
+
+      <div>
+        ${!selGoal?h`<div class="empty"><h3>SELECT A GOAL</h3><p>Click a goal on the left to manage its content path.</p></div>`:h`<div>
+          <div style=${{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,flexWrap:"wrap",gap:8}}>
+            <div style=${{fontFamily:"var(--fh)",fontSize:15,fontWeight:700}}>${activeGoal?.title}</div>
+          </div>
+
+          ${pathItems.length>0?h`<div class="card" style=${{padding:0,marginBottom:18}}>
+            <div style=${{padding:"10px 16px",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:"var(--g500)",borderBottom:"1px solid var(--bk)"}}>Path (in order)</div>
+            ${pathItems.map((item,i)=>h`<div key=${item._pathId} style=${{display:"flex",alignItems:"center",gap:10,padding:"10px 16px",borderBottom:i<pathItems.length-1?"1px solid var(--bk)":"none"}}>
+              <span style=${{fontSize:16}}>${CONTENT_TYPE_ICONS[item.type]||'📌'}</span>
+              <div style=${{flex:1}}>
+                <div style=${{fontWeight:600,fontSize:13}}>${item.title}</div>
+                <div style=${{fontSize:11,color:"var(--g500)"}}>${item.type} · ${item.skill} · ${item.level}</div>
+              </div>
+              <button class="btn btn-sm" style=${{background:"var(--rd)",color:"#fff",border:"none"}} onClick=${()=>removeFromPath(item._pathId)}>Remove</button>
+            </div>`)}
+          </div>`:h`<div class="empty" style=${{minHeight:80}}><p>No content in this path yet. Add items from the list below.</p></div>`}
+
+          ${unlinked.length>0?h`<div>
+            <div style=${{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:"var(--g500)",marginBottom:10}}>Available Content Items</div>
+            <div class="card" style=${{padding:0}}>
+              ${unlinked.map((item,i)=>h`<div key=${item.id} style=${{display:"flex",alignItems:"center",gap:10,padding:"10px 16px",borderBottom:i<unlinked.length-1?"1px solid var(--bk)":"none"}}>
+                <span style=${{fontSize:16}}>${CONTENT_TYPE_ICONS[item.type]||'📌'}</span>
+                <div style=${{flex:1}}>
+                  <div style=${{fontWeight:600,fontSize:13}}>${item.title}</div>
+                  <div style=${{fontSize:11,color:"var(--g500)"}}>${item.type} · ${item.skill} · ${item.level} · ${item.register}</div>
+                </div>
+                <div style=${{display:"flex",gap:6}}>
+                  <button class="btn btn-sm btn-p" onClick=${()=>addToPath(selGoal,item.id)}>Add to Path</button>
+                  <button class="btn btn-sm" style=${{background:"var(--rd)",color:"#fff",border:"none"}} onClick=${()=>deleteItem(item.id)}>Delete</button>
+                </div>
+              </div>`)}
+            </div>
+          </div>`:null}
+        </div>`}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ════════════════════════════════════════
 // VERBS TAB — student-facing pronunciation table
 // ════════════════════════════════════════
 function VerbsTab({data}) {
@@ -5813,6 +6117,7 @@ const SP_NAV = [
   {id:'skills',icon:'⚡',label:'Skills',group:'LEARN'},
   {id:'foundation',icon:'🌿',label:'Foundation',group:'LEARN'},
   {id:'script',icon:'ب',label:'Script',group:'LEARN'},
+  {id:'goals',icon:'🎯',label:'My Goals',group:'EXPLORE'},
   {id:'culture',icon:'🕌',label:'Culture',group:'EXPLORE'},
   {id:'howto',icon:'💡',label:'How-To Guide',group:'EXPLORE'},
   {id:'library',icon:'📚',label:'Library',group:'MY LESSONS'},
@@ -5828,6 +6133,7 @@ const SP_MORE_NAV = [
   {id:'foundation',icon:'R',label:'Foundation',desc:'Vocabulary, roots, and grammar basics.'},
   {id:'script',icon:'ب',label:'Arabic Script',desc:'Letters, forms, and script confidence.'},
   {id:'culture',icon:'C',label:'Culture',desc:'Expressions, context, and cultural notes.'},
+  {id:'goals',icon:'🎯',label:'My Goals',desc:'Choose your learning goals and track your progress step by step.'},
   {id:'howto',icon:'💡',label:'How-To Guide',desc:'Answers to common Arabic learning questions, reviewed and answered by Hadi.'},
   {id:'curriculum',icon:'L',label:'Curriculum',desc:'Assigned lessons and class materials.'},
   {id:'preferences',icon:'J',label:'My Journey',desc:'Goals, interests, study style, and motivation.'},
@@ -7554,6 +7860,7 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
       </div>
     </div>`;
 
+    if(spTab==='goals') return h`<${GoalsTab} student=${s} data=${data} setData=${setData} auth=${auth}/>`;
     if(spTab==='howto') return h`<${HowToStudentView} student=${s} data=${data} setData=${setData}/>`;
 
     if(spTab==='more') return h`<div style=${{maxWidth:760,margin:"0 auto"}}>
@@ -11345,12 +11652,13 @@ function App() {
     ["website","Website Control","set"],
     ["studio","Learning Studio","ai"],
     ["practice","Quizzes & Exercises","ai"],
+    ["goals","Learning Goals","cur"],
     ["homework","Homework & Tasks","hw"],
     ["howto","How-To Guide","hw"],
     ["settings","Settings","set"]
   ];
   // Remap old view names for activeNav highlight
-  const navViewMap = {scheduling:"lessons", calendar:"lessons", curriculum:"materials", resources:"materials", library:"materials", "learning-studio":"studio", quizzes:"practice", exercises:"practice", requests:"dashboard"};
+  const navViewMap = {scheduling:"lessons", calendar:"lessons", curriculum:"materials", resources:"materials", library:"materials", "learning-studio":"studio", quizzes:"practice", exercises:"practice", requests:"dashboard", "learning-goals":"goals"};
   const activeNav = view === "profile" ? "students" : (navViewMap[view] || view);
 
   const themeCSS = "";
@@ -11374,6 +11682,7 @@ function App() {
     ${view==="homework" && h`<${HomeworkView} data=${data} onProfile=${openProfile}/>`}
     ${view==="requests" && h`<${RequestsInbox} auth=${auth} data=${data} setData=${update} onProfile=${openProfile} onSchedule=${()=>goNav("lessons")}/>`}
     ${view==="howto" && h`<${HowToAdmin} data=${data} setData=${update} auth=${auth}/>`}
+    ${view==="goals" && h`<${GoalsAdmin} data=${data} setData=${update}/>`}
     ${view==="settings" && h`<${Settings} data=${data} setData=${update}/>`}
   `;
 
@@ -11474,6 +11783,7 @@ function App() {
         ${view==="homework" && h`<${HomeworkView} data=${data} onProfile=${openProfile}/>`}
         ${view==="requests" && h`<${RequestsInbox} auth=${auth} data=${data} setData=${update} onProfile=${openProfile} onSchedule=${()=>goNav("lessons")}/>`}
         ${view==="howto" && h`<${HowToAdmin} data=${data} setData=${update} auth=${auth}/>`}
+        ${view==="goals" && h`<${GoalsAdmin} data=${data} setData=${update}/>`}
         ${view==="settings" && h`<${Settings} data=${data} setData=${update}/>`}
       </div>
       <nav class="mob-nav">
