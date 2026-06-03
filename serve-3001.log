@@ -1,0 +1,415 @@
+ INFO  Accepting connections at http://localhost:3001
+ HTTP  5/1/2026 5:11:01 PM ::1 GET /portal
+ HTTP  5/1/2026 5:11:01 PM ::1 Returned 200 in 76 ms
+ HTTP  5/1/2026 5:11:37 PM ::1 GET /portal
+ HTTP  5/1/2026 5:11:37 PM ::1 Returned 200 in 3 ms
+ HTTP  5/1/2026 5:11:46 PM ::1 GET /portal
+ HTTP  5/1/2026 5:11:46 PM ::1 Returned 200 in 8 ms
+ HTTP  5/1/2026 5:11:46 PM ::1 GET /site-content.js
+ HTTP  5/1/2026 5:11:46 PM ::1 Returned 200 in 9 ms
+ HTTP  5/1/2026 5:11:46 PM ::1 GET /manifest.json
+ HTTP  5/1/2026 5:11:46 PM ::1 Returned 200 in 9 ms
+ HTTP  5/1/2026 5:11:47 PM ::1 GET /sw.js
+ HTTP  5/1/2026 5:11:47 PM ::1 Returned 200 in 4 ms
+ HTTP  5/1/2026 5:11:47 PM ::1 GET /logo.jpeg
+ HTTP  5/1/2026 5:11:47 PM ::1 Returned 200 in 8 ms
+ HTTP  5/1/2026 5:11:47 PM ::1 GET /
+ HTTP  5/1/2026 5:11:47 PM ::1 GET /index.html
+ HTTP  5/1/2026 5:11:47 PM ::1 Returned 301 in 2 ms
+ HTTP  5/1/2026 5:11:47 PM ::1 GET /logo.jpeg
+ HTTP  5/1/2026 5:11:47 PM ::1 Returned 304 in 7 ms
+ HTTP  5/1/2026 5:11:47 PM ::1 Returned 200 in 23 ms
+ HTTP  5/1/2026 5:11:47 PM ::1 GET /index
+ HTTP  5/1/2026 5:11:47 PM ::1 Returned 301 in 9 ms
+ HTTP  5/1/2026 5:11:47 PM ::1 GET /favicon.ico
+ HTTP  5/1/2026 5:11:47 PM ::1 GET /manifest.json
+ HTTP  5/1/2026 5:11:47 PM ::1 Returned 304 in 3 ms
+ HTTP  5/1/2026 5:11:47 PM ::1 GET /
+ HTTP  5/1/2026 5:11:47 PM ::1 Returned 304 in 21 ms
+ HTTP  5/1/2026 5:11:47 PM ::1 Returned 404 in 43 ms
+ HTTP  5/1/2026 5:12:36 PM ::1 GET /portal
+ HTTP  5/1/2026 5:12:36 PM ::1 Returned 200 in 51 ms
+ HTTP  5/1/2026 5:12:36 PM ::1 GET /site-content.js
+ HTTP  5/1/2026 5:12:36 PM ::1 Returned 200 in 2 ms
+ HTTP  5/1/2026 5:12:36 PM ::1 GET /manifest.json
+ HTTP  5/1/2026 5:12:36 PM ::1 Returned 200 in 1 ms
+ HTTP  5/1/2026 5:12:37 PM ::1 GET /sw.js
+ HTTP  5/1/2026 5:12:37 PM ::1 Returned 200 in 2 ms
+ HTTP  5/1/2026 5:12:37 PM ::1 GET /logo.jpeg
+ HTTP  5/1/2026 5:12:37 PM ::1 Returned 200 in 4 ms
+ HTTP  5/1/2026 5:12:37 PM ::1 GET /
+ HTTP  5/1/2026 5:12:37 PM ::1 GET /index.html
+ HTTP  5/1/2026 5:12:37 PM ::1 Returned 301 in 1 ms
+ HTTP  5/1/2026 5:12:37 PM ::1 GET /logo.jpeg
+ HTTP  5/1/2026 5:12:37 PM ::1 Returned 200 in 12 ms
+ HTTP  5/1/2026 5:12:37 PM ::1 GET /favicon.ico
+ HTTP  5/1/2026 5:12:37 PM ::1 Returned 304 in 5 ms
+ HTTP  5/1/2026 5:12:37 PM ::1 GET /index
+ HTTP  5/1/2026 5:12:37 PM ::1 Returned 301 in 3 ms
+ HTTP  5/1/2026 5:12:37 PM ::1 GET /manifest.json
+ HTTP  5/1/2026 5:12:37 PM ::1 Returned 304 in 5 ms
+ HTTP  5/1/2026 5:12:37 PM ::1 Returned 404 in 24 ms
+ HTTP  5/1/2026 5:12:37 PM ::1 GET /
+ HTTP  5/1/2026 5:12:37 PM ::1 Returned 304 in 2 ms
+ HTTP  5/1/2026 5:13:06 PM ::1 GET /portal?mobile-check=1
+ HTTP  5/1/2026 5:13:06 PM ::1 Returned 200 in 27 ms
+ HTTP  5/1/2026 5:13:06 PM ::1 GET /site-content.js
+ HTTP  5/1/2026 5:13:06 PM ::1 Returned 200 in 2 ms
+ HTTP  5/1/2026 5:13:06 PM ::1 GET /manifest.json
+ HTTP  5/1/2026 5:13:06 PM ::1 Returned 200 in 2 ms
+ HTTP  5/1/2026 5:13:07 PM ::1 GET /sw.js
+ HTTP  5/1/2026 5:13:07 PM ::1 Returned 200 in 2 ms
+ HTTP  5/1/2026 5:13:07 PM ::1 GET /logo.jpeg
+ HTTP  5/1/2026 5:13:07 PM ::1 GET /favicon.ico
+ HTTP  5/1/2026 5:13:07 PM ::1 Returned 200 in 3 ms
+ HTTP  5/1/2026 5:13:07 PM ::1 Returned 404 in 7 ms
+ HTTP  5/1/2026 5:13:07 PM ::1 GET /
+ HTTP  5/1/2026 5:13:07 PM ::1 Returned 200 in 2 ms
+ HTTP  5/1/2026 5:13:07 PM ::1 GET /index.html
+ HTTP  5/1/2026 5:13:07 PM ::1 Returned 301 in 1 ms
+ HTTP  5/1/2026 5:13:07 PM ::1 GET /logo.jpeg
+ HTTP  5/1/2026 5:13:07 PM ::1 Returned 304 in 2 ms
+ HTTP  5/1/2026 5:13:07 PM ::1 GET /index
+ HTTP  5/1/2026 5:13:07 PM ::1 Returned 301 in 1 ms
+ HTTP  5/1/2026 5:13:07 PM ::1 GET /manifest.json
+ HTTP  5/1/2026 5:13:07 PM ::1 GET /
+ HTTP  5/1/2026 5:13:07 PM ::1 Returned 304 in 4 ms
+ HTTP  5/1/2026 5:13:07 PM ::1 Returned 304 in 6 ms
+ HTTP  5/1/2026 5:13:39 PM ::1 GET /portal?mobile-check=2
+ HTTP  5/1/2026 5:13:39 PM ::1 Returned 200 in 9 ms
+ HTTP  5/1/2026 5:13:39 PM ::1 GET /site-content.js
+ HTTP  5/1/2026 5:13:39 PM ::1 Returned 200 in 36 ms
+ HTTP  5/1/2026 5:13:39 PM ::1 GET /manifest.json
+ HTTP  5/1/2026 5:13:39 PM ::1 Returned 200 in 5 ms
+ HTTP  5/1/2026 5:13:39 PM ::1 GET /sw.js
+ HTTP  5/1/2026 5:13:39 PM ::1 Returned 200 in 2 ms
+ HTTP  5/1/2026 5:13:40 PM ::1 GET /logo.jpeg
+ HTTP  5/1/2026 5:13:40 PM ::1 Returned 200 in 2 ms
+ HTTP  5/1/2026 5:13:40 PM ::1 GET /favicon.ico
+ HTTP  5/1/2026 5:13:40 PM ::1 Returned 404 in 4 ms
+ HTTP  5/1/2026 5:13:40 PM ::1 GET /
+ HTTP  5/1/2026 5:13:40 PM ::1 GET /index.html
+ HTTP  5/1/2026 5:13:40 PM ::1 Returned 301 in 1 ms
+ HTTP  5/1/2026 5:13:40 PM ::1 GET /logo.jpeg
+ HTTP  5/1/2026 5:13:40 PM ::1 Returned 200 in 5 ms
+ HTTP  5/1/2026 5:13:40 PM ::1 Returned 304 in 3 ms
+ HTTP  5/1/2026 5:13:40 PM ::1 GET /index
+ HTTP  5/1/2026 5:13:40 PM ::1 Returned 301 in 2 ms
+ HTTP  5/1/2026 5:13:40 PM ::1 GET /
+ HTTP  5/1/2026 5:13:40 PM ::1 GET /manifest.json
+ HTTP  5/1/2026 5:13:40 PM ::1 Returned 304 in 2 ms
+ HTTP  5/1/2026 5:13:40 PM ::1 Returned 304 in 3 ms
+ HTTP  5/1/2026 5:13:56 PM ::1 GET /portal
+ HTTP  5/1/2026 5:13:56 PM ::1 Returned 200 in 4 ms
+ HTTP  5/1/2026 5:13:56 PM ::1 GET /site-content.js
+ HTTP  5/1/2026 5:13:56 PM ::1 Returned 200 in 5 ms
+ HTTP  5/1/2026 5:13:56 PM ::1 GET /manifest.json
+ HTTP  5/1/2026 5:13:56 PM ::1 Returned 200 in 8 ms
+ HTTP  5/1/2026 5:13:57 PM ::1 GET /sw.js
+ HTTP  5/1/2026 5:13:57 PM ::1 Returned 200 in 4 ms
+ HTTP  5/1/2026 5:13:57 PM ::1 GET /logo.jpeg
+ HTTP  5/1/2026 5:13:57 PM ::1 Returned 200 in 3 ms
+ HTTP  5/1/2026 5:13:57 PM ::1 GET /favicon.ico
+ HTTP  5/1/2026 5:13:57 PM ::1 Returned 404 in 7 ms
+ HTTP  5/1/2026 5:13:57 PM ::1 GET /
+ HTTP  5/1/2026 5:13:57 PM ::1 Returned 200 in 3 ms
+ HTTP  5/1/2026 5:13:57 PM ::1 GET /index.html
+ HTTP  5/1/2026 5:13:57 PM ::1 Returned 301 in 2 ms
+ HTTP  5/1/2026 5:13:57 PM ::1 GET /logo.jpeg
+ HTTP  5/1/2026 5:13:57 PM ::1 Returned 304 in 5 ms
+ HTTP  5/1/2026 5:13:57 PM ::1 GET /index
+ HTTP  5/1/2026 5:13:57 PM ::1 Returned 301 in 17 ms
+ HTTP  5/1/2026 5:13:57 PM ::1 GET /manifest.json
+ HTTP  5/1/2026 5:13:57 PM ::1 Returned 304 in 3 ms
+ HTTP  5/1/2026 5:13:57 PM ::1 GET /
+ HTTP  5/1/2026 5:13:57 PM ::1 Returned 304 in 3 ms
+ HTTP  5/1/2026 5:14:47 PM ::1 GET /portal
+ HTTP  5/1/2026 5:14:47 PM ::1 Returned 200 in 11 ms
+ HTTP  5/1/2026 5:14:47 PM ::1 GET /site-content.js
+ HTTP  5/1/2026 5:14:47 PM ::1 Returned 200 in 4 ms
+ HTTP  5/1/2026 5:14:47 PM ::1 GET /manifest.json
+ HTTP  5/1/2026 5:14:47 PM ::1 Returned 200 in 2 ms
+ HTTP  5/1/2026 5:14:48 PM ::1 GET /sw.js
+ HTTP  5/1/2026 5:14:48 PM ::1 Returned 200 in 4 ms
+ HTTP  5/1/2026 5:14:48 PM ::1 GET /logo.jpeg
+ HTTP  5/1/2026 5:14:48 PM ::1 GET /favicon.ico
+ HTTP  5/1/2026 5:14:48 PM ::1 Returned 200 in 3 ms
+ HTTP  5/1/2026 5:14:48 PM ::1 Returned 404 in 10 ms
+ HTTP  5/1/2026 5:14:48 PM ::1 GET /
+ HTTP  5/1/2026 5:14:48 PM ::1 GET /index.html
+ HTTP  5/1/2026 5:14:48 PM ::1 Returned 301 in 2 ms
+ HTTP  5/1/2026 5:14:48 PM ::1 Returned 200 in 4 ms
+ HTTP  5/1/2026 5:14:48 PM ::1 GET /logo.jpeg
+ HTTP  5/1/2026 5:14:48 PM ::1 Returned 304 in 3 ms
+ HTTP  5/1/2026 5:14:48 PM ::1 GET /index
+ HTTP  5/1/2026 5:14:48 PM ::1 Returned 301 in 1 ms
+ HTTP  5/1/2026 5:14:48 PM ::1 GET /manifest.json
+ HTTP  5/1/2026 5:14:48 PM ::1 GET /
+ HTTP  5/1/2026 5:14:48 PM ::1 Returned 304 in 8 ms
+ HTTP  5/1/2026 5:14:48 PM ::1 Returned 304 in 5 ms
+ HTTP  5/1/2026 7:49:39 PM ::1 GET /portal
+ HTTP  5/1/2026 7:49:39 PM ::1 Returned 200 in 33 ms
+ HTTP  5/1/2026 7:50:13 PM ::1 GET /portal
+ HTTP  5/1/2026 7:50:13 PM ::1 Returned 200 in 8 ms
+ HTTP  5/1/2026 7:50:14 PM ::1 GET /site-content.js
+ HTTP  5/1/2026 7:50:14 PM ::1 Returned 200 in 3 ms
+ HTTP  5/1/2026 7:50:14 PM ::1 GET /manifest.json
+ HTTP  5/1/2026 7:50:14 PM ::1 Returned 200 in 2 ms
+ HTTP  5/1/2026 7:50:26 PM ::1 GET /portal
+ HTTP  5/1/2026 7:50:26 PM ::1 Returned 200 in 2 ms
+ HTTP  5/1/2026 7:50:26 PM ::1 GET /sw.js
+ HTTP  5/1/2026 7:50:26 PM ::1 Returned 200 in 1 ms
+ HTTP  5/1/2026 7:50:26 PM ::1 GET /
+ HTTP  5/1/2026 7:50:26 PM ::1 GET /index.html
+ HTTP  5/1/2026 7:50:26 PM ::1 Returned 301 in 2 ms
+ HTTP  5/1/2026 7:50:26 PM ::1 GET /logo.jpeg
+ HTTP  5/1/2026 7:50:26 PM ::1 Returned 200 in 8 ms
+ HTTP  5/1/2026 7:50:26 PM ::1 GET /index
+ HTTP  5/1/2026 7:50:26 PM ::1 Returned 301 in 1 ms
+ HTTP  5/1/2026 7:50:26 PM ::1 Returned 200 in 5 ms
+ HTTP  5/1/2026 7:50:26 PM ::1 GET /logo.jpeg
+ HTTP  5/1/2026 7:50:26 PM ::1 GET /
+ HTTP  5/1/2026 7:50:26 PM ::1 Returned 304 in 3 ms
+ HTTP  5/1/2026 7:50:26 PM ::1 GET /manifest.json
+ HTTP  5/1/2026 7:50:26 PM ::1 Returned 304 in 3 ms
+ HTTP  5/1/2026 7:50:26 PM ::1 Returned 304 in 2 ms
+ HTTP  5/1/2026 7:50:26 PM ::1 GET /favicon.ico
+ HTTP  5/1/2026 7:50:26 PM ::1 GET /sw.js
+ HTTP  5/1/2026 7:50:26 PM ::1 Returned 304 in 2 ms
+ HTTP  5/1/2026 7:50:26 PM ::1 Returned 404 in 9 ms
+ HTTP  5/1/2026 7:53:50 PM ::1 GET /portal
+ HTTP  5/1/2026 7:53:50 PM ::1 Returned 200 in 7 ms
+ HTTP  5/2/2026 10:20:40 AM ::1 GET /portal
+ HTTP  5/2/2026 10:20:40 AM ::1 Returned 200 in 50 ms
+ HTTP  5/2/2026 10:21:12 AM ::1 GET /portal
+ HTTP  5/2/2026 10:21:12 AM ::1 Returned 200 in 18 ms
+ HTTP  5/2/2026 10:21:12 AM ::1 GET /site-content.js
+ HTTP  5/2/2026 10:21:12 AM ::1 Returned 200 in 4 ms
+ HTTP  5/2/2026 10:21:12 AM ::1 GET /manifest.json
+ HTTP  5/2/2026 10:21:12 AM ::1 Returned 200 in 5 ms
+ HTTP  5/2/2026 10:21:13 AM ::1 GET /sw.js
+ HTTP  5/2/2026 10:21:13 AM ::1 Returned 200 in 2 ms
+ HTTP  5/2/2026 10:21:13 AM ::1 GET /
+ HTTP  5/2/2026 10:21:13 AM ::1 GET /index.html
+ HTTP  5/2/2026 10:21:13 AM ::1 Returned 301 in 1 ms
+ HTTP  5/2/2026 10:21:13 AM ::1 GET /logo.jpeg
+ HTTP  5/2/2026 10:21:13 AM ::1 Returned 200 in 5 ms
+ HTTP  5/2/2026 10:21:13 AM ::1 GET /index
+ HTTP  5/2/2026 10:21:13 AM ::1 Returned 301 in 2 ms
+ HTTP  5/2/2026 10:21:13 AM ::1 Returned 200 in 4 ms
+ HTTP  5/2/2026 10:21:13 AM ::1 GET /favicon.ico
+ HTTP  5/2/2026 10:21:13 AM ::1 GET /logo.jpeg
+ HTTP  5/2/2026 10:21:13 AM ::1 GET /
+ HTTP  5/2/2026 10:21:13 AM ::1 Returned 304 in 3 ms
+ HTTP  5/2/2026 10:21:13 AM ::1 GET /manifest.json
+ HTTP  5/2/2026 10:21:13 AM ::1 Returned 304 in 3 ms
+ HTTP  5/2/2026 10:21:13 AM ::1 Returned 304 in 2 ms
+ HTTP  5/2/2026 10:21:13 AM ::1 Returned 404 in 9 ms
+ HTTP  5/2/2026 10:21:14 AM ::1 GET /portal
+ HTTP  5/2/2026 10:21:14 AM ::1 Returned 200 in 4 ms
+ HTTP  5/2/2026 10:21:14 AM ::1 GET /site-content.js
+ HTTP  5/2/2026 10:21:14 AM ::1 Returned 200 in 2 ms
+ HTTP  5/2/2026 10:21:14 AM ::1 GET /manifest.json
+ HTTP  5/2/2026 10:21:14 AM ::1 Returned 200 in 2 ms
+ HTTP  5/2/2026 10:21:14 AM ::1 GET /sw.js
+ HTTP  5/2/2026 10:21:14 AM ::1 Returned 200 in 2 ms
+ HTTP  5/2/2026 10:21:14 AM ::1 GET /
+ HTTP  5/2/2026 10:21:14 AM ::1 GET /index.html
+ HTTP  5/2/2026 10:21:14 AM ::1 Returned 301 in 0 ms
+ HTTP  5/2/2026 10:21:14 AM ::1 GET /logo.jpeg
+ HTTP  5/2/2026 10:21:14 AM ::1 Returned 200 in 4 ms
+ HTTP  5/2/2026 10:21:14 AM ::1 Returned 200 in 3 ms
+ HTTP  5/2/2026 10:21:14 AM ::1 GET /favicon.ico
+ HTTP  5/2/2026 10:21:14 AM ::1 GET /logo.jpeg
+ HTTP  5/2/2026 10:21:14 AM ::1 GET /index
+ HTTP  5/2/2026 10:21:14 AM ::1 Returned 301 in 2 ms
+ HTTP  5/2/2026 10:21:14 AM ::1 Returned 304 in 4 ms
+ HTTP  5/2/2026 10:21:14 AM ::1 GET /manifest.json
+ HTTP  5/2/2026 10:21:14 AM ::1 Returned 304 in 1 ms
+ HTTP  5/2/2026 10:21:14 AM ::1 Returned 404 in 9 ms
+ HTTP  5/2/2026 10:21:14 AM ::1 GET /
+ HTTP  5/2/2026 10:21:14 AM ::1 Returned 304 in 1 ms
+ HTTP  5/2/2026 10:21:28 AM ::1 GET /portal
+ HTTP  5/2/2026 10:21:28 AM ::1 Returned 200 in 2 ms
+ HTTP  5/2/2026 10:21:28 AM ::1 GET /site-content.js
+ HTTP  5/2/2026 10:21:28 AM ::1 Returned 200 in 1 ms
+ HTTP  5/2/2026 10:21:28 AM ::1 GET /manifest.json
+ HTTP  5/2/2026 10:21:28 AM ::1 Returned 200 in 2 ms
+ HTTP  5/2/2026 10:21:28 AM ::1 GET /sw.js
+ HTTP  5/2/2026 10:21:28 AM ::1 Returned 200 in 2 ms
+ HTTP  5/2/2026 10:21:28 AM ::1 GET /
+ HTTP  5/2/2026 10:21:28 AM ::1 GET /index.html
+ HTTP  5/2/2026 10:21:28 AM ::1 Returned 301 in 1 ms
+ HTTP  5/2/2026 10:21:28 AM ::1 Returned 200 in 3 ms
+ HTTP  5/2/2026 10:21:28 AM ::1 GET /logo.jpeg
+ HTTP  5/2/2026 10:21:28 AM ::1 GET /index
+ HTTP  5/2/2026 10:21:28 AM ::1 Returned 301 in 0 ms
+ HTTP  5/2/2026 10:21:28 AM ::1 Returned 200 in 2 ms
+ HTTP  5/2/2026 10:21:28 AM ::1 GET /logo.jpeg
+ HTTP  5/2/2026 10:21:28 AM ::1 GET /
+ HTTP  5/2/2026 10:21:28 AM ::1 Returned 304 in 2 ms
+ HTTP  5/2/2026 10:21:28 AM ::1 GET /manifest.json
+ HTTP  5/2/2026 10:21:28 AM ::1 Returned 304 in 2 ms
+ HTTP  5/2/2026 10:21:28 AM ::1 Returned 304 in 2 ms
+ HTTP  5/2/2026 10:21:28 AM ::1 GET /favicon.ico
+ HTTP  5/2/2026 10:21:28 AM ::1 Returned 404 in 3 ms
+ HTTP  5/2/2026 10:21:44 AM ::1 GET /portal
+ HTTP  5/2/2026 10:21:44 AM ::1 Returned 200 in 2 ms
+ HTTP  5/2/2026 10:21:44 AM ::1 GET /site-content.js
+ HTTP  5/2/2026 10:21:44 AM ::1 Returned 200 in 2 ms
+ HTTP  5/2/2026 10:21:44 AM ::1 GET /manifest.json
+ HTTP  5/2/2026 10:21:44 AM ::1 Returned 200 in 1 ms
+ HTTP  5/2/2026 10:21:45 AM ::1 GET /sw.js
+ HTTP  5/2/2026 10:21:45 AM ::1 Returned 200 in 1 ms
+ HTTP  5/2/2026 10:21:45 AM ::1 GET /
+ HTTP  5/2/2026 10:21:45 AM ::1 GET /index.html
+ HTTP  5/2/2026 10:21:45 AM ::1 Returned 301 in 1 ms
+ HTTP  5/2/2026 10:21:45 AM ::1 GET /logo.jpeg
+ HTTP  5/2/2026 10:21:45 AM ::1 Returned 200 in 4 ms
+ HTTP  5/2/2026 10:21:45 AM ::1 Returned 200 in 3 ms
+ HTTP  5/2/2026 10:21:45 AM ::1 GET /index
+ HTTP  5/2/2026 10:21:45 AM ::1 Returned 301 in 0 ms
+ HTTP  5/2/2026 10:21:45 AM ::1 GET /logo.jpeg
+ HTTP  5/2/2026 10:21:45 AM ::1 GET /
+ HTTP  5/2/2026 10:21:45 AM ::1 Returned 304 in 2 ms
+ HTTP  5/2/2026 10:21:45 AM ::1 GET /manifest.json
+ HTTP  5/2/2026 10:21:45 AM ::1 Returned 304 in 3 ms
+ HTTP  5/2/2026 10:21:45 AM ::1 Returned 304 in 2 ms
+ HTTP  5/2/2026 10:21:45 AM ::1 GET /favicon.ico
+ HTTP  5/2/2026 10:21:45 AM ::1 Returned 404 in 3 ms
+ HTTP  5/2/2026 10:22:21 AM ::1 GET /portal
+ HTTP  5/2/2026 10:22:21 AM ::1 Returned 200 in 8 ms
+ HTTP  5/2/2026 10:22:21 AM ::1 GET /site-content.js
+ HTTP  5/2/2026 10:22:21 AM ::1 Returned 200 in 1 ms
+ HTTP  5/2/2026 10:22:21 AM ::1 GET /manifest.json
+ HTTP  5/2/2026 10:22:21 AM ::1 Returned 200 in 1 ms
+ HTTP  5/2/2026 10:22:21 AM ::1 GET /sw.js
+ HTTP  5/2/2026 10:22:21 AM ::1 Returned 200 in 1 ms
+ HTTP  5/2/2026 10:22:21 AM ::1 GET /
+ HTTP  5/2/2026 10:22:21 AM ::1 GET /index.html
+ HTTP  5/2/2026 10:22:21 AM ::1 Returned 301 in 1 ms
+ HTTP  5/2/2026 10:22:21 AM ::1 GET /logo.jpeg
+ HTTP  5/2/2026 10:22:21 AM ::1 Returned 200 in 3 ms
+ HTTP  5/2/2026 10:22:21 AM ::1 Returned 200 in 1 ms
+ HTTP  5/2/2026 10:22:21 AM ::1 GET /index
+ HTTP  5/2/2026 10:22:21 AM ::1 Returned 301 in 1 ms
+ HTTP  5/2/2026 10:22:21 AM ::1 GET /manifest.json
+ HTTP  5/2/2026 10:22:21 AM ::1 GET /
+ HTTP  5/2/2026 10:22:21 AM ::1 Returned 304 in 2 ms
+ HTTP  5/2/2026 10:22:21 AM ::1 Returned 304 in 2 ms
+ HTTP  5/2/2026 10:22:21 AM ::1 GET /logo.jpeg
+ HTTP  5/2/2026 10:22:21 AM ::1 Returned 304 in 1 ms
+ HTTP  5/2/2026 10:22:21 AM ::1 GET /favicon.ico
+ HTTP  5/2/2026 10:22:21 AM ::1 Returned 404 in 3 ms
+ HTTP  5/2/2026 10:22:40 AM ::1 GET /portal
+ HTTP  5/2/2026 10:22:40 AM ::1 Returned 200 in 1 ms
+ HTTP  5/2/2026 10:31:36 AM ::1 GET /portal
+ HTTP  5/2/2026 10:31:36 AM ::1 Returned 200 in 4 ms
+ HTTP  5/2/2026 10:31:50 AM ::1 GET /portal
+ HTTP  5/2/2026 10:31:50 AM ::1 Returned 200 in 3 ms
+ HTTP  5/2/2026 10:31:51 AM ::1 GET /site-content.js
+ HTTP  5/2/2026 10:31:51 AM ::1 Returned 200 in 2 ms
+ HTTP  5/2/2026 10:31:51 AM ::1 GET /manifest.json
+ HTTP  5/2/2026 10:31:51 AM ::1 Returned 200 in 1 ms
+ HTTP  5/2/2026 10:31:51 AM ::1 GET /sw.js
+ HTTP  5/2/2026 10:31:51 AM ::1 Returned 200 in 2 ms
+ HTTP  5/2/2026 10:31:51 AM ::1 GET /
+ HTTP  5/2/2026 10:31:51 AM ::1 GET /index.html
+ HTTP  5/2/2026 10:31:51 AM ::1 Returned 301 in 1 ms
+ HTTP  5/2/2026 10:31:51 AM ::1 GET /logo.jpeg
+ HTTP  5/2/2026 10:31:51 AM ::1 Returned 200 in 4 ms
+ HTTP  5/2/2026 10:31:51 AM ::1 Returned 200 in 1 ms
+ HTTP  5/2/2026 10:31:51 AM ::1 GET /index
+ HTTP  5/2/2026 10:31:51 AM ::1 Returned 301 in 1 ms
+ HTTP  5/2/2026 10:31:51 AM ::1 GET /
+ HTTP  5/2/2026 10:31:51 AM ::1 GET /logo.jpeg
+ HTTP  5/2/2026 10:31:51 AM ::1 GET /manifest.json
+ HTTP  5/2/2026 10:31:51 AM ::1 Returned 304 in 2 ms
+ HTTP  5/2/2026 10:31:51 AM ::1 Returned 304 in 2 ms
+ HTTP  5/2/2026 10:31:51 AM ::1 Returned 304 in 2 ms
+ HTTP  5/2/2026 10:31:51 AM ::1 GET /favicon.ico
+ HTTP  5/2/2026 10:31:51 AM ::1 Returned 404 in 3 ms
+ HTTP  5/2/2026 2:52:09 PM ::1 GET /portal
+ HTTP  5/2/2026 2:52:09 PM ::1 Returned 200 in 36 ms
+ HTTP  5/2/2026 2:54:31 PM ::1 GET /portal
+ HTTP  5/2/2026 2:54:31 PM ::1 Returned 200 in 7 ms
+ HTTP  5/2/2026 2:59:46 PM ::1 GET /portal
+ HTTP  5/2/2026 2:59:46 PM ::1 Returned 200 in 5 ms
+ HTTP  5/2/2026 3:52:47 PM ::1 GET /portal
+ HTTP  5/2/2026 3:52:47 PM ::1 Returned 200 in 32 ms
+ HTTP  5/2/2026 4:23:21 PM ::1 GET /portal
+ HTTP  5/2/2026 4:23:21 PM ::1 Returned 200 in 34 ms
+ HTTP  5/2/2026 10:46:51 PM ::1 GET /portal
+ HTTP  5/2/2026 10:46:51 PM ::1 Returned 200 in 41 ms
+ HTTP  5/4/2026 10:27:13 AM ::1 GET /portal
+ HTTP  5/4/2026 10:27:13 AM ::1 Returned 200 in 85 ms
+ HTTP  5/7/2026 7:41:36 PM ::1 GET /portal
+ HTTP  5/7/2026 7:41:36 PM ::1 Returned 200 in 31 ms
+ HTTP  5/7/2026 9:16:45 PM ::1 GET /portal
+ HTTP  5/7/2026 9:16:45 PM ::1 Returned 200 in 94 ms
+ HTTP  5/14/2026 11:44:12 AM ::1 GET /portal
+ HTTP  5/14/2026 11:44:12 AM ::1 Returned 200 in 55 ms
+ HTTP  5/14/2026 11:44:25 AM ::1 GET /portal
+ HTTP  5/14/2026 11:44:25 AM ::1 Returned 200 in 10 ms
+ HTTP  5/14/2026 11:44:46 AM ::1 GET /portal
+ HTTP  5/14/2026 11:44:46 AM ::1 Returned 200 in 18 ms
+ HTTP  5/14/2026 11:44:46 AM ::1 GET /site-content.js
+ HTTP  5/14/2026 11:44:46 AM ::1 Returned 200 in 9 ms
+ HTTP  5/14/2026 11:44:46 AM ::1 GET /manifest.json
+ HTTP  5/14/2026 11:44:46 AM ::1 Returned 200 in 32 ms
+ HTTP  5/14/2026 11:44:47 AM ::1 GET /sw.js
+ HTTP  5/14/2026 11:44:47 AM ::1 Returned 200 in 4 ms
+ HTTP  5/14/2026 11:44:47 AM ::1 GET /
+ HTTP  5/14/2026 11:44:47 AM ::1 GET /index.html
+ HTTP  5/14/2026 11:44:47 AM ::1 Returned 301 in 2 ms
+ HTTP  5/14/2026 11:44:47 AM ::1 GET /portal
+ HTTP  5/14/2026 11:44:47 AM ::1 GET /index
+ HTTP  5/14/2026 11:44:47 AM ::1 Returned 301 in 2 ms
+ HTTP  5/14/2026 11:44:47 AM ::1 GET /logo.jpeg
+ HTTP  5/14/2026 11:44:47 AM ::1 GET /favicon.ico
+ HTTP  5/14/2026 11:44:47 AM ::1 Returned 200 in 6 ms
+ HTTP  5/14/2026 11:44:47 AM ::1 Returned 304 in 14 ms
+ HTTP  5/14/2026 11:44:47 AM ::1 Returned 200 in 24 ms
+ HTTP  5/14/2026 11:44:47 AM ::1 Returned 404 in 16 ms
+ HTTP  5/14/2026 11:44:47 AM ::1 GET /portal.html
+ HTTP  5/14/2026 11:44:47 AM ::1 Returned 301 in 1 ms
+ HTTP  5/14/2026 11:44:47 AM ::1 GET /
+ HTTP  5/14/2026 11:44:47 AM ::1 GET /demo
+ HTTP  5/14/2026 11:44:47 AM ::1 GET /portal
+ HTTP  5/14/2026 11:44:47 AM ::1 Returned 304 in 6 ms
+ HTTP  5/14/2026 11:44:47 AM ::1 Returned 304 in 7 ms
+ HTTP  5/14/2026 11:44:47 AM ::1 GET /demo/index.html
+ HTTP  5/14/2026 11:44:47 AM ::1 Returned 301 in 2 ms
+ HTTP  5/14/2026 11:44:47 AM ::1 Returned 200 in 16 ms
+ HTTP  5/14/2026 11:44:47 AM ::1 GET /demo/index
+ HTTP  5/14/2026 11:44:47 AM ::1 Returned 301 in 4 ms
+ HTTP  5/14/2026 11:44:47 AM ::1 GET /demo/portal
+ HTTP  5/14/2026 11:44:47 AM ::1 GET /demo
+ HTTP  5/14/2026 11:44:47 AM ::1 GET /demo/portal/index.html
+ HTTP  5/14/2026 11:44:47 AM ::1 Returned 301 in 2 ms
+ HTTP  5/14/2026 11:44:47 AM ::1 GET /demo/portal/index
+ HTTP  5/14/2026 11:44:47 AM ::1 Returned 301 in 1 ms
+ HTTP  5/14/2026 11:44:47 AM ::1 Returned 304 in 9 ms
+ HTTP  5/14/2026 11:44:47 AM ::1 Returned 200 in 29 ms
+ HTTP  5/14/2026 11:44:47 AM ::1 GET /site-content.js
+ HTTP  5/14/2026 11:44:47 AM ::1 Returned 304 in 2 ms
+ HTTP  5/14/2026 11:44:47 AM ::1 GET /data.js
+ HTTP  5/14/2026 11:44:47 AM ::1 GET /demo/portal
+ HTTP  5/14/2026 11:44:47 AM ::1 GET /components.jsx
+ HTTP  5/14/2026 11:44:47 AM ::1 Returned 304 in 1 ms
+ HTTP  5/14/2026 11:44:47 AM ::1 Returned 200 in 4 ms
+ HTTP  5/14/2026 11:44:47 AM ::1 GET /pages/Home.jsx
+ HTTP  5/14/2026 11:44:47 AM ::1 Returned 200 in 6 ms
+ HTTP  5/14/2026 11:44:47 AM ::1 Returned 200 in 5 ms
+ HTTP  5/14/2026 11:44:47 AM ::1 GET /pages/Courses.jsx
+ HTTP  5/14/2026 11:44:47 AM ::1 GET /pages/Pricing.jsx
+ HTTP  5/14/2026 11:44:47 AM ::1 Returned 200 in 3 ms
+ HTTP  5/14/2026 11:44:47 AM ::1 GET /pages/About.jsx
+ HTTP  5/14/2026 11:44:47 AM ::1 Returned 200 in 4 ms
+ HTTP  5/14/2026 11:44:47 AM ::1 Returned 200 in 4 ms
+ HTTP  5/14/2026 11:44:47 AM ::1 GET /logo.jpeg
+ HTTP  5/14/2026 11:44:47 AM ::1 GET /manifest.json
+ HTTP  5/14/2026 11:44:47 AM ::1 Returned 304 in 3 ms
+ HTTP  5/14/2026 11:44:47 AM ::1 Returned 304 in 12 ms
+ HTTP  5/14/2026 2:22:27 PM ::1 GET /
+ HTTP  5/14/2026 2:22:27 PM ::1 Returned 200 in 61 ms

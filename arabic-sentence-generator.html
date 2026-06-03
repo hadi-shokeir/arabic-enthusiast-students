@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arabic Sentence Generator | مولّد الجمل العربية</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #fafaf7;
+      min-height: 100vh;
+      padding: 20px 16px 80px;
+      color: #1a1a1a;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container { max-width: 680px; margin: 0 auto; }
+
+    /* ── Header ── */
+    .header { text-align: center; padding: 32px 0 28px; }
+    .header h1 {
+      font-family: 'Noto Naskh Arabic', serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      direction: rtl;
+      margin-bottom: 6px;
+    }
+    .header .sub {
+      font-size: 13px;
+      color: #aaa;
+      font-weight: 400;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: #fff;
+      border: 1px solid #e8e5de;
+      border-radius: 16px;
+      margin-bottom: 14px;
+    }
+    .card-pad { padding: 18px 20px; }
+
+    /* ── Anthropic Key ── */
+    .key-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 13px 16px;
+    }
+    .key-bar label { font-size: 12px; font-weight: 600; color: #777; white-space: nowrap; }
+    .key-bar input {
+      flex: 1;
+      border: 1.5px solid #e0ddd6;
+      border-radius: 9px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+      background: #fafaf7;
+      color: #333;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .key-bar input:focus { border-color: #b89a55; }
+
+    /* ── Mode Tabs ── */
+    .mode-tabs {
+      display: flex;
+      background: #f0ece3;
+      border-radius: 13px;
+      padding: 4px;
+      margin-bottom: 14px;
+      gap: 4px;
+    }
+    .mode-tab {
+      flex: 1;
+      padding: 11px 8px;
+      border: none;
+      border-radius: 10px;
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.22s;
+      text-align: center;
+      line-height: 1.3;
+    }
+    .mode-tab .t-ar {
+      font-family: 'Noto Naskh Arabic', serif;
+      font-size: 15px;
+      font-weight: 600;
+      color: #999;
+      display: block;
+      direction: rtl;
+    }
+    .mode-tab .t-en {
+      font-size: 11px;
+      color: #bbb;
+      display: block;
+      margin-top: 2px;
+    }
+    .mode-tab.active {
+      background: #fff;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.09);
+    }
+    .mode-tab.active .t-ar { color: #1a1a1a; }
+    .mode-tab.active .t-en { color: #888; }
+
+    /* ── TTS Bar ── */
+    .tts-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 14px 18px;
+    }
+    .tts-lbl { font-size: 12px; font-weight: 600; color: #888; white-space: nowrap; }
+    .eng-toggle {
+      display: flex;
+      background: #f0ece3;
+      border-radius: 9px;
+      padding: 3px;
+      gap: 3px;
+    }
+    .eng-btn {
+      padding: 7px 14px;
+      border: none;
+      border-radius: 7px;
+      background: transparent;
+      cursor: pointer;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: #999;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .eng-btn.active {
+      background: #fff;
+      color: #1a1a1a;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      font-weight: 600;
+    }
+    .el-slide {
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s;
+      padding: 0 18px;
+    }
+    .el-slide.open {
+      max-height: 80px;
+      opacity: 1;
+      padding: 0 18px 14px;
+    }
+    .el-slide input {
+      width: 100%;
+      border: 1.5px solid #e0ddd6;
+      border-radius: 9px;
+      padding: 9px 13px;
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+      background: #fafaf7;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .el-slide input:focus { border-color: #b89a55; }
+    .el-note { font-size: 10.5px; color: #bbb; margin-top: 5px; }
+
+    /* ── Controls ── */
+    .ctrl-group { margin-bottom: 18px; }
+    .ctrl-group:last-child { margin-bottom: 0; }
+    .ctrl-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #bbb;
+      margin-bottom: 9px;
+      display: flex;
+      align-items: baseline;
+      gap: 7px;
+    }
+    .ctrl-label .ar {
+      font-family: 'Noto Naskh Arabic', serif;
+      font-size: 14px;
+      color: #777;
+      font-weight: 600;
+      text-transform: none;
+      letter-spacing: 0;
+      direction: rtl;
+    }
+
+    /* Type toggle */
+    .type-row { display: flex; gap: 10px; }
+    .type-btn {
+      flex: 1;
+      padding: 10px 8px;
+      border: 1.5px solid #e0ddd6;
+      border-radius: 11px;
+      background: transparent;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+      line-height: 1.4;
+    }
+    .type-btn .t-ar {
+      font-family: 'Noto Naskh Arabic', serif;
+      font-size: 15px;
+      color: #555;
+      direction: rtl;
+      display: block;
+    }
+    .type-btn .t-en { font-size: 11px; color: #aaa; display: block; margin-top: 2px; }
+    .type-btn.active {
+      border-color: #b89a55;
+      background: #fdf9f0;
+      box-shadow: 0 0 0 3px rgba(184,154,85,0.12);
+    }
+    .type-btn.active .t-ar { color: #8b6914; }
+    .type-btn.active .t-en { color: #b89a55; }
+
+    /* Difficulty slider */
+    .slider-wrap { position: relative; padding-bottom: 26px; }
+    input[type=range] {
+      width: 100%;
+      -webkit-appearance: none;
+      height: 5px;
+      border-radius: 4px;
+      outline: none;
+      cursor: pointer;
+      background: #e0ddd6;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: #b89a55;
+      cursor: pointer;
+      border: 3px solid #fff;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.2);
+      transition: background 0.2s;
+    }
+    input[type=range]::-moz-range-thumb {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: #b89a55;
+      cursor: pointer;
+      border: 3px solid #fff;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.2);
+    }
+    .diff-labels {
+      display: flex;
+      justify-content: space-between;
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+    }
+    .diff-lbl {
+      flex: 1;
+      text-align: center;
+      font-size: 10px;
+      color: #ccc;
+      transition: color 0.2s;
+    }
+    .diff-lbl:first-child { text-align: left; }
+    .diff-lbl:last-child { text-align: right; }
+    .diff-lbl .ar { font-family: 'Noto Naskh Arabic', serif; font-size: 12px; display: block; direction: rtl; }
+    .diff-lbl.on { color: #b89a55; font-weight: 600; }
+
+    /* Topic input */
+    input.topic {
+      width: 100%;
+      border: 1.5px solid #e0ddd6;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      background: #fafaf7;
+      color: #333;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input.topic:focus { border-color: #b89a55; }
+    input.topic::placeholder { color: #ccc; }
+
+    /* ── Generate Button ── */
+    .gen-btn {
+      width: 100%;
+      padding: 15px;
+      background: #1a1a1a;
+      color: #fff;
+      border: none;
+      border-radius: 13px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .gen-btn:hover:not(:disabled) { background: #2d2d2d; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.15); }
+    .gen-btn:active:not(:disabled) { transform: translateY(0); }
+    .gen-btn:disabled { background: #bbb; cursor: not-allowed; }
+    .gen-btn .ar { font-family: 'Noto Naskh Arabic', serif; font-size: 16px; direction: rtl; }
+
+    /* Loader dots */
+    .dots { display: inline-flex; gap: 5px; align-items: center; }
+    .dots span {
+      width: 7px; height: 7px;
+      background: rgba(255,255,255,0.9);
+      border-radius: 50%;
+      animation: bop 1.2s infinite ease-in-out;
+    }
+    .dots span:nth-child(2) { animation-delay: .2s; }
+    .dots span:nth-child(3) { animation-delay: .4s; }
+    @keyframes bop {
+      0%,80%,100% { transform: scale(0.55); opacity: 0.4; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+
+    /* ── Error ── */
+    .err-box {
+      background: #fff5f5;
+      border: 1px solid #ffd0d0;
+      border-radius: 12px;
+      padding: 13px 16px;
+      color: #c62828;
+      font-size: 13.5px;
+      margin-bottom: 14px;
+      display: none;
+      animation: fadeIn .25s ease;
+    }
+
+    /* ── Result Card ── */
+    .result-card {
+      background: #fff;
+      border: 1px solid #e8e5de;
+      border-radius: 16px;
+      padding: 22px;
+      margin-bottom: 14px;
+      display: none;
+      animation: slideUp .3s ease;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; } to { opacity: 1; }
+    }
+    .rblock {
+      margin-bottom: 18px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid #f2efe8;
+    }
+    .rblock:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .rlabel {
+      font-size: 10.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #ccc;
+      margin-bottom: 8px;
+    }
+    .arabic-row { display: flex; align-items: flex-start; gap: 12px; justify-content: space-between; }
+    .arabic-wrap { flex: 1; }
+    .arabic-text {
+      font-family: 'Noto Naskh Arabic', serif;
+      font-size: 1.6rem;
+      line-height: 2;
+      color: #1a1a1a;
+      direction: rtl;
+      text-align: right;
+    }
+    .tts-err {
+      font-size: 12px;
+      color: #e53935;
+      margin-top: 6px;
+      display: none;
+    }
+    .speak-btn {
+      flex-shrink: 0;
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      border: 1.5px solid #e0ddd6;
+      background: #fafaf7;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      transition: all 0.2s;
+      margin-top: 12px;
+    }
+    .speak-btn:hover:not(:disabled) { border-color: #b89a55; background: #fdf9f0; }
+    .speak-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .spin-icon { display: inline-block; animation: spin .8s linear infinite; font-style: normal; }
+    .translit { font-size: 1rem; color: #666; font-style: italic; line-height: 1.8; }
+    .translation { font-size: 1rem; color: #333; line-height: 1.8; }
+    .grammar { font-size: 0.9rem; color: #666; line-height: 1.85; }
+
+    /* Result footer */
+    .rfooter {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid #f2efe8;
+    }
+    .mode-badge {
+      font-size: 11px;
+      font-weight: 700;
+      color: #b89a55;
+      background: #fdf9f0;
+      border: 1px solid #e8d9b0;
+      border-radius: 20px;
+      padding: 4px 11px;
+      letter-spacing: 0.3px;
+    }
+    .save-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 15px;
+      border: 1.5px solid #e0ddd6;
+      border-radius: 20px;
+      background: transparent;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      color: #777;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s;
+    }
+    .save-btn:hover { border-color: #b89a55; color: #8b6914; }
+    .save-btn.saved { border-color: #4caf50; color: #2e7d32; background: #f0fff4; }
+
+    /* ── Saved Panel ── */
+    .saved-panel {
+      background: #fff;
+      border: 1px solid #e8e5de;
+      border-radius: 16px;
+      overflow: hidden;
+      display: none;
+    }
+    .saved-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.15s;
+    }
+    .saved-head:hover { background: #fafaf7; }
+    .saved-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+    }
+    .s-badge {
+      background: #b89a55;
+      color: #fff;
+      border-radius: 20px;
+      padding: 2px 9px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .s-actions { display: flex; align-items: center; gap: 10px; }
+    .clear-all {
+      font-size: 12px;
+      color: #e53935;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: background 0.2s;
+    }
+    .clear-all:hover { background: #fff5f5; }
+    .chev { font-size: 11px; color: #ccc; transition: transform 0.3s; }
+    .chev.open { transform: rotate(180deg); }
+    .s-list { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
+    .s-list.open { max-height: 3000px; }
+    .s-item { border-top: 1px solid #f2efe8; padding: 15px 18px; }
+    .s-item-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .s-mode { font-size: 11px; color: #b89a55; font-weight: 700; }
+    .s-btns { display: flex; gap: 7px; }
+    .copy-btn, .rm-btn {
+      font-size: 12px;
+      padding: 4px 11px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.18s;
+      font-weight: 500;
+    }
+    .copy-btn { background: #f0ece3; border: 1px solid #e0ddd6; color: #555; }
+    .copy-btn:hover { background: #e5dfd0; }
+    .rm-btn { background: #fff5f5; border: 1px solid #ffd0d0; color: #e53935; }
+    .rm-btn:hover { background: #ffebee; }
+    .s-arabic {
+      font-family: 'Noto Naskh Arabic', serif;
+      font-size: 1.2rem;
+      line-height: 1.95;
+      direction: rtl;
+      text-align: right;
+      color: #1a1a1a;
+      margin-bottom: 4px;
+    }
+    .s-trans { font-size: 13px; color: #999; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>مولّد الجمل العربية</h1>
+    <p class="sub">Arabic Sentence Generator</p>
+  </div>
+
+  <!-- Anthropic API Key -->
+  <div class="card">
+    <div class="key-bar">
+      <label>Anthropic API Key</label>
+      <input type="password" id="anthropicKey" placeholder="sk-ant-..." autocomplete="off" spellcheck="false"/>
+    </div>
+  </div>
+
+  <!-- Mode Tabs -->
+  <div class="mode-tabs">
+    <button class="mode-tab active" id="tabMsa" onclick="setMode('msa')">
+      <span class="t-ar">العربية الفصحى</span>
+      <span class="t-en">Classical Arabic / MSA</span>
+    </button>
+    <button class="mode-tab" id="tabLeb" onclick="setMode('lebanese')">
+      <span class="t-ar">اللهجة اللبنانية</span>
+      <span class="t-en">Lebanese Dialect</span>
+    </button>
+  </div>
+
+  <!-- TTS Bar -->
+  <div class="card">
+    <div class="tts-row">
+      <span class="tts-lbl">Voice Engine</span>
+      <div class="eng-toggle">
+        <button class="eng-btn active" id="engBrowser" onclick="setEngine('browser')">🔊 Browser (Free)</button>
+        <button class="eng-btn" id="engEl" onclick="setEngine('elevenlabs')">⚡ ElevenLabs (HD)</button>
+      </div>
+    </div>
+    <div class="el-slide" id="elSlide">
+      <input type="password" id="elKey" placeholder="ElevenLabs API Key..." autocomplete="off" spellcheck="false"/>
+      <div class="el-note">🔒 Your key is used locally and never stored or sent anywhere except ElevenLabs.</div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="card card-pad">
+    <!-- Sentence type -->
+    <div class="ctrl-group">
+      <div class="ctrl-label"><span class="ar">نوع الجملة</span> Sentence Type</div>
+      <div class="type-row">
+        <button class="type-btn active" id="typeSimple" onclick="setType('simple')">
+          <span class="t-ar">جملة بسيطة</span>
+          <span class="t-en">Simple</span>
+        </button>
+        <button class="type-btn" id="typeComplex" onclick="setType('complex')">
+          <span class="t-ar">جملة مركبة</span>
+          <span class="t-en">Complex</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Difficulty -->
+    <div class="ctrl-group">
+      <div class="ctrl-label"><span class="ar">المستوى</span> Difficulty</div>
+      <div class="slider-wrap">
+        <input type="range" id="diffSlider" min="0" max="2" step="1" value="0" oninput="setDiff(this.value)"/>
+        <div class="diff-labels">
+          <div class="diff-lbl on" id="dl0"><span class="ar">مبتدئ</span>Beginner</div>
+          <div class="diff-lbl" id="dl1"><span class="ar">متوسط</span>Intermediate</div>
+          <div class="diff-lbl" id="dl2"><span class="ar">متقدم</span>Advanced</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Topic -->
+    <div class="ctrl-group">
+      <div class="ctrl-label"><span class="ar">الموضوع</span> Topic <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#ddd">(optional)</span></div>
+      <input class="topic" id="topicInput" type="text" placeholder="e.g. travel, food, daily life, family…" maxlength="60"/>
+    </div>
+  </div>
+
+  <!-- Generate -->
+  <button class="gen-btn" id="genBtn" onclick="generate()">
+    <span id="genContent"><span class="ar">توليد جملة</span> · Generate</span>
+  </button>
+
+  <!-- Error -->
+  <div class="err-box" id="errBox"></div>
+
+  <!-- Result -->
+  <div class="result-card" id="resultCard">
+    <div class="rblock">
+      <div class="rlabel">🔤 Arabic Sentence</div>
+      <div class="arabic-row">
+        <div class="arabic-wrap">
+          <div class="arabic-text" id="resSentence"></div>
+        </div>
+        <button class="speak-btn" id="speakBtn" onclick="speak()" title="Play audio">
+          <span id="speakIcon">🔊</span>
+        </button>
+      </div>
+      <div class="tts-err" id="ttsErr"></div>
+    </div>
+    <div class="rblock">
+      <div class="rlabel">🔡 Transliteration</div>
+      <div class="translit" id="resTranslit"></div>
+    </div>
+    <div class="rblock">
+      <div class="rlabel">🌐 Translation</div>
+      <div class="translation" id="resTrans"></div>
+    </div>
+    <div class="rblock">
+      <div class="rlabel">📝 Grammar Note</div>
+      <div class="grammar" id="resGrammar"></div>
+    </div>
+    <div class="rfooter">
+      <span class="mode-badge" id="resBadge">MSA</span>
+      <button class="save-btn" id="saveBtn" onclick="saveCurrent()">🔖 Save</button>
+    </div>
+  </div>
+
+  <!-- Saved Panel -->
+  <div class="saved-panel" id="savedPanel">
+    <div class="saved-head" onclick="toggleSaved()">
+      <div class="saved-title">
+        🔖 Saved <span class="s-badge" id="sBadge">0</span>
+      </div>
+      <div class="s-actions">
+        <button class="clear-all" onclick="event.stopPropagation(); clearAll()">Clear All</button>
+        <span class="chev" id="sChev">▼</span>
+      </div>
+    </div>
+    <div class="s-list" id="sList"></div>
+  </div>
+
+</div>
+<script>
+// ─── State ──────────────────────────────────────────────────────────────────
+let mode         = 'msa';
+let sType        = 'simple';
+let diff         = 0;        // 0=beginner 1=intermediate 2=advanced
+let engine       = 'browser';
+let current      = null;
+let saved        = [];
+let savedOpen    = false;
+let speaking     = false;
+let currentAudio = null;
+
+const DIFF_KEY   = ['beginner','intermediate','advanced'];
+const DIFF_DESC  = {
+  beginner:     'short sentences, high-frequency everyday vocabulary, no subordinate clauses, simple verb forms',
+  intermediate: 'moderate length, connectors (لأن، لما، إذا، بعد ما), varied verb forms, some less common structures',
+  advanced:     'subordinate clauses, conditionals, relative clauses, idiomatic expressions, rich vocabulary'
+};
+
+// ─── UI setters ─────────────────────────────────────────────────────────────
+function setMode(m) {
+  mode = m;
+  document.getElementById('tabMsa').classList.toggle('active', m === 'msa');
+  document.getElementById('tabLeb').classList.toggle('active', m === 'lebanese');
+}
+
+function setType(t) {
+  sType = t;
+  document.getElementById('typeSimple').classList.toggle('active', t === 'simple');
+  document.getElementById('typeComplex').classList.toggle('active', t === 'complex');
+}
+
+function setDiff(v) {
+  diff = +v;
+  [0,1,2].forEach(i => document.getElementById('dl'+i).classList.toggle('on', i === diff));
+  const pct = (diff / 2) * 100;
+  document.getElementById('diffSlider').style.background =
+    `linear-gradient(to right,#b89a55 0%,#b89a55 ${pct}%,#e0ddd6 ${pct}%)`;
+}
+
+function setEngine(e) {
+  engine = e;
+  document.getElementById('engBrowser').classList.toggle('active', e === 'browser');
+  document.getElementById('engEl').classList.toggle('active', e === 'elevenlabs');
+  document.getElementById('elSlide').classList.toggle('open', e === 'elevenlabs');
+}
+
+// ─── Prompt builder ─────────────────────────────────────────────────────────
+function buildPrompt() {
+  const topic   = document.getElementById('topicInput').value.trim();
+  const dName   = DIFF_KEY[diff];
+  const dDesc   = DIFF_DESC[dName];
+  const tName   = sType === 'simple' ? 'simple (جملة بسيطة)' : 'complex (جملة مركبة)';
+  const topicL  = topic ? `Topic: "${topic}".` : 'Choose a natural everyday topic.';
+  const typeL   = sType === 'complex'
+    ? 'Include at least one subordinate clause or connector.'
+    : 'Keep it a single-clause simple sentence.';
+
+  if (mode === 'msa') {
+    return `You are an expert Arabic language teacher. Generate exactly one ${dName} ${tName} sentence in formal Modern Standard Arabic (MSA / الفصحى).
+${topicL}
+Difficulty (${dName}): ${dDesc}.
+${typeL}
+Apply proper إعراب (case endings) visible through diacritics where appropriate.
+
+YOU MUST RESPOND WITH ONLY A RAW JSON OBJECT. No markdown. No backticks. No code fences. No preamble. No explanation. Nothing before or after the JSON. Start your response with { and end with }.
+
+{"sentence":"...","transliteration":"...","translation":"...","grammar_note":"..."}
+
+- sentence: Arabic text with diacritics where helpful
+- transliteration: standard Latin transliteration of the Arabic
+- translation: English translation
+- grammar_note: 1-2 sentences using Arabic grammatical terms (مبتدأ، خبر، فعل، فاعل، مفعول به، مضاف إليه، نعت، etc.) with brief English explanations`;
+  } else {
+    return `You are an expert linguist specializing in Lebanese colloquial Arabic (اللهجة اللبنانية). Generate exactly one ${dName} ${tName} sentence in authentic Lebanese dialect.
+${topicL}
+Difficulty (${dName}): ${dDesc}.
+${typeL}
+
+CRITICAL — use genuine Lebanese features:
+• Particles: هيدا/هيدي (this), شو (what), كيف (how), عم + verb (progressive), رح + verb (future), ما (negation), منيح (good), هلق (now), كتير (very/a lot), لأنو (because), متل (like), بدّو/بدّي (want to)
+• Do NOT write MSA. Write as people actually speak in Beirut.
+• Reflect Lebanese phonology in transliteration (e.g., ق as glottal stop ʔ where appropriate).
+
+YOU MUST RESPOND WITH ONLY A RAW JSON OBJECT. No markdown. No backticks. No code fences. No preamble. No explanation. Nothing before or after the JSON. Start your response with { and end with }.
+
+{"sentence":"...","transliteration":"...","translation":"...","grammar_note":"..."}
+
+- sentence: Lebanese dialect in Arabic script
+- transliteration: Latin rendering of actual Lebanese pronunciation
+- translation: English translation
+- grammar_note: 1-2 sentences highlighting key differences from MSA (e.g., عم for progressive, رح for future, etc.)`;
+  }
+}
+
+// ─── Generate ────────────────────────────────────────────────────────────────
+async function generate() {
+  const apiKey = document.getElementById('anthropicKey').value.trim();
+  if (!apiKey) { showErr('Please enter your Anthropic API key above.'); return; }
+
+  hideErr();
+  setLoading(true);
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 500,
+        system: buildPrompt(),
+        messages: [{ role: 'user', content: 'Generate the sentence now.' }]
+      })
+    });
+
+    if (!res.ok) {
+      const e = await res.json().catch(() => ({}));
+      if (res.status === 401) throw new Error('Invalid Anthropic API key. Please check and try again.');
+      if (res.status === 429) throw new Error('Rate limit hit. Please wait a moment and try again.');
+      throw new Error(e.error?.message || `API error (${res.status}). Please try again.`);
+    }
+
+    const data = await res.json();
+    let raw = (data.content?.[0]?.text || '').trim();
+
+    // Strip any accidental markdown fences
+    raw = raw.replace(/^```json\s*/i,'').replace(/^```\s*/i,'').replace(/\s*```$/,'').trim();
+    // If model prefixed with a word before {, strip it
+    const jsonStart = raw.indexOf('{');
+    if (jsonStart > 0) raw = raw.slice(jsonStart);
+
+    const parsed = JSON.parse(raw);
+    if (!parsed.sentence) throw new Error('Unexpected response format. Please try again.');
+
+    current = {
+      sentence:      parsed.sentence,
+      transliteration: parsed.transliteration || '',
+      translation:   parsed.translation || '',
+      grammar_note:  parsed.grammar_note || '',
+      mode,
+      modeLabel:     mode === 'msa' ? 'Classical Arabic / MSA' : 'Lebanese Dialect'
+    };
+    showResult(current);
+
+  } catch (e) {
+    if (e instanceof SyntaxError) showErr('Could not parse the response. Please try generating again.');
+    else showErr(e.message || 'Something went wrong. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+}
+
+function showResult(r) {
+  document.getElementById('resSentence').textContent   = r.sentence;
+  document.getElementById('resTranslit').textContent   = r.transliteration;
+  document.getElementById('resTrans').textContent      = r.translation;
+  document.getElementById('resGrammar').textContent    = r.grammar_note;
+  document.getElementById('resBadge').textContent      = r.modeLabel;
+  const sb = document.getElementById('saveBtn');
+  sb.textContent = '🔖 Save';
+  sb.classList.remove('saved');
+  hideTtsErr();
+  const card = document.getElementById('resultCard');
+  card.style.display = 'block';
+  card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function setLoading(on) {
+  const btn = document.getElementById('genBtn');
+  btn.disabled = on;
+  document.getElementById('genContent').innerHTML = on
+    ? '<div class="dots"><span></span><span></span><span></span></div>'
+    : '<span class="ar">توليد جملة</span> · Generate';
+}
+
+function showErr(msg) {
+  const b = document.getElementById('errBox');
+  b.textContent = msg;
+  b.style.display = 'block';
+}
+function hideErr() { document.getElementById('errBox').style.display = 'none'; }
+
+// ─── TTS ─────────────────────────────────────────────────────────────────────
+async function speak() {
+  if (!current || speaking) return;
+  hideTtsErr();
+
+  if (engine === 'elevenlabs') {
+    const k = document.getElementById('elKey').value.trim();
+    if (!k) { showTtsErr('Please enter your ElevenLabs API key above to use HD voice.'); return; }
+    await playElevenLabs(current.sentence, k);
+  } else {
+    playBrowser(current.sentence);
+  }
+}
+
+function playBrowser(text) {
+  if (!window.speechSynthesis) { showTtsErr('Speech synthesis not supported in this browser.'); return; }
+
+  const voices = window.speechSynthesis.getVoices();
+  const arVoice = voices.find(v => v.lang && v.lang.startsWith('ar'));
+  if (voices.length > 0 && !arVoice) {
+    showTtsErr('⚠️ No Arabic voice found on this device. Try installing an Arabic voice in your system settings.');
+    return;
+  }
+
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = mode === 'lebanese' ? 'ar-LB' : 'ar';
+  utt.rate = 0.85;
+  if (arVoice) utt.voice = arVoice;
+
+  speaking = true;
+  setSpeakState(true, false);
+  utt.onend = () => { speaking = false; setSpeakState(false, false); };
+  utt.onerror = () => { speaking = false; setSpeakState(false, false); };
+  window.speechSynthesis.speak(utt);
+}
+
+async function playElevenLabs(text, apiKey) {
+  const voiceId = 'zgqefOFMTBOjmpoFZuPn';
+  speaking = true;
+  setSpeakState(true, true);
+
+  try {
+    const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+      method: 'POST',
+      headers: {
+        'xi-api-key': apiKey,
+        'Content-Type': 'application/json',
+        'Accept': 'audio/mpeg'
+      },
+      body: JSON.stringify({
+        text,
+        model_id: 'eleven_multilingual_v2',
+        voice_settings: { stability: 0.5, similarity_boost: 0.75 }
+      })
+    });
+
+    if (!res.ok) {
+      if (res.status === 401) throw new Error('Invalid API key. Please check your ElevenLabs key.');
+      if (res.status === 429) throw new Error('Monthly quota reached. Switch to Browser voice or upgrade your plan.');
+      throw new Error('Audio generation failed. Try again.');
+    }
+
+    const buf  = await res.arrayBuffer();
+    const blob = new Blob([buf], { type: 'audio/mpeg' });
+    const url  = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    currentAudio = audio;
+
+    audio.onended = () => {
+      speaking = false;
+      setSpeakState(false, false);
+      URL.revokeObjectURL(url);
+    };
+    audio.onerror = () => {
+      speaking = false;
+      setSpeakState(false, false);
+      showTtsErr('Playback error. Try again.');
+      URL.revokeObjectURL(url);
+    };
+    await audio.play();
+
+  } catch (e) {
+    speaking = false;
+    setSpeakState(false, false);
+    const msg = e.message || 'Audio generation failed.';
+    // Graceful fallback for non-auth errors
+    if (!msg.includes('API key') && !msg.includes('quota')) {
+      showTtsErr(msg + ' — Falling back to browser voice.');
+      playBrowser(text);
+    } else {
+      showTtsErr(msg);
+    }
+  }
+}
+
+function setSpeakState(loading, isEl) {
+  const btn  = document.getElementById('speakBtn');
+  const icon = document.getElementById('speakIcon');
+  btn.disabled = loading;
+  if (loading && isEl) {
+    icon.innerHTML = '<i class="spin-icon">⟳</i>';
+  } else {
+    icon.textContent = '🔊';
+  }
+}
+
+function showTtsErr(msg) {
+  const el = document.getElementById('ttsErr');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function hideTtsErr() {
+  const el = document.getElementById('ttsErr');
+  el.style.display = 'none';
+  el.textContent = '';
+}
+
+// ─── Save ─────────────────────────────────────────────────────────────────────
+function saveCurrent() {
+  if (!current) return;
+  const btn = document.getElementById('saveBtn');
+  if (btn.classList.contains('saved')) return;
+  saved.unshift({ ...current, id: Date.now() });
+  btn.textContent = '✓ Saved!';
+  btn.classList.add('saved');
+  renderSaved();
+}
+
+function removeSaved(id) {
+  saved = saved.filter(s => s.id !== id);
+  renderSaved();
+}
+
+function clearAll() {
+  if (!confirm('Clear all saved sentences?')) return;
+  saved = [];
+  renderSaved();
+}
+
+function toggleSaved() {
+  savedOpen = !savedOpen;
+  document.getElementById('sList').classList.toggle('open', savedOpen);
+  document.getElementById('sChev').classList.toggle('open', savedOpen);
+}
+
+function copySaved(idx) {
+  const text = (saved[idx] || {}).sentence || '';
+  if (!text) return;
+  navigator.clipboard.writeText(text).catch(() => {
+    const t = document.createElement('textarea');
+    t.value = text; t.style.position='fixed'; t.style.opacity='0';
+    document.body.appendChild(t); t.select();
+    document.execCommand('copy');
+    document.body.removeChild(t);
+  });
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderSaved() {
+  const panel = document.getElementById('savedPanel');
+  const list  = document.getElementById('sList');
+  document.getElementById('sBadge').textContent = saved.length;
+
+  if (saved.length === 0) { panel.style.display = 'none'; savedOpen = false; return; }
+
+  panel.style.display = 'block';
+  list.innerHTML = saved.map((s, i) => `
+    <div class="s-item">
+      <div class="s-item-head">
+        <span class="s-mode">${esc(s.modeLabel)}</span>
+        <div class="s-btns">
+          <button class="copy-btn" onclick="copySaved(${i})">Copy Arabic</button>
+          <button class="rm-btn" onclick="removeSaved(${s.id})">Remove</button>
+        </div>
+      </div>
+      <div class="s-arabic">${esc(s.sentence)}</div>
+      <div class="s-trans">${esc(s.translation)}</div>
+    </div>
+  `).join('');
+
+  // Auto-open on first save
+  if (saved.length === 1) {
+    savedOpen = true;
+    document.getElementById('sList').classList.add('open');
+    document.getElementById('sChev').classList.add('open');
+  }
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+// Pre-load voices
+if (window.speechSynthesis) {
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+}
+setDiff(0);
+</script>
+</body>
+</html>

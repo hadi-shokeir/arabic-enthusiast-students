@@ -4735,7 +4735,7 @@ function VerbsAdmin({data, setData, auth}) {
         const reader = new FileReader();
         const base64 = await new Promise(res => { reader.onloadend = () => res(reader.result.split(",")[1]); reader.readAsDataURL(audioBlob); });
         const ext = audioBlob.type.includes("webm") ? "webm" : audioBlob.type.includes("mp4") ? "mp4" : "mp3";
-        const d = await apiPost("/api/verbs", {token: auth.token, action:"upload", audioBase64:base64, mimeType:audioBlob.type, fileName:`verb_${Date.now()}.${ext}`});
+        const d = await apiPost("/api/data", {token: auth.token, action:"verbUpload", audioBase64:base64, mimeType:audioBlob.type, fileName:`verb_${Date.now()}.${ext}`});
         if (d.error) throw new Error(d.error);
         audioUrl = d.url;
       }
@@ -4752,7 +4752,7 @@ function VerbsAdmin({data, setData, auth}) {
 
   const remove = async (v) => {
     if (!confirm(`Delete "${v.arabic}"?`)) return;
-    if (v.audioUrl) { try { await apiPost("/api/verbs", {token:auth.token, action:"delete", url:v.audioUrl}); } catch {} }
+    if (v.audioUrl) { try { await apiPost("/api/data", {token:auth.token, action:"verbDelete", url:v.audioUrl}); } catch {} }
     setData({...data, verbs: verbs.filter(x=>x.id!==v.id)});
   };
 

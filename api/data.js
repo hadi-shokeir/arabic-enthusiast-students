@@ -1,3 +1,4 @@
+import { put, del } from '@vercel/blob';
 const KV = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
 const KV_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
 
@@ -186,6 +187,27 @@ export default async function handler(req, res) {
       const raw = await kv(['GET', 'img_data']);
       if (!raw) return res.json({ images: {} });
       return res.json({ images: JSON.parse(raw) });
+    }
+
+    if (action === 'verbUpload') {
+      if (!process.env.BLOB_READ_WRITE_TOKEN) return res.status(500).json({ error: 'BLOB_READ_WRITE_TOKEN not configured' });
+      const { audioBase64, mimeType, fileName } = req.body;
+      if (!audioBase64 || !fileName) return res.status(400).json({ error: 'audioBase64 and fileName required' });
+      const buf = Buffer.from(audioBase64, 'base64');
+      const safeFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const blob = await put(`verbs/${Date.now()}_${safeFileName}`, buf, {
+        access: 'public', contentType: mimeType || 'audio/mpeg',
+        token: process.env.BLOB_READ_WRITE_TOKEN,
+      });
+      return res.json({ ok: true, url: blob.url });
+    }
+
+    if (action === 'verbDelete') {
+      if (!process.env.BLOB_READ_WRITE_TOKEN) return res.status(500).json({ error: 'BLOB_READ_WRITE_TOKEN not configured' });
+      const { url } = req.body;
+      if (!url) return res.status(400).json({ error: 'url required' });
+      await del(url, { token: process.env.BLOB_READ_WRITE_TOKEN });
+      return res.json({ ok: true });
     }
 
     return res.status(400).json({ error: 'Unknown action' });
