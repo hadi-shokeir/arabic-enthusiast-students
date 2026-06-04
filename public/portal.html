@@ -7370,6 +7370,22 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
     }
   }, []);
 
+  // Auto-refresh when student returns to this tab — picks up teacher's latest changes silently
+  const lastVisRefresh = useRef(0);
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.hidden) return;
+      const now = Date.now();
+      if (now - lastVisRefresh.current < 30000) return; // at most once per 30s
+      lastVisRefresh.current = now;
+      apiPost("/api/data",{token:auth.token,action:"studentRead"}).then(r => {
+        if(r.data) setData(migrateData(r.data));
+      }).catch(()=>{});
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [auth]);
+
   const switchTab = t => {
     try{sessionStorage.setItem('ae_stab',t);}catch{}
     setSpTab(t);
