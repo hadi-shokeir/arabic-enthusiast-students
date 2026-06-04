@@ -1,4 +1,4 @@
-const CACHE = 'arabic-enthusiast-v10';
+const CACHE = 'arabic-enthusiast-v11';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

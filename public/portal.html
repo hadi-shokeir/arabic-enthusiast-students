@@ -4620,6 +4620,7 @@ function GoalsAdmin({data, setData}) {
 function VerbsTab({data}) {
   const verbs = (data.verbs||[]).filter(v=>v.arabic&&v.meaning);
   const [playingId, setPlayingId] = useState(null);
+  const [search, setSearch] = useState("");
   const audioRef = useRef(null);
 
   const play = (verb) => {
@@ -4636,6 +4637,15 @@ function VerbsTab({data}) {
 
   useEffect(() => () => { if (audioRef.current) audioRef.current.pause(); }, []);
 
+  const q = search.toLowerCase();
+  const filtered = verbs.filter(v =>
+    !q ||
+    v.arabic.includes(search) ||
+    (v.transliteration||"").toLowerCase().includes(q) ||
+    (v.meaning||"").toLowerCase().includes(q) ||
+    (v.notes||"").toLowerCase().includes(q)
+  );
+
   if (verbs.length === 0) return h`<div class="sp2-card" style=${{textAlign:"center",padding:40}}>
     <div style=${{fontSize:36,marginBottom:12}}>🔊</div>
     <div style=${{fontWeight:700,fontSize:15,color:"var(--sp-txt)",marginBottom:6}}>No verbs yet</div>
@@ -4643,21 +4653,31 @@ function VerbsTab({data}) {
   </div>`;
 
   return h`<div>
-    <div style=${{marginBottom:16}}>
-      <div style=${{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700,color:"var(--sp-txt)",marginBottom:4}}>Verb Pronunciation</div>
-      <div style=${{fontSize:13,color:"var(--sp-txt2)"}}>Press ▶ to hear Hadi's recording of each verb.</div>
+    <div style=${{marginBottom:14,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:10}}>
+      <div>
+        <div style=${{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700,color:"var(--sp-txt)",marginBottom:2}}>Verb Pronunciation</div>
+        <div style=${{fontSize:13,color:"var(--sp-txt2)"}}>Press ▶ to hear the recording. ${verbs.length} verb${verbs.length!==1?"s":""} in the library.</div>
+      </div>
+      <input placeholder="Search verbs…" value=${search} onInput=${e=>setSearch(e.target.value)}
+        style=${{padding:"7px 12px",borderRadius:8,border:"1px solid var(--sp-border)",fontSize:13,background:"var(--sp-card)",color:"var(--sp-txt)",width:180}}/>
     </div>
     <div class="sp2-card" style=${{padding:0,overflow:"hidden"}}>
+      <div style=${{overflowX:"auto"}}>
       <table class="verb-table">
         <thead><tr>
           <th>Arabic</th>
-          <th>Meaning</th>
+          <th>Transliteration</th>
+          <th>Translation</th>
+          <th>Meaning / Notes</th>
           <th style=${{width:56,textAlign:"center"}}>▶</th>
         </tr></thead>
         <tbody>
-          ${verbs.map(v=>h`<tr key=${v.id}>
+          ${filtered.length===0?h`<tr><td colspan="5" style=${{textAlign:"center",color:"var(--sp-txt3)",padding:24,fontSize:13}}>No verbs match your search.</td></tr>`:
+          filtered.map(v=>h`<tr key=${v.id}>
             <td><div class="verb-ar">${v.arabic}</div></td>
+            <td><div style=${{fontSize:13,color:"var(--sp-txt2)",fontStyle:"italic"}}>${v.transliteration||"—"}</div></td>
             <td><div class="verb-en">${v.meaning}</div></td>
+            <td><div style=${{fontSize:12,color:"var(--sp-txt2)",maxWidth:200,lineHeight:1.5}}>${v.notes||"—"}</div></td>
             <td style=${{textAlign:"center"}}>
               ${v.audioUrl
                 ? h`<button class=${"verb-play-btn"+(playingId===v.id?" playing":"")} onClick=${()=>play(v)} title=${playingId===v.id?"Pause":"Play pronunciation"}>
@@ -4672,6 +4692,7 @@ function VerbsTab({data}) {
           </tr>`)}
         </tbody>
       </table>
+      </div>
     </div>
   </div>`;
 }
@@ -4681,18 +4702,21 @@ function VerbsTab({data}) {
 // ════════════════════════════════════════
 function VerbsAdmin({data, setData, auth}) {
   const verbs = data.verbs || [];
-  const [form, setForm] = useState({arabic:"", meaning:""});
+  const [form, setForm] = useState({arabic:"", transliteration:"", meaning:"", notes:""});
   const [uploading, setUploading] = useState(false);
   const [recording, setRecording] = useState(false);
+  const [recSecs, setRecSecs] = useState(0);
+  const recTimer = useRef(null);
   const [mediaRec, setMediaRec] = useState(null);
   const [audioBlob, setAudioBlob] = useState(null);
   const [audioPreview, setAudioPreview] = useState(null);
   const [editId, setEditId] = useState(null);
   const [err, setErr] = useState("");
   const [ok, setOk] = useState("");
+  const [search, setSearch] = useState("");
   const fileRef = useRef(null);
 
-  const resetForm = () => { setForm({arabic:"",meaning:""}); setAudioBlob(null); setAudioPreview(null); setEditId(null); setErr(""); };
+  const resetForm = () => { setForm({arabic:"",transliteration:"",meaning:"",notes:""}); setAudioBlob(null); setAudioPreview(null); setEditId(null); setErr(""); };
 
   const startRecording = async () => {
     setErr("");
@@ -4703,6 +4727,8 @@ function VerbsAdmin({data, setData, auth}) {
       mr.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
       mr.onstop = () => {
         stream.getTracks().forEach(t=>t.stop());
+        clearInterval(recTimer.current);
+        setRecSecs(0);
         const blob = new Blob(chunks, {type: mr.mimeType || "audio/webm"});
         setAudioBlob(blob);
         setAudioPreview(URL.createObjectURL(blob));
@@ -4711,12 +4737,19 @@ function VerbsAdmin({data, setData, auth}) {
       setMediaRec(mr);
       mr.start();
       setRecording(true);
+      setRecSecs(0);
+      recTimer.current = setInterval(() => setRecSecs(s => s+1), 1000);
     } catch (e) {
       setErr("Microphone access denied. Use the file upload instead.");
     }
   };
 
-  const stopRecording = () => { if (mediaRec) { mediaRec.stop(); setMediaRec(null); } };
+  const stopRecording = () => {
+    if (mediaRec) { mediaRec.stop(); setMediaRec(null); }
+    clearInterval(recTimer.current);
+  };
+
+  useEffect(() => () => clearInterval(recTimer.current), []);
 
   const onFileChange = (e) => {
     const f = e.target.files[0];
@@ -4727,7 +4760,7 @@ function VerbsAdmin({data, setData, auth}) {
   };
 
   const save = async () => {
-    if (!form.arabic.trim() || !form.meaning.trim()) return setErr("Arabic verb and meaning are required");
+    if (!form.arabic.trim() || !form.meaning.trim()) return setErr("Arabic and Translation are required");
     setUploading(true); setErr(""); setOk("");
     try {
       let audioUrl = editId ? (verbs.find(v=>v.id===editId)?.audioUrl || "") : "";
@@ -4739,10 +4772,16 @@ function VerbsAdmin({data, setData, auth}) {
         if (d.error) throw new Error(d.error);
         audioUrl = d.url;
       }
-      const verb = {id: editId||uid(), arabic: form.arabic.trim(), meaning: form.meaning.trim(), audioUrl, createdAt: editId ? undefined : new Date().toISOString()};
-      const next = editId
-        ? verbs.map(v=>v.id===editId?{...v,...verb}:v)
-        : [...verbs, verb];
+      const verb = {
+        id: editId||uid(),
+        arabic: form.arabic.trim(),
+        transliteration: form.transliteration.trim(),
+        meaning: form.meaning.trim(),
+        notes: form.notes.trim(),
+        audioUrl,
+        createdAt: editId ? (verbs.find(v=>v.id===editId)?.createdAt) : new Date().toISOString()
+      };
+      const next = editId ? verbs.map(v=>v.id===editId?{...v,...verb}:v) : [...verbs, verb];
       setData({...data, verbs: next});
       setOk(editId ? "Verb updated." : "Verb added.");
       resetForm();
@@ -4756,53 +4795,100 @@ function VerbsAdmin({data, setData, auth}) {
     setData({...data, verbs: verbs.filter(x=>x.id!==v.id)});
   };
 
-  const startEdit = (v) => { setForm({arabic:v.arabic, meaning:v.meaning}); setAudioBlob(null); setAudioPreview(null); setEditId(v.id); setErr(""); setOk(""); };
+  const startEdit = (v) => {
+    setForm({arabic:v.arabic, transliteration:v.transliteration||"", meaning:v.meaning, notes:v.notes||""});
+    setAudioBlob(null); setAudioPreview(null); setEditId(v.id); setErr(""); setOk("");
+    window.scrollTo({top:0,behavior:"smooth"});
+  };
+
+  const fmtSecs = s => `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;
+
+  const q = search.toLowerCase();
+  const filtered = verbs.filter(v =>
+    !q ||
+    v.arabic.includes(search) ||
+    (v.transliteration||"").toLowerCase().includes(q) ||
+    (v.meaning||"").toLowerCase().includes(q) ||
+    (v.notes||"").toLowerCase().includes(q)
+  );
 
   return h`<div>
     <div class="card" style=${{marginBottom:14}}>
-      <h3 style=${{marginBottom:14}}>🎙️ ${editId?"Edit Verb":"Add New Verb"}</h3>
+      <h3 style=${{marginBottom:16}}>🎙️ ${editId?"Edit Verb":"Add New Verb"}</h3>
       ${err&&h`<div style=${{background:"#fff0f0",border:"1px solid #f5a5a5",color:"#c62828",padding:"10px 14px",marginBottom:12,fontSize:13,borderRadius:8}}>${err}</div>`}
       ${ok&&h`<div style=${{background:"#f0fff4",border:"1px solid #a5d6b5",color:"#256c45",padding:"10px 14px",marginBottom:12,fontSize:13,borderRadius:8}}>${ok}</div>`}
-      <div class="fr">
+
+      <div class="fr" style=${{marginBottom:4}}>
         <div class="fg">
-          <label>Arabic Verb (with harakat)</label>
-          <input value=${form.arabic} onInput=${e=>setForm({...form,arabic:e.target.value})} placeholder="e.g. كَتَبَ" dir="rtl" style=${{fontFamily:"'Amiri',serif",fontSize:20,textAlign:"right"}}/>
+          <label>Arabic (with harakat)</label>
+          <input value=${form.arabic} onInput=${e=>setForm({...form,arabic:e.target.value})} placeholder="e.g. كَتَبَ" dir="rtl" style=${{fontFamily:"'Amiri',serif",fontSize:22,textAlign:"right"}}/>
         </div>
         <div class="fg">
-          <label>Meaning / Translation</label>
-          <input value=${form.meaning} onInput=${e=>setForm({...form,meaning:e.target.value})} placeholder="e.g. to write"/>
+          <label>Transliteration</label>
+          <input value=${form.transliteration} onInput=${e=>setForm({...form,transliteration:e.target.value})} placeholder="e.g. kataba"/>
         </div>
       </div>
-      <div class="fg">
-        <label>Audio Recording</label>
+      <div class="fr" style=${{marginBottom:12}}>
+        <div class="fg">
+          <label>Translation <span style=${{color:"var(--bd)",fontSize:11}}>*required</span></label>
+          <input value=${form.meaning} onInput=${e=>setForm({...form,meaning:e.target.value})} placeholder="e.g. he wrote / to write"/>
+        </div>
+        <div class="fg">
+          <label>Meaning / Notes <span style=${{color:"var(--g500)",fontSize:11}}>optional</span></label>
+          <input value=${form.notes} onInput=${e=>setForm({...form,notes:e.target.value})} placeholder="e.g. Root: ك-ت-ب, used for physical writing"/>
+        </div>
+      </div>
+
+      <div style=${{background:"var(--bk)",border:"2px solid "+(recording?"#e53935":"var(--bdr)"),borderRadius:10,padding:"14px 16px",marginBottom:14,transition:"border-color 0.2s"}}>
+        <div style=${{fontWeight:700,fontSize:13,marginBottom:10,display:"flex",alignItems:"center",gap:8}}>
+          🎙️ Audio
+          ${recording&&h`<span style=${{display:"flex",alignItems:"center",gap:6,color:"#e53935",fontSize:12,fontWeight:400}}>
+            <span style=${{width:8,height:8,borderRadius:"50%",background:"#e53935",display:"inline-block",animation:"pulse 1s infinite"}}></span>
+            Recording — ${fmtSecs(recSecs)}
+          </span>`}
+        </div>
         <div style=${{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
           ${recording
-            ? h`<button class="btn btn-d" onClick=${stopRecording}>⏹ Stop Recording</button><span style=${{fontSize:12,color:"var(--bd)",animation:"pulse 1s infinite"}}>● Recording…</span>`
-            : h`<button class="btn" onClick=${startRecording}>🎙 Record</button>`
+            ? h`<button class="btn btn-d" onClick=${stopRecording} style=${{minWidth:120}}>⏹ Stop Recording</button>`
+            : h`<button class="btn" onClick=${startRecording} style=${{minWidth:140,background:"#e53935",color:"#fff",border:"none"}}>🎙 Record from mic</button>`
           }
           <button class="btn" onClick=${()=>fileRef.current?.click()}>📎 Upload file</button>
           <input ref=${fileRef} type="file" accept="audio/*" style=${{display:"none"}} onChange=${onFileChange}/>
-          ${audioPreview&&h`<audio controls src=${audioPreview} style=${{height:34,flex:1,minWidth:160}}></audio>`}
-          ${audioBlob&&!audioPreview&&h`<span style=${{fontSize:12,color:"var(--ok)"}}>✓ File ready</span>`}
+          ${audioPreview&&h`<audio controls src=${audioPreview} style=${{height:34,flex:1,minWidth:180}}></audio>`}
+          ${audioPreview&&h`<button class="btn btn-xs btn-d" onClick=${()=>{setAudioBlob(null);setAudioPreview(null);}}>✕ Remove</button>`}
         </div>
-        <div style=${{fontSize:11,color:"var(--g500)",marginTop:5}}>Supports mp3, m4a, webm, wav. Max 20MB. Recording directly in browser also works.</div>
+        ${!audioPreview&&editId&&(verbs.find(v=>v.id===editId)?.audioUrl)&&h`<div style=${{marginTop:8,fontSize:12,color:"var(--g500)"}}>Current audio: <audio controls src=${verbs.find(v=>v.id===editId).audioUrl} style=${{height:28,verticalAlign:"middle",marginLeft:6}}></audio></div>`}
+        <div style=${{fontSize:11,color:"var(--g500)",marginTop:8}}>Record directly from your microphone or upload mp3, m4a, webm, wav. Max 20MB.</div>
       </div>
+
       <div style=${{display:"flex",gap:8}}>
-        <button class="btn btn-p" onClick=${save} disabled=${uploading}>${uploading?"Saving…":"💾 "+(editId?"Update":"Add Verb")}</button>
+        <button class="btn btn-p" onClick=${save} disabled=${uploading}>${uploading?"Saving…":"💾 "+(editId?"Update Verb":"Add Verb")}</button>
         ${editId&&h`<button class="btn" onClick=${resetForm}>Cancel</button>`}
       </div>
     </div>
 
     ${verbs.length>0&&h`<div class="card" style=${{padding:0}}>
-      <div style=${{padding:"14px 18px",borderBottom:"2px solid var(--bk)"}}>
-        <h3 style=${{margin:0}}>All Verbs (${verbs.length})</h3>
+      <div style=${{padding:"14px 18px",borderBottom:"2px solid var(--bk)",display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,flexWrap:"wrap"}}>
+        <h3 style=${{margin:0}}>Verb Library (${verbs.length})</h3>
+        <input placeholder="Search…" value=${search} onInput=${e=>setSearch(e.target.value)}
+          style=${{padding:"5px 10px",borderRadius:7,border:"1px solid var(--bdr)",fontSize:13,width:160}}/>
       </div>
       <div style=${{overflowX:"auto"}}><table>
-        <thead><tr><th>Arabic</th><th>Meaning</th><th>Audio</th><th></th></tr></thead>
+        <thead><tr>
+          <th>Arabic</th>
+          <th>Transliteration</th>
+          <th>Translation</th>
+          <th>Meaning / Notes</th>
+          <th>Audio</th>
+          <th></th>
+        </tr></thead>
         <tbody>
-          ${verbs.map(v=>h`<tr key=${v.id}>
-            <td style=${{fontFamily:"'Amiri',serif",fontSize:20,direction:"rtl"}}>${v.arabic}</td>
-            <td>${v.meaning}</td>
+          ${filtered.length===0?h`<tr><td colspan="6" style=${{textAlign:"center",color:"var(--g400)",padding:20,fontSize:13}}>No verbs match your search.</td></tr>`:
+          filtered.map(v=>h`<tr key=${v.id}>
+            <td style=${{fontFamily:"'Amiri',serif",fontSize:20,direction:"rtl",whiteSpace:"nowrap"}}>${v.arabic}</td>
+            <td style=${{fontSize:13,fontStyle:"italic",color:"var(--g600)"}}>${v.transliteration||h`<span style=${{color:"var(--g400)"}}>—</span>`}</td>
+            <td style=${{fontWeight:600}}>${v.meaning}</td>
+            <td style=${{fontSize:12,color:"var(--g600)",maxWidth:220}}>${v.notes||h`<span style=${{color:"var(--g400)"}}>—</span>`}</td>
             <td>${v.audioUrl?h`<audio controls src=${v.audioUrl} style=${{height:30,width:160}}>`:h`<span style=${{color:"var(--g400)",fontSize:12}}>No audio</span>`}</td>
             <td style=${{whiteSpace:"nowrap"}}>
               <button class="btn btn-xs" onClick=${()=>startEdit(v)} style=${{marginRight:4}}>Edit</button>
