@@ -1197,8 +1197,11 @@ async function apiPost(endpoint, body) {
   }
   try {
     const r = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-    if (!r.ok && r.status !== 400 && r.status !== 401 && r.status !== 403 && r.status !== 409) {
-      return { error: "Server error (" + r.status + "). Please try again." };
+    if (!r.ok) {
+      try {
+        const j = await r.json();
+        return j.error ? j : { error: "Server error (" + r.status + "). Please try again." };
+      } catch { return { error: "Server error (" + r.status + "). Please try again." }; }
     }
     return r.json();
   } catch (e) {
