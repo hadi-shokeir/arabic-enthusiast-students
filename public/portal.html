@@ -4892,7 +4892,7 @@ function VerbsAdmin({data, setData, auth}) {
             <td style=${{fontSize:13,fontStyle:"italic",color:"var(--g600)"}}>${v.transliteration||h`<span style=${{color:"var(--g400)"}}>—</span>`}</td>
             <td style=${{fontWeight:600}}>${v.meaning}</td>
             <td style=${{fontSize:12,color:"var(--g600)",maxWidth:220}}>${v.notes||h`<span style=${{color:"var(--g400)"}}>—</span>`}</td>
-            <td>${v.audioUrl?h`<audio controls src=${v.audioUrl} style=${{height:30,width:160}}>`:h`<span style=${{color:"var(--g400)",fontSize:12}}>No audio</span>`}</td>
+            <td>${v.audioUrl?h`<audio controls src=${v.audioUrl} style=${{height:30,width:160}}></audio>`:h`<span style=${{color:"var(--g400)",fontSize:12}}>No audio</span>`}</td>
             <td style=${{whiteSpace:"nowrap"}}>
               <button class="btn btn-xs" onClick=${()=>startEdit(v)} style=${{marginRight:4}}>Edit</button>
               <button class="btn btn-xs btn-d" onClick=${()=>remove(v)}>Delete</button>
