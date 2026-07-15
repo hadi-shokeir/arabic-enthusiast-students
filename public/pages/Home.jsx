@@ -5,166 +5,136 @@ function HeroSection({ setPage }) {
   const [tick, setTick] = useState(0);
   const site = window.getSiteContent ? window.getSiteContent() : (window.AE?.DATA?.siteContent || {});
   const home = site.homepage || {};
-  const subjects = Array.isArray(home.subjects) && home.subjects.length ? home.subjects : ['Classical Arabic', 'Conversational Arabic', 'Quranic Arabic'];
   const letters = ['ع', 'ر', 'ب', 'ي'];
   useEffect(() => {
-    const t = setInterval(() => setTick(x => x + 1), 2200);
+    const t = setInterval(() => setTick(x => x + 1), 2400);
     return () => clearInterval(t);
   }, []);
+
+  const btnPrimary = {
+    fontFamily: 'var(--f-body)', fontSize: '0.85rem', fontWeight: 600,
+    padding: '14px 36px', background: 'var(--accent)', color: 'var(--on-accent)',
+    border: '1px solid var(--accent)', cursor: 'pointer', transition: 'all .2s var(--ease)',
+    borderRadius: 'var(--r)', letterSpacing: '.01em',
+    boxShadow: '0 4px 14px -8px color-mix(in oklab, var(--accent) 60%, transparent)',
+  };
+  const btnOutline = {
+    fontFamily: 'var(--f-body)', fontSize: '0.85rem', fontWeight: 500,
+    padding: '14px 28px', background: 'transparent', color: 'var(--ink-2)',
+    border: '1px solid var(--line)', cursor: 'pointer', transition: 'all .2s var(--ease)',
+    borderRadius: 'var(--r)',
+  };
+  const btnGhost = {
+    fontFamily: 'var(--f-body)', fontSize: '0.82rem', fontWeight: 500,
+    padding: '12px 20px', background: 'transparent', color: 'var(--muted)',
+    border: '1px solid var(--line-2)', cursor: 'pointer', transition: 'all .2s var(--ease)',
+    borderRadius: 'var(--r)',
+  };
 
   return (
     <section style={{
       minHeight: '100vh', display: 'flex', alignItems: 'center',
       position: 'relative', overflow: 'hidden',
-      padding: '120px 80px 80px',
+      padding: 'clamp(100px,12vh,140px) clamp(20px,5vw,80px) 80px',
     }}>
-      {/* Ambient background */}
+      {/* Soft radial wash behind visual */}
       <div style={{
         position: 'absolute', inset: 0, pointerEvents: 'none',
-        background: `
-          radial-gradient(ellipse 55% 70% at 65% 50%, rgba(255,255,255,0.04) 0%, transparent 65%),
-          radial-gradient(ellipse 40% 50% at 10% 80%, rgba(90,80,120,0.04) 0%, transparent 60%)
-        `,
-      }} />
-      {/* Decorative grid lines */}
-      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: 0.03,
-        backgroundImage: 'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)',
-        backgroundSize: '80px 80px',
+        background: 'radial-gradient(ellipse 50% 60% at 78% 38%, color-mix(in oklab, var(--accent) 9%, transparent), transparent 70%)',
       }} />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 64, alignItems: 'center', width: '100%', maxWidth: 1400, margin: '0 auto', position: 'relative', zIndex: 1 }}>
-        {/* Text */}
+      <div className="hero-grid" style={{
+        display: 'grid', gridTemplateColumns: '1.05fr 0.95fr', gap: 'clamp(32px,6vw,80px)',
+        alignItems: 'center', width: '100%', maxWidth: 1240, margin: '0 auto',
+        position: 'relative', zIndex: 1,
+      }}>
+        {/* Copy column */}
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
-            <span style={{ width: 32, height: 1, background: 'rgba(255,255,255,0.5)', display: 'block' }}></span>
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '0.68rem', letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)' }}>{home.eyebrow || site.brand || 'Arabic Enthusiast'}</span>
-          </div>
+          <Eyebrow>{home.eyebrow || 'Private 1:1 Arabic Tuition'}</Eyebrow>
           <h1 style={{
-            fontFamily: 'Playfair Display, serif',
-            fontSize: 'clamp(3rem, 5vw, 5rem)',
-            fontWeight: 600, lineHeight: 1.1, color: '#f0f0f0',
-            marginBottom: 28,
+            fontFamily: 'var(--f-head)',
+            fontSize: 'clamp(2.6rem, 5.4vw, 4.4rem)',
+            fontWeight: 600, lineHeight: 1.08, color: 'var(--ink)',
+            letterSpacing: '-0.01em', marginBottom: 24, textWrap: 'balance',
           }}>
-            {home.titleLine1 || 'Learn Arabic'}<br />
-            <em style={{ color: '#ffffff', fontStyle: 'italic' }}>{home.titleAccent || 'with Passion'}</em><br />
-            {home.titleLine3 || '& Precision'}
+            {home.titleLine1 || 'Learn Arabic with'}{' '}
+            <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}>{home.titleAccent || 'passion'}</em>
+            {' & '}{home.titleLine3 || 'precision'}
           </h1>
-          <p style={{ color: 'rgba(240,240,240,0.55)', fontSize: '1.05rem', lineHeight: 1.75, maxWidth: 440, marginBottom: 44 }}>
-            {home.description || 'From your first letter to reading the Quran and conversing in dialect, structured courses that honour the depth and beauty of the Arabic language.'}
+          <p style={{ color: 'var(--muted)', fontSize: '1.05rem', lineHeight: 1.75, maxWidth: 480, marginBottom: 36 }}>
+            {home.description || 'From your first letter to reading the Quran and conversing in dialect — structured courses that honour the depth and beauty of the Arabic language.'}
           </p>
-          <div className="hero-actions" style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
-            <button onClick={() => { window.location.href = '/portal?signup=1'; }} style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '0.8rem',
-              letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600,
-              padding: '16px 40px', background: 'var(--gold)', color: '#080808',
-              border: 'none', cursor: 'pointer', transition: 'all 0.2s',
-            }}
-              onMouseEnter={e => { e.target.style.filter = 'brightness(1.1)'; e.target.style.transform = 'translateY(-2px)'; }}
-              onMouseLeave={e => { e.target.style.filter = ''; e.target.style.transform = 'translateY(0)'; }}
-            >{home.primaryCta || 'Apply to Study'}</button>
-            <button onClick={() => { window.location.href = '/demo'; }} style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '0.8rem',
-              letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600,
-              padding: '16px 28px', background: 'rgba(201,162,74,0.12)',
-              border: '1px solid rgba(201,162,74,0.45)', color: '#e5c978',
-              cursor: 'pointer', transition: 'all 0.2s',
-            }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(201,162,74,0.22)'; e.currentTarget.style.color = '#fff2c9'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(201,162,74,0.12)'; e.currentTarget.style.color = '#e5c978'; }}
-            >Try Without Signing Up</button>
-            <button onClick={() => { setPage('courses'); window.scrollTo(0,0); }} style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '0.8rem',
-              letterSpacing: '0.08em', textTransform: 'uppercase',
-              padding: '16px 28px', background: 'transparent',
-              border: '1px solid rgba(240,240,240,0.2)', color: 'rgba(240,240,240,0.6)',
-              cursor: 'pointer', transition: 'all 0.2s',
-            }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.5)'; e.currentTarget.style.color = '#ffffff'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(240,240,240,0.2)'; e.currentTarget.style.color = 'rgba(240,240,240,0.6)'; }}
-            >{home.secondaryCta || 'Explore Courses'}</button>
-            <button onClick={() => { window.location.href = '/demo/portal'; }} style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '0.78rem',
-              letterSpacing: '0.06em', textTransform: 'uppercase',
-              padding: '14px 20px', background: 'transparent',
-              border: '1px solid rgba(240,240,240,0.16)', color: 'rgba(240,240,240,0.52)',
-              cursor: 'pointer', transition: 'all 0.2s',
-            }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.38)'; e.currentTarget.style.color = '#ffffff'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(240,240,240,0.16)'; e.currentTarget.style.color = 'rgba(240,240,240,0.52)'; }}
-            >Student Portal Demo</button>
+
+          <div className="hero-actions" style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+            <button onClick={() => window.location.href = '/portal?signup=1'} style={btnPrimary}
+              onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
+              onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+            >{home.primaryCta || 'Start learning'} →</button>
+
+            <button onClick={() => { setPage('courses'); window.scrollTo(0,0); }} style={btnOutline}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.color = 'var(--ink-2)'; }}
+            >{home.secondaryCta || 'Browse courses'}</button>
+
+            <button onClick={() => window.location.href = '/demo'} style={btnGhost}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--ink)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}
+            >Try free demo</button>
           </div>
-          {/* Subject pills */}
-          <div style={{ marginTop: 48, paddingTop: 28, borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {subjects.map(s => (
-              <span key={s} style={{
-                fontFamily: 'DM Sans, sans-serif', fontSize: '0.65rem', letterSpacing: '0.1em',
-                textTransform: 'uppercase', padding: '5px 14px',
-                border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.5)',
-              }}>{s}</span>
+
+          {/* Stat strip */}
+          <div style={{ marginTop: 40, paddingTop: 28, borderTop: '1px solid var(--line-2)', display: 'flex', gap: 32, flexWrap: 'wrap' }}>
+            {[['4.9★','Rating'],['200+','Students'],['6+ yrs','Teaching']].map(([val, label]) => (
+              <div key={label}>
+                <div style={{ fontFamily: 'var(--f-head)', fontSize: '1.5rem', fontWeight: 600, color: 'var(--ink)', lineHeight: 1 }}>{val}</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--muted)', letterSpacing: '.08em', textTransform: 'uppercase', marginTop: 3 }}>{label}</div>
+              </div>
             ))}
           </div>
         </div>
 
-        {/* Hero visual — animated Arabic letter */}
+        {/* Hero visual — animated Arabic letter in rings */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
           <div style={{
-            width: 420, height: 420,
-            border: '1px solid rgba(255,255,255,0.12)',
-            borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            position: 'relative',
+            width: 'min(400px, 82vw)', height: 'min(400px, 82vw)',
+            border: '1px solid var(--line)', borderRadius: '50%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative',
           }}>
-            <div style={{ position: 'absolute', inset: 20, border: '1px solid rgba(255,255,255,0.06)', borderRadius: '50%' }} />
-            <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%)', borderRadius: '50%' }} />
-            {/* Rotating ring */}
-            <div style={{ position: 'absolute', inset: -1, borderRadius: '50%',
-              border: '1px dashed rgba(255,255,255,0.2)',
-              animation: 'spin 30s linear infinite',
+            {/* Inner ring */}
+            <div style={{ position: 'absolute', inset: 28, border: '1px solid var(--line-2)', borderRadius: '50%' }} />
+            {/* Rotating dashed ring */}
+            <div style={{
+              position: 'absolute', inset: -1, borderRadius: '50%',
+              border: '1px dashed color-mix(in oklab, var(--accent) 36%, transparent)',
+              animation: 'spin 40s linear infinite',
             }} />
-            {/* Letter display */}
+            {/* The letter */}
             <div key={tick} style={{
-              fontFamily: 'Amiri, serif',
-              fontSize: '10rem', color: '#ffffff',
-              lineHeight: 1, userSelect: 'none',
-              animation: 'letterFade 2.2s ease',
-              textShadow: '0 0 60px rgba(255,255,255,0.5), 0 0 120px rgba(255,255,255,0.2)',
+              fontFamily: 'var(--f-ar)', fontSize: 'clamp(6rem, 18vw, 10rem)',
+              color: 'var(--accent)', lineHeight: 1, userSelect: 'none',
+              animation: 'letterFade 2.2s var(--ease)',
             }}>{letters[tick % letters.length]}</div>
-            {/* Orbit dots */}
-            {[0,72,144,216,288].map((deg,i) => {
-              const r = 210; const rad = (deg - 90) * Math.PI / 180;
-              return (
-                <div key={i} style={{
-                  position: 'absolute',
-                  left: `calc(50% + ${r * Math.cos(rad)}px - 4px)`,
-                  top: `calc(50% + ${r * Math.sin(rad)}px - 4px)`,
-                  width: 8, height: 8, borderRadius: '50%',
-                  background: i === 0 ? '#ffffff' : 'rgba(255,255,255,0.25)',
-                }} />
-              );
-            })}
           </div>
-          {/* Floating word cards */}
+
+          {/* Floating word chips */}
           {[
-            { word: 'كِتَاب', meaning: 'Book', top: '8%', left: '-10%' },
-            { word: 'نُور', meaning: 'Light', top: '15%', right: '-5%' },
-            { word: 'قَلْب', meaning: 'Heart', bottom: '15%', left: '-8%' },
-          ].map(({ word, meaning, ...pos }) => (
+            { word: 'كِتَاب', meaning: 'Book', style: { top: '10%', left: '-6%', animationDelay: '0s' } },
+            { word: 'نُور',  meaning: 'Light', style: { top: '14%', right: '-4%', animationDelay: '1.5s' } },
+            { word: 'قَلْب', meaning: 'Heart', style: { bottom: '12%', left: '-4%', animationDelay: '0.8s' } },
+          ].map(({ word, meaning, style: pos }) => (
             <div key={word} style={{
               position: 'absolute', ...pos,
-              background: 'rgba(18,18,18,0.9)', border: '1px solid rgba(255,255,255,0.15)',
-              padding: '10px 16px', backdropFilter: 'blur(8px)',
-              animation: 'float 4s ease-in-out infinite',
+              background: 'var(--surface)', border: '1px solid var(--line)',
+              padding: '8px 14px', borderRadius: 'var(--r-sm)',
+              boxShadow: 'var(--shadow-sm)',
+              animation: `floaty ${4 + Math.random()}s ease-in-out infinite`,
+              backdropFilter: 'blur(4px)',
             }}>
-              <div style={{ fontFamily: 'Amiri, serif', fontSize: '1.4rem', color: '#ffffff', direction: 'rtl', lineHeight: 1 }}>{word}</div>
-              <div style={{ fontSize: '0.65rem', color: 'rgba(240,240,240,0.45)', letterSpacing: '0.08em', marginTop: 2 }}>{meaning}</div>
+              <div className="ar" style={{ fontSize: '1.3rem', color: 'var(--ink)', lineHeight: 1.4 }}>{word}</div>
+              <div style={{ fontSize: '0.62rem', color: 'var(--muted)', letterSpacing: '.06em', marginTop: 1 }}>{meaning}</div>
             </div>
           ))}
         </div>
-      </div>
-
-      {/* Scroll cue */}
-      <div style={{ position: 'absolute', bottom: 32, left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontSize: '0.62rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(240,240,240,0.3)' }}>Scroll</span>
-        <div style={{ width: 1, height: 40, background: 'linear-gradient(to bottom, rgba(255,255,255,0.5), transparent)', animation: 'scrollLine 1.5s ease-in-out infinite' }} />
       </div>
     </section>
   );
@@ -174,77 +144,46 @@ function FeaturesSection() {
   const site = window.getSiteContent ? window.getSiteContent() : (window.AE?.DATA?.siteContent || {});
   const home = site.homepage || {};
   const features = Array.isArray(home.features) && home.features.length ? home.features : [
-    { icon: '٢٨', label: '28 Letters', title: 'Master the Script', desc: 'Learn all 28 Arabic letters with their four positional forms — isolated, initial, medial and final. Interactive explorer included.' },
-    { icon: '◎', label: 'Pronunciation', title: 'Authentic Sounds', desc: 'Audio for every letter, word, and phrase. Learn the sounds that don\'t exist in English — ʿAin, Ḥa, and Qaf.' },
-    { icon: '⟳', label: 'Spaced Repetition', title: 'Vocabulary That Sticks', desc: 'Our flashcard system uses proven spacing algorithms so you retain what you learn long-term — not just for the exam.' },
-    { icon: '📈', label: 'Progress', title: 'Track Every Step', desc: 'Visual dashboard showing your lesson completion, quiz scores, streak, and skill levels across reading, writing, and speaking.' },
+    { icon: '٢٨', label: 'Script', title: 'Master the script', desc: 'All 28 Arabic letters with four positional forms — isolated, initial, medial, and final. Interactive explorer included.' },
+    { icon: '◎', label: 'Sounds', title: 'Authentic sounds', desc: 'Audio for every letter, word, and phrase. The sounds that don\'t exist in English — ʿAyn, Ḥa, and Qāf — made clear.' },
+    { icon: '⟳', label: 'Vocabulary', title: 'Vocabulary that sticks', desc: 'Flashcard system using spaced repetition so you retain vocabulary long-term, not just for one lesson.' },
+    { icon: '📈', label: 'Progress', title: 'Track every step', desc: 'Visual dashboard with lesson completion, quiz scores, streaks, and skill levels across reading, writing, and speaking.' },
   ];
   return (
-    <section style={{ padding: '100px 80px', position: 'relative' }}>
-      <div style={{ maxWidth: 1400, margin: '0 auto' }}>
+    <section style={{ padding: 'clamp(48px,8vw,96px) clamp(20px,5vw,80px)', background: 'var(--surface-2)', borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
+      <div style={{ maxWidth: 1240, margin: '0 auto' }}>
         <Reveal>
-          <SectionHeading eyebrow={home.featuresEyebrow || "Why Arabic Enthusiast"} heading={home.featuresHeading || "Everything you need to learn Arabic properly."} sub={home.featuresSub || "Structured curriculum, interactive tools, and genuine teaching, with no shortcuts."} />
+          <SectionHeading
+            eyebrow={home.featuresEyebrow || 'Why Arabic Enthusiast'}
+            heading={home.featuresHeading || 'Everything you need to learn Arabic properly.'}
+            sub={home.featuresSub || 'Structured curriculum, interactive tools, and genuine teaching — with no shortcuts.'}
+          />
         </Reveal>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 2 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 2 }}>
           {features.map((f, i) => (
             <Reveal key={f.title} delay={i * 0.08}>
               <div style={{
-                background: 'rgba(18,18,18,0.6)', border: '1px solid rgba(255,255,255,0.08)',
-                padding: '36px 28px', transition: 'all 0.3s', cursor: 'default',
-                position: 'relative', overflow: 'hidden',
+                background: 'var(--surface)', border: '1px solid var(--line)',
+                padding: '28px 24px', transition: 'all .25s var(--ease)',
+                borderRadius: i === 0 ? 'var(--r-lg) 0 0 var(--r-lg)' : i === features.length - 1 ? '0 var(--r-lg) var(--r-lg) 0' : '0',
+                cursor: 'default', height: '100%',
               }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(24,24,24,0.9)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(18,18,18,0.6)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'color-mix(in oklab, var(--accent) 40%, var(--line))'; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = 'var(--shadow)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
               >
-                <div style={{ fontFamily: 'Amiri, serif', fontSize: '2.2rem', color: 'rgba(255,255,255,0.15)', marginBottom: 20, lineHeight: 1 }}>{f.icon}</div>
-                <div style={{ fontSize: '0.62rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)', marginBottom: 10 }}>{f.label}</div>
-                <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.15rem', color: '#f0f0f0', marginBottom: 12, lineHeight: 1.3 }}>{f.title}</div>
-                <div style={{ fontSize: '0.85rem', color: 'rgba(240,240,240,0.45)', lineHeight: 1.7 }}>{f.desc}</div>
+                <div style={{
+                  width: 46, height: 46, borderRadius: 10, marginBottom: 20,
+                  background: 'color-mix(in oklab, var(--accent) 12%, var(--surface))',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontFamily: 'var(--f-ar)', fontSize: '1.4rem', color: 'var(--accent)',
+                }}>{f.icon}</div>
+                <div style={{ fontSize: '0.62rem', letterSpacing: '.16em', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: 700, marginBottom: 8, fontFamily: 'var(--f-body)' }}>{f.label}</div>
+                <div style={{ fontFamily: 'var(--f-head)', fontSize: '1.1rem', color: 'var(--ink)', marginBottom: 10, lineHeight: 1.3, fontWeight: 600 }}>{f.title}</div>
+                <div style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.7 }}>{f.desc}</div>
               </div>
             </Reveal>
           ))}
         </div>
-      </div>
-    </section>
-  );
-}
-
-function AlphabetTeaser({ setPage }) {
-  const [hovered, setHovered] = useState(null);
-  const letters = window.AE.DATA.alphabet.slice(0, 14);
-  return (
-    <section style={{ padding: '100px 80px', background: 'rgba(12,12,12,0.8)' }}>
-      <div style={{ maxWidth: 1400, margin: '0 auto' }}>
-        <Reveal style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'center' }}>
-          <div>
-            <SectionHeading eyebrow="Interactive" heading={<>Explore the<br /><em style={{ color: '#ffffff' }}>Arabic Alphabet</em></>} sub="Each of the 28 letters changes form depending on its position in a word. Click any letter to discover its story." />
-            <button onClick={() => { setPage('courses'); window.scrollTo(0,0); }} style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '0.78rem',
-              letterSpacing: '0.12em', textTransform: 'uppercase',
-              padding: '14px 32px', background: 'transparent',
-              border: '1px solid rgba(255,255,255,0.4)', color: 'rgba(255,255,255,0.7)', cursor: 'pointer', transition: 'all 0.2s',
-            }}
-              onMouseEnter={e => { e.target.style.background = '#ffffff'; e.target.style.color = '#080808'; }}
-              onMouseLeave={e => { e.target.style.background = 'transparent'; e.target.style.color = 'rgba(255,255,255,0.7)'; }}
-            >Start the Alphabet Course →</button>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6 }}>
-            {letters.map((l, i) => (
-              <div key={l.ar}
-                onMouseEnter={() => setHovered(i)}
-                onMouseLeave={() => setHovered(null)}
-                style={{
-                  background: hovered === i ? 'rgba(255,255,255,0.1)' : 'rgba(18,18,18,0.8)',
-                  border: `1px solid ${hovered === i ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.1)'}`,
-                  padding: '14px 6px', textAlign: 'center', cursor: 'pointer',
-                  transition: 'all 0.2s', transform: hovered === i ? 'translateY(-3px)' : 'none',
-                }}>
-                <div style={{ fontFamily: 'Amiri, serif', fontSize: '1.5rem', color: hovered === i ? '#ffffff' : '#f0f0f0', lineHeight: 1 }}>{l.ar}</div>
-                <div style={{ fontSize: '0.58rem', color: 'rgba(240,240,240,0.35)', marginTop: 4, letterSpacing: '0.06em' }}>{l.trans}</div>
-              </div>
-            ))}
-          </div>
-        </Reveal>
       </div>
     </section>
   );
@@ -255,39 +194,42 @@ function CoursesTeaser({ setPage }) {
   const home = site.homepage || {};
   const courses = window.AE.DATA.courses.filter(c => c.featured && c.visible !== false);
   return (
-    <section style={{ padding: '100px 80px' }}>
-      <div style={{ maxWidth: 1400, margin: '0 auto' }}>
-        <Reveal style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 56 }}>
-          <SectionHeading eyebrow={home.coursesEyebrow || "Curriculum"} heading={home.coursesHeading || "Choose your path"} sub={null} />
+    <section style={{ padding: 'clamp(48px,8vw,96px) clamp(20px,5vw,80px)', background: 'var(--surface-2)', borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
+      <div style={{ maxWidth: 1240, margin: '0 auto' }}>
+        <Reveal style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 48, flexWrap: 'wrap', gap: 16 }}>
+          <SectionHeading eyebrow={home.coursesEyebrow || 'Curriculum'} heading={home.coursesHeading || 'Three paths into Arabic'} />
           <button onClick={() => { setPage('courses'); window.scrollTo(0,0); }} style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '0.72rem', letterSpacing: '0.1em', textTransform: 'uppercase',
-            background: 'none', border: '1px solid rgba(255,255,255,0.18)', color: 'rgba(240,240,240,0.45)', padding: '10px 20px', cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap',
+            fontFamily: 'var(--f-body)', fontSize: '0.82rem', fontWeight: 500,
+            background: 'none', border: '1px solid var(--line)', color: 'var(--ink-2)',
+            padding: '9px 18px', cursor: 'pointer', transition: 'all .2s var(--ease)',
+            borderRadius: 'var(--r)', whiteSpace: 'nowrap',
           }}
-            onMouseEnter={e => { e.target.style.borderColor = 'rgba(255,255,255,0.5)'; e.target.style.color = '#ffffff'; }}
-            onMouseLeave={e => { e.target.style.borderColor = 'rgba(255,255,255,0.18)'; e.target.style.color = 'rgba(240,240,240,0.45)'; }}
+            onMouseEnter={e => { e.target.style.borderColor = 'var(--accent)'; e.target.style.color = 'var(--accent)'; }}
+            onMouseLeave={e => { e.target.style.borderColor = 'var(--line)'; e.target.style.color = 'var(--ink-2)'; }}
           >All courses →</button>
         </Reveal>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
           {courses.map((c, i) => (
             <Reveal key={c.id} delay={i * 0.1}>
               <div onClick={() => { setPage('courses'); window.scrollTo(0,0); }} style={{
-                background: 'rgba(16,16,16,0.8)', border: '1px solid rgba(255,255,255,0.08)',
-                padding: '36px 32px', cursor: 'pointer', transition: 'all 0.3s', position: 'relative', overflow: 'hidden',
+                background: 'var(--surface)', border: '1px solid var(--line)',
+                padding: '28px 24px', cursor: 'pointer',
+                transition: 'all .25s var(--ease)',
+                borderRadius: 'var(--r-lg)', position: 'relative', overflow: 'hidden',
               }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'; e.currentTarget.style.transform = 'translateY(-5px)'; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'color-mix(in oklab, var(--accent) 40%, var(--line))'; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = 'var(--shadow)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
               >
-                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: c.color, opacity: 0.7 }} />
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-                  <Badge>{c.level}</Badge>
-                  <span style={{ fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(240,240,240,0.3)' }}>{c.type}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
+                  <Badge tone="accent">{c.type || 'Classical'}</Badge>
+                  <span style={{ fontFamily: 'var(--f-body)', fontSize: '0.62rem', letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--muted)' }}>{c.level}</span>
                 </div>
-                <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.3rem', color: '#f0f0f0', marginBottom: 8, lineHeight: 1.3 }}>{c.title}</div>
-                <div style={{ fontFamily: 'Amiri, serif', fontSize: '1.5rem', color: 'rgba(255,255,255,0.45)', direction: 'rtl', textAlign: 'right', marginBottom: 14, textShadow: '0 0 20px rgba(255,255,255,0.2)' }}>{c.arabic}</div>
-                <div style={{ fontSize: '0.85rem', color: 'rgba(240,240,240,0.45)', lineHeight: 1.65, marginBottom: 24 }}>{c.desc}</div>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  {(c.topics || []).slice(0, 2).map(t => (
-                    <span key={t} style={{ fontSize: '0.65rem', color: 'rgba(240,240,240,0.35)', border: '1px solid rgba(255,255,255,0.1)', padding: '3px 10px', letterSpacing: '0.04em' }}>{t}</span>
+                <div style={{ fontFamily: 'var(--f-head)', fontSize: '1.2rem', color: 'var(--ink)', marginBottom: 6, lineHeight: 1.3, fontWeight: 600 }}>{c.title}</div>
+                <div className="ar" style={{ fontFamily: 'var(--f-ar)', fontSize: '1.4rem', color: 'var(--accent)', textAlign: 'right', marginBottom: 12, lineHeight: 1.6 }}>{c.arabic}</div>
+                <div style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.65, marginBottom: 20 }}>{c.desc}</div>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', borderTop: '1px solid var(--line-2)', paddingTop: 14 }}>
+                  {[`${c.lessons || '–'} lessons`, `${c.weeks || '–'} weeks`].map(stat => (
+                    <span key={stat} style={{ fontFamily: 'var(--f-head)', fontSize: '0.82rem', color: 'var(--ink-2)' }}>{stat}</span>
                   ))}
                 </div>
               </div>
@@ -299,19 +241,74 @@ function CoursesTeaser({ setPage }) {
   );
 }
 
+function ApproachSection({ setPage }) {
+  const site = window.getSiteContent ? window.getSiteContent() : (window.AE?.DATA?.siteContent || {});
+  const home = site.homepage || {};
+  const principles = [
+    { num: '01', title: 'Language before grammar', body: 'You learn by using Arabic, not by memorising rules in a vacuum. Structures are introduced in context.' },
+    { num: '02', title: 'Dialect and Modern Standard together', body: 'Classical roots, Levantine spoken fluency, and Quranic recitation are not competing paths — they reinforce each other.' },
+    { num: '03', title: 'Progress you can see', body: 'Every lesson is tracked. You always know what you\'ve covered, what\'s next, and how far you\'ve come.' },
+  ];
+  return (
+    <section style={{ padding: 'clamp(48px,8vw,96px) clamp(20px,5vw,80px)' }}>
+      <div style={{ maxWidth: 1240, margin: '0 auto' }}>
+        <Reveal>
+          <div className="approach-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'clamp(32px,6vw,80px)', alignItems: 'start' }}>
+            {/* Left */}
+            <div>
+              <Eyebrow>The teaching approach</Eyebrow>
+              <h2 style={{ fontFamily: 'var(--f-head)', fontSize: 'clamp(1.6rem,3vw,2.1rem)', fontWeight: 600, lineHeight: 1.15, color: 'var(--ink)', marginBottom: 20, letterSpacing: '-0.01em' }}>
+                Teaching that <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}>respects</em><br />the language
+              </h2>
+              <p style={{ color: 'var(--muted)', fontSize: '1rem', lineHeight: 1.7, marginBottom: 28 }}>
+                {home.approachSub || 'Arabic is not a utility language to "get through" — it is a living tradition. Every lesson honours its depth.'}
+              </p>
+              <button onClick={() => { setPage('about'); window.scrollTo(0,0); }} style={{
+                fontFamily: 'var(--f-body)', fontSize: '0.85rem', fontWeight: 600,
+                padding: '12px 24px', background: 'var(--ink)', color: 'var(--paper)',
+                border: '1px solid var(--ink)', cursor: 'pointer', transition: 'all .2s var(--ease)',
+                borderRadius: 'var(--r)',
+              }}>Meet your teacher →</button>
+            </div>
+            {/* Right — principles */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+              {principles.map((p, i) => (
+                <div key={p.num} style={{ borderTop: '1px solid var(--line-2)', padding: '20px 0' }}>
+                  <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+                    <div style={{ fontFamily: 'var(--f-head)', fontSize: '1.8rem', fontWeight: 600, color: 'var(--accent)', lineHeight: 1, flexShrink: 0, minWidth: 36 }}>{p.num}</div>
+                    <div>
+                      <div style={{ fontFamily: 'var(--f-head)', fontSize: '1.05rem', fontWeight: 600, color: 'var(--ink)', marginBottom: 6 }}>{p.title}</div>
+                      <div style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.65 }}>{p.body}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
 function QuoteSection() {
   const site = window.getSiteContent ? window.getSiteContent() : (window.AE?.DATA?.siteContent || {});
   const home = site.homepage || {};
   return (
-    <section style={{ padding: '80px', background: 'rgba(10,10,10,0.7)', borderTop: '1px solid rgba(255,255,255,0.07)', borderBottom: '1px solid rgba(255,255,255,0.07)', textAlign: 'center' }}>
+    <section style={{ background: 'var(--ink)', color: 'var(--paper)', textAlign: 'center', padding: 'clamp(40px,6vw,72px) clamp(20px,5vw,80px)' }}>
       <Reveal>
-        <div style={{ fontFamily: 'Amiri, serif', fontSize: 'clamp(1.8rem, 4vw, 3rem)', color: '#ffffff', direction: 'rtl', marginBottom: 16, lineHeight: 1.6, textShadow: '0 0 40px rgba(255,255,255,0.3), 0 0 80px rgba(255,255,255,0.1)' }}>
+        <div className="ar" style={{
+          fontFamily: 'var(--f-ar)', fontSize: 'clamp(2.2rem,5vw,3.4rem)',
+          color: 'var(--paper)', lineHeight: 1.7, marginBottom: 16, direction: 'rtl',
+        }}>
           {home.quoteArabic || 'وَعَلَّمَ آدَمَ الْأَسْمَاءَ كُلَّهَا'}
         </div>
-        <div style={{ fontFamily: 'Playfair Display, serif', fontStyle: 'italic', fontSize: '1.1rem', color: 'rgba(240,240,240,0.55)', maxWidth: 480, margin: '0 auto 8px' }}>
+        <div style={{ fontFamily: 'var(--f-head)', fontStyle: 'italic', fontSize: '1.05rem', color: 'var(--ink-2)', maxWidth: 480, margin: '0 auto 10px' }}>
           "{home.quoteText || 'And He taught Adam the names of all things'}"
         </div>
-        <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.15em', textTransform: 'uppercase' }}>{home.quoteSource || 'Quran 2:31'}</div>
+        <div style={{ fontSize: '0.7rem', color: 'var(--muted)', letterSpacing: '.14em', textTransform: 'uppercase', fontFamily: 'var(--f-body)' }}>
+          {home.quoteSource || 'Quran 2:31'}
+        </div>
       </Reveal>
     </section>
   );
@@ -321,31 +318,132 @@ function CtaSection({ setPage }) {
   const site = window.getSiteContent ? window.getSiteContent() : (window.AE?.DATA?.siteContent || {});
   const home = site.homepage || {};
   return (
-    <section style={{ padding: '120px 80px', textAlign: 'center' }}>
-      <div style={{ maxWidth: 640, margin: '0 auto' }}>
+    <section style={{ padding: 'clamp(48px,8vw,96px) clamp(20px,5vw,80px)' }}>
+      <div style={{ maxWidth: 1240, margin: '0 auto' }}>
+        <div style={{
+          background: 'var(--accent)', color: 'var(--on-accent)',
+          borderRadius: 'var(--r-lg)', padding: 'clamp(40px,6vw,72px)',
+          textAlign: 'center', position: 'relative', overflow: 'hidden',
+        }}>
+          {/* Faint watermark */}
+          <div className="ar" style={{
+            position: 'absolute', top: '50%', left: '50%',
+            transform: 'translate(-50%,-50%)',
+            fontFamily: 'var(--f-ar)', fontSize: 'clamp(8rem,18vw,14rem)',
+            color: 'rgba(255,255,255,0.07)', pointerEvents: 'none',
+            lineHeight: 1, userSelect: 'none', whiteSpace: 'nowrap',
+          }}>{home.ctaArabic || 'بِسْمِ اللَّهِ'}</div>
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <h2 style={{ fontFamily: 'var(--f-head)', fontSize: 'clamp(1.8rem,4vw,2.8rem)', fontWeight: 600, lineHeight: 1.15, marginBottom: 16, color: 'var(--on-accent)' }}>
+              {home.ctaTitleLine1 || 'Begin your'}{' '}
+              <em style={{ fontStyle: 'italic' }}>{home.ctaTitleAccent || 'Arabic journey'}</em>{' '}
+              {home.ctaTitleLine3 || 'today'}
+            </h2>
+            <p style={{ color: 'rgba(255,248,241,0.75)', fontSize: '1rem', lineHeight: 1.7, marginBottom: 28, maxWidth: 520, margin: '0 auto 28px' }}>
+              {home.ctaDescription || "Take the first step towards understanding one of the world's most profound languages."}
+            </p>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button onClick={() => window.location.href = '/portal?signup=1'} style={{
+                fontFamily: 'var(--f-body)', fontSize: '0.85rem', fontWeight: 600,
+                padding: '13px 36px', background: 'var(--on-accent)', color: 'var(--accent)',
+                border: '1px solid var(--on-accent)', cursor: 'pointer', borderRadius: 'var(--r)',
+                transition: 'all .2s var(--ease)',
+              }}>{home.ctaPrimary || 'Start learning →'}</button>
+              <button onClick={() => { setPage('pricing'); window.scrollTo(0,0); }} style={{
+                fontFamily: 'var(--f-body)', fontSize: '0.85rem', fontWeight: 500,
+                padding: '13px 28px', background: 'transparent',
+                border: '1px solid rgba(255,248,241,0.38)', color: 'var(--on-accent)',
+                cursor: 'pointer', borderRadius: 'var(--r)', transition: 'all .2s var(--ease)',
+              }}>{home.ctaSecondary || 'See pricing'}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function SubscriptionSection() {
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState('');
+
+  async function handleSubscribe() {
+    setLoading(true);
+    setError('');
+    try {
+      const r = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await r.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setError(data.error || 'Something went wrong. Please try again.');
+        setLoading(false);
+      }
+    } catch {
+      setError('Could not connect. Please try again.');
+      setLoading(false);
+    }
+  }
+
+  return (
+    <section style={{ padding: 'clamp(48px,8vw,96px) clamp(20px,5vw,80px)', background: 'var(--surface)' }}>
+      <div style={{ maxWidth: 1240, margin: '0 auto' }}>
         <Reveal>
-          <div style={{ fontFamily: 'Amiri, serif', fontSize: '3.5rem', color: 'rgba(255,255,255,0.1)', marginBottom: 8, textShadow: '0 0 40px rgba(255,255,255,0.15)' }}>{home.ctaArabic || 'بِسْمِ اللَّهِ'}</div>
-          <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#f0f0f0', fontWeight: 600, lineHeight: 1.2, marginBottom: 20 }}>
-            {home.ctaTitleLine1 || 'Begin your'}<br /><em style={{ color: '#ffffff' }}>{home.ctaTitleAccent || 'Arabic journey'}</em> {home.ctaTitleLine3 || 'today'}
-          </h2>
-          <p style={{ color: 'rgba(240,240,240,0.45)', fontSize: '0.95rem', lineHeight: 1.7, marginBottom: 36 }}>
-            {home.ctaDescription || "Take the first step towards understanding one of the world's most profound languages."}
-          </p>
-          <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button onClick={() => { window.location.href = '/portal?signup=1'; }} style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '0.8rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600,
-              padding: '16px 44px', background: 'var(--gold)', color: '#080808', border: 'none', cursor: 'pointer', transition: 'all 0.2s',
-            }}
-              onMouseEnter={e => { e.target.style.filter = 'brightness(1.1)'; e.target.style.transform = 'translateY(-2px)'; }}
-              onMouseLeave={e => { e.target.style.filter = ''; e.target.style.transform = 'none'; }}
-            >{home.ctaPrimary || 'Apply to Study'}</button>
-            <button onClick={() => { setPage('pricing'); window.scrollTo(0,0); }} style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '0.8rem', letterSpacing: '0.08em', textTransform: 'uppercase',
-              padding: '16px 32px', background: 'transparent', border: '1px solid rgba(240,240,240,0.2)', color: 'rgba(240,240,240,0.6)', cursor: 'pointer', transition: 'all 0.2s',
-            }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.5)'; e.currentTarget.style.color = '#ffffff'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(240,240,240,0.2)'; e.currentTarget.style.color = 'rgba(240,240,240,0.6)'; }}
-            >{home.ctaSecondary || 'See Pricing'}</button>
+          <div style={{ textAlign: 'center', marginBottom: 40 }}>
+            <Eyebrow center={true}>Monthly Access</Eyebrow>
+            <h2 style={{
+              fontFamily: 'var(--f-head)', fontSize: 'clamp(1.8rem,4vw,2.6rem)',
+              fontWeight: 600, lineHeight: 1.15, marginBottom: 12, color: 'var(--ink)',
+            }}>
+              The fastest path to{' '}
+              <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}>Arabic fluency</em>
+            </h2>
+            <p style={{ color: 'var(--muted)', fontSize: '1rem', lineHeight: 1.7, maxWidth: 460, margin: '0 auto' }}>
+              Unlimited lessons, daily practice, and direct access to your teacher — one flat monthly price.
+            </p>
+          </div>
+        </Reveal>
+        <Reveal delay={0.08}>
+          <div style={{
+            maxWidth: 440, margin: '0 auto',
+            background: 'var(--ink)', color: 'var(--paper)',
+            borderRadius: 'var(--r-lg)', padding: '36px 32px',
+            textAlign: 'center', boxShadow: 'var(--shadow)',
+          }}>
+            <div style={{ fontFamily: 'var(--f-head)', fontSize: '1.15rem', fontWeight: 600, marginBottom: 4 }}>
+              Monthly Immersion
+            </div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, justifyContent: 'center', marginBottom: 24 }}>
+              <span style={{ fontFamily: 'var(--f-head)', fontSize: '3rem', fontWeight: 700, lineHeight: 1 }}>$420</span>
+              <span style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>/month</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28, textAlign: 'left' }}>
+              {['Unlimited lessons (up to 4/week)', 'Daily vocab & tasks', 'Full portal access', 'Weekly progress call', 'Priority support'].map(function (f) {
+                return (
+                  <div key={f} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                    <span style={{ color: 'var(--accent)', fontWeight: 700, flexShrink: 0 }}>✓</span>
+                    <span style={{ fontSize: '0.88rem', opacity: 0.85, lineHeight: 1.4 }}>{f}</span>
+                  </div>
+                );
+              })}
+            </div>
+            {error && <p style={{ color: 'var(--bad)', fontSize: '0.8rem', marginBottom: 10 }}>{error}</p>}
+            <button
+              onClick={handleSubscribe}
+              disabled={loading}
+              style={{
+                width: '100%', padding: '13px',
+                fontFamily: 'var(--f-body)', fontSize: '0.9rem', fontWeight: 600,
+                background: 'var(--accent)', color: 'var(--on-accent)',
+                border: '1px solid var(--accent)',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                borderRadius: 'var(--r)', transition: 'all .2s var(--ease)',
+                opacity: loading ? 0.7 : 1,
+              }}
+            >{loading ? 'Redirecting…' : 'Subscribe now →'}</button>
           </div>
         </Reveal>
       </div>
@@ -359,8 +457,9 @@ function HomePage({ setPage }) {
     <div>
       {show('homeHero') && <HeroSection setPage={setPage} />}
       {show('features') && <FeaturesSection />}
-      {show('alphabet') && <AlphabetTeaser setPage={setPage} />}
       {show('courses') && <CoursesTeaser setPage={setPage} />}
+      {show('approach') !== false && <ApproachSection setPage={setPage} />}
+      {show('subscription') !== false && <SubscriptionSection />}
       {show('quote') && <QuoteSection />}
       {show('cta') && <CtaSection setPage={setPage} />}
     </div>

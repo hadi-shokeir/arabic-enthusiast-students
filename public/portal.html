@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="Arabic Enthusiast">
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/logo.jpeg">
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Bebas+Neue&family=Oswald:wght@400;600;700&family=Montserrat:wght@400;600;700;800&family=Raleway:wght@400;600;700;800&family=Playfair+Display:wght@400;600;700&family=Anton&family=Teko:wght@400;500;600;700&family=Russo+One&family=Black+Han+Sans&family=Exo+2:wght@400;600;700;800&family=Orbitron:wght@400;600;700&family=Cinzel:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Lato:wght@400;700&family=Nunito:wght@400;600;700&family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600;700&family=Source+Sans+3:wght@400;600;700&family=Manrope:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;600;700&family=Noto+Kufi+Arabic:wght@400;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Scheherazade+New:wght@400;500;600;700&family=Lateef:wght@400;500;600;700&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,600&family=Public+Sans:wght@300;400;500;600;700&family=Amiri:ital,wght@0,400;0,700;1,400&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/htm/3.1.1/htm.module.js" type="module"></script>
@@ -19,12 +19,96 @@
 <script src="/site-content.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bk:#0a0907;--wh:#fffdf8;--ae-bg:#f4f1e9;--ae-panel:#fffdf8;--ae-panel-2:#fbf8f0;--ae-ink:#17130c;--ae-muted:#756f62;--ae-line:#d8c9a3;--ae-line-soft:#eadfca;--ae-gold:#c9a24a;--ae-gold-2:#e5c978;--g50:#f8f5ed;--g100:#eee6d6;--g200:#dfd0b2;--g300:#c8b78f;--g400:#8d8067;--g500:#6d6456;--g600:#4c4539;--g700:#302a22;--g800:#17130c;--ok:#2e7d52;--wn:#b87516;--bd:#b43c3c;--fh:'Playfair Display',serif;--fb:'DM Sans',sans-serif;--fa:'Noto Kufi Arabic',sans-serif}
+/* ── Arabic Enthusiast — New Design System ── */
+:root{
+  /* Surfaces */
+  --paper:     #f6f1e8;
+  --surface:   #fffdf8;
+  --surface-2: #fbf5eb;
+  --surface-3: #f3ebdc;
+  /* Text */
+  --ink:    #241c12;
+  --ink-2:  #4c4234;
+  --muted:  #8a7f6c;
+  --faint:  #b6ab96;
+  /* Lines */
+  --line:   #e7dcc8;
+  --line-2: #f0e7d7;
+  /* Accent */
+  --accent:    #2f4a7a;
+  --on-accent: #fff8f1;
+  /* Semantic */
+  --good:      #1c8a5b;
+  --good-soft: #2e8b57;
+  --warn:      #b3720f;
+  --bad:       #cf4744;
+  /* Elevation */
+  --shadow:    16px 30px 70px -40px rgba(60,42,18,0.45);
+  --shadow-sm: 0 2px 10px -4px rgba(60,42,18,0.22);
+  /* Motion */
+  --ease: cubic-bezier(.16,1,.3,1);
+  /* Shape — Round */
+  --r:18px; --r-sm:12px; --r-lg:26px;
+  /* Density — Regular */
+  --u:1; --fs:1;
+  /* Typography */
+  --f-head:  'Newsreader', Georgia, serif;
+  --f-body:  'Public Sans', system-ui, sans-serif;
+  --f-ar:    'Amiri', serif;
+  --f-ar-ui: 'Noto Naskh Arabic', serif;
+
+  /* ── Aliases: ae-* → new tokens ── */
+  --bk:            var(--ink);
+  --wh:            var(--surface);
+  --ae-bg:         var(--paper);
+  --ae-panel:      var(--surface);
+  --ae-panel-2:    var(--surface-2);
+  --ae-ink:        var(--ink);
+  --ae-muted:      var(--muted);
+  --ae-line:       var(--line);
+  --ae-line-soft:  var(--line-2);
+  --ae-gold:       var(--accent);
+  --ae-gold-2:     color-mix(in oklab, var(--accent) 65%, white);
+  --g50:    var(--surface-3);
+  --g100:   var(--surface-2);
+  --g200:   var(--line);
+  --g300:   var(--line-2);
+  --g400:   var(--faint);
+  --g500:   var(--muted);
+  --g600:   var(--ink-2);
+  --g700:   var(--ink);
+  --g800:   var(--ink);
+  --ok:  var(--good);
+  --wn:  var(--warn);
+  --bd:  var(--bad);
+  --fh:  var(--f-head);
+  --fb:  var(--f-body);
+  --fa:  var(--f-ar-ui);
+
+  /* ── Aliases: sp-* → new tokens (light) ── */
+  --sp-bg:      var(--paper);
+  --sp-mid:     var(--surface);
+  --sp-card:    var(--surface);
+  --sp-surface: var(--surface-2);
+  --sp-amber:   var(--accent);
+  --sp-amber-l: var(--accent);
+  --sp-amber-d: color-mix(in oklab, var(--accent) 80%, black);
+  --sp-glow:    color-mix(in oklab, var(--accent) 12%, var(--surface));
+  --sp-teal:    var(--good);
+  --sp-green:   var(--good);
+  --sp-red:     var(--bad);
+  --sp-rose:    var(--bad);
+  --sp-txt:     var(--ink);
+  --sp-txt2:    var(--ink-2);
+  --sp-txt3:    var(--muted);
+  --sp-border:  var(--line);
+  --sp-border-h:color-mix(in oklab, var(--accent) 40%, var(--line));
+}
 html,body{height:100%;overflow-x:hidden;max-width:100%}#root{height:100%;overflow:hidden}.student-root ~ * {overflow:auto}
 body:has(.student-root){overflow:auto;overflow-x:hidden}
 #root:has(.student-root){overflow:auto;overflow-x:hidden;height:auto}
-body:has(.auth-wrap){overflow:auto;overflow-x:hidden;background:#f4f1e9;min-height:100dvh}
-#root:has(.auth-wrap){overflow:auto;overflow-x:hidden;height:auto;min-height:100dvh;background:#f4f1e9}
+body:has(.auth-wrap){overflow:auto;overflow-x:hidden;background:var(--paper);min-height:100dvh}
+#root:has(.auth-wrap){overflow:auto;overflow-x:hidden;height:auto;min-height:100dvh;background:var(--paper)}
 /* Mobile keyboard fix: when an input/textarea is focused, un-stick the headers
    so the keyboard doesn't cause layout shifts that blur the input */
 @media (max-width: 768px) {
@@ -33,40 +117,45 @@ body:has(.auth-wrap){overflow:auto;overflow-x:hidden;background:#f4f1e9;min-heig
   .student-root { min-height: 100dvh !important; }
   .ai-panel { position: relative !important; top: auto !important; }
 }
-/* RTL support for Arabic content */
-[dir="rtl"]{font-family:var(--fa),var(--fb)}
-.ar-text{font-family:var(--fa),var(--fb);direction:rtl;text-align:right}
-textarea,input[type="text"],input:not([type]){font-family:var(--fa),var(--fb);direction:auto;unicode-bidi:plaintext}
-.app{display:flex;height:100vh;font-family:var(--fb);background:var(--ae-bg);color:var(--ae-ink);overflow:hidden}
+/* RTL + Arabic typography */
+[dir="rtl"]{font-family:var(--f-ar-ui),var(--f-body);direction:rtl;unicode-bidi:plaintext}
+.ar{font-family:var(--f-ar);direction:rtl;unicode-bidi:plaintext}
+.ar-ui,.ar-text{font-family:var(--f-ar-ui);direction:rtl;unicode-bidi:plaintext;text-align:right}
+/* Never letter-space Arabic */
+.ar,.ar-ui,.ar-text,[dir="rtl"]{letter-spacing:0!important}
+/* Generous line-height for diacritics */
+.ar[style*="font-size"]{line-height:1.7!important}
+textarea,input[type="text"],input:not([type]){font-family:var(--f-ar-ui),var(--f-body);direction:auto;unicode-bidi:plaintext;font-size:16px}
+.app{display:flex;height:100vh;font-family:var(--f-body);background:var(--paper);color:var(--ink);overflow:hidden}
 /* Sidebar */
-.sb{width:238px;min-width:238px;background:linear-gradient(180deg,#0b0907,#16120c);color:#f7efe0;display:flex;flex-direction:column;border-right:1px solid rgba(229,201,120,0.18)}
-.sb-hd{padding:26px 20px;border-bottom:1px solid rgba(229,201,120,0.16)}
-.sb-hd h1{font-family:'Cinzel',serif;font-size:18px;letter-spacing:3px;text-shadow:0 0 20px rgba(201,162,74,0.2);color:var(--ae-gold-2)}
-.sb-hd small{font-size:10px;color:rgba(247,239,224,0.52);display:block;margin-top:6px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase}
+.sb{width:238px;min-width:238px;background:var(--surface);color:var(--ink);display:flex;flex-direction:column;border-right:1px solid var(--line)}
+.sb-hd{padding:24px 20px;border-bottom:1px solid var(--line)}
+.sb-hd h1{font-family:var(--f-head);font-size:16px;letter-spacing:.02em;font-weight:600;color:var(--ink)}
+.sb-hd small{font-size:10px;color:var(--muted);display:block;margin-top:6px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase}
 .sb-nav{flex:1;padding:10px 8px;overflow-y:auto}
-.sb-it{display:flex;align-items:center;gap:12px;padding:11px 13px;cursor:pointer;border-left:3px solid transparent;border-radius:12px;color:rgba(247,239,224,0.68);font-size:12px;font-weight:700;transition:all .18s;text-shadow:none;margin-bottom:2px}
-.sb-it:hover{background:rgba(255,255,255,0.06);color:#fff8ea}
-.sb-it.on{background:rgba(201,162,74,0.16);color:var(--ae-gold-2);border-left-color:var(--ae-gold);font-weight:800;text-shadow:none}
-.sb-ft{padding:14px 18px;border-top:1px solid rgba(229,201,120,0.16);font-size:11px;color:rgba(247,239,224,0.5);text-shadow:none}
+.sb-it{display:flex;align-items:center;gap:12px;padding:10px 13px;cursor:pointer;border-left:3px solid transparent;border-radius:var(--r-sm);color:var(--ink-2);font-size:12px;font-weight:500;transition:all .18s;margin-bottom:2px}
+.sb-it:hover{background:var(--surface-2);color:var(--ink)}
+.sb-it.on{background:color-mix(in oklab,var(--accent) 12%,var(--surface));color:var(--accent);border-left-color:var(--accent);font-weight:700}
+.sb-ft{padding:14px 18px;border-top:1px solid var(--line);font-size:11px;color:var(--muted)}
 /* Main */
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
-.topbar{padding:18px 28px;border-bottom:1px solid var(--ae-line-soft);background:rgba(255,253,248,0.92);backdrop-filter:blur(18px);display:flex;align-items:center;gap:12px}
-.topbar h2{font-family:var(--fh);font-size:25px;letter-spacing:.02em;font-weight:600;color:var(--ae-ink)}
+.topbar{padding:16px 28px;border-bottom:1px solid var(--line);background:color-mix(in oklab,var(--paper) 86%,transparent);backdrop-filter:blur(14px);display:flex;align-items:center;gap:12px}
+.topbar h2{font-family:var(--f-head);font-size:24px;letter-spacing:.01em;font-weight:600;color:var(--ink)}
 .page{flex:1;overflow-y:auto;padding:24px 28px;background:var(--ae-bg)}
 /* Buttons */
-.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;font-family:var(--fb);font-size:12px;font-weight:700;border:1px solid var(--ae-line);border-radius:10px;cursor:pointer;text-transform:uppercase;letter-spacing:.8px;background:var(--ae-panel);color:var(--ae-ink);transition:all .18s}
-.btn:hover{background:var(--ae-panel-2);border-color:var(--ae-gold);transform:translateY(-1px)}.btn-p{background:linear-gradient(135deg,var(--ae-gold),var(--ae-gold-2));color:#17130c;border-color:var(--ae-gold)}.btn-p:hover{background:linear-gradient(135deg,var(--ae-gold-2),var(--ae-gold));color:#17130c}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;font-family:var(--f-body);font-size:0.82rem;font-weight:600;border:1px solid var(--line);border-radius:var(--r);cursor:pointer;letter-spacing:.01em;background:var(--surface);color:var(--ink);transition:all .2s var(--ease)}
+.btn:hover{background:var(--surface-2);border-color:var(--accent);transform:translateY(-1px)}.btn-p{background:var(--accent);color:var(--on-accent);border-color:var(--accent);box-shadow:0 4px 14px -8px color-mix(in oklab,var(--accent) 60%,transparent)}.btn-p:hover{transform:translateY(-1px);box-shadow:0 10px 26px -10px color-mix(in oklab,var(--accent) 70%,transparent)}
 .btn-d{border-color:var(--bd);color:var(--bd)}.btn-d:hover{background:var(--bd);color:#fff}
 .btn-wa{background:#25D366;color:#fff;border-color:#25D366}.btn-wa:hover{background:#1ebe5d}
 .btn-sm{padding:5px 10px;font-size:10px}.btn-xs{padding:3px 8px;font-size:10px}
 .bi{padding:6px;border:none;background:none;cursor:pointer;color:var(--g500);display:inline-flex}.bi:hover{color:var(--ae-gold)}
 /* Cards */
-.card{background:var(--ae-panel);border:1px solid var(--ae-line-soft);border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:0 12px 34px rgba(31,24,12,0.06)}
-.card h3{font-family:var(--fh);font-size:20px;letter-spacing:.02em;margin-bottom:12px;font-weight:600;color:var(--ae-ink)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:calc(20px * var(--u));margin-bottom:14px;box-shadow:var(--shadow-sm)}
+.card h3{font-family:var(--f-head);font-size:1.15rem;letter-spacing:.01em;margin-bottom:12px;font-weight:600;color:var(--ink)}
 /* Stats */
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px}
-.stat{background:var(--ae-panel);border:1px solid var(--ae-line-soft);border-radius:16px;padding:16px;box-shadow:0 10px 26px rgba(31,24,12,0.05)}
-.stat .lb{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--g500);font-weight:600}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:16px;box-shadow:var(--shadow-sm)}
+.stat .lb{font-size:0.66rem;text-transform:uppercase;letter-spacing:.16em;color:var(--muted);font-weight:600}
 .stat .vl{font-family:var(--fh);font-size:36px;margin-top:2px}
 .stat .su{font-size:11px;color:var(--g500);margin-top:1px}
 /* Table */
@@ -75,31 +164,31 @@ th{text-align:left;padding:8px 12px;font-size:10px;text-transform:uppercase;lett
 td{padding:10px 12px;border-bottom:1px solid var(--g200)}
 tr.ck{cursor:pointer}tr.ck:hover td{background:var(--g100)}
 /* Tags & badges */
-.tg{display:inline-block;padding:3px 9px;font-size:10px;font-weight:700;background:rgba(201,162,74,0.14);color:#7c5b11;border:1px solid rgba(201,162,74,0.28);border-radius:999px;letter-spacing:.5px;text-transform:uppercase}
+.tg{display:inline-block;padding:3px 9px;font-size:0.66rem;font-weight:700;background:color-mix(in oklab,var(--accent) 13%,var(--surface));color:var(--accent);border:1px solid color-mix(in oklab,var(--accent) 26%,transparent);border-radius:99px;letter-spacing:.07em;text-transform:uppercase}
 .bg{display:inline-block;padding:2px 8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;border:1.5px solid}
 .bg-ok{border-color:var(--ok);color:var(--ok)}.bg-bd{border-color:var(--bd);color:var(--bd)}.bg-n{border-color:var(--g300);color:var(--g500)}.bg-wn{border-color:var(--wn);color:var(--wn)}
 /* Forms */
 .fg{margin-bottom:14px}
 .fg label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;margin-bottom:5px;color:var(--g600)}
-.fg input,.fg select,.fg textarea{width:100%;padding:10px 12px;border:1px solid var(--ae-line-soft);border-radius:10px;background:#fffefa;font-family:var(--fa),var(--fb);font-size:13px;outline:none}
-.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--ae-gold);box-shadow:0 0 0 3px rgba(201,162,74,0.12)}
+.fg input,.fg select,.fg textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface);font-family:var(--f-body);font-size:16px;outline:none;color:var(--ink)}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in oklab,var(--accent) 16%,transparent)}
 .fg textarea{resize:vertical;min-height:70px}
 .fr{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .fr3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
 /* Modal */
 .mo-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:100}
-.mo{background:var(--ae-panel);border:1px solid var(--ae-line);border-radius:18px;width:92%;max-width:580px;max-height:82vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,0.28)}
-.mo-hd{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--ae-line-soft)}
-.mo-hd h3{font-family:var(--fh);font-size:22px;letter-spacing:.02em;font-weight:600}
+.mo{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);width:92%;max-width:580px;max-height:82vh;overflow-y:auto;box-shadow:var(--shadow)}
+.mo-hd{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--line-2)}
+.mo-hd h3{font-family:var(--f-head);font-size:1.3rem;letter-spacing:.01em;font-weight:600}
 .mo-bd{padding:22px}
 .mo-ft{padding:14px 22px;border-top:2px solid var(--g200);display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
 /* Tabs */
-.tabs{display:flex;border-bottom:2px solid var(--bk);margin-bottom:18px;background:var(--wh);overflow-x:auto}
-.tab{padding:10px 18px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;color:var(--g400);white-space:nowrap}
-.tab:hover{color:var(--bk)}.tab.on{color:var(--bk);border-bottom-color:var(--bk)}
+.tabs{display:flex;border-bottom:1px solid var(--line);margin-bottom:18px;background:var(--surface);overflow-x:auto}
+.tab{padding:10px 18px;font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;color:var(--muted);white-space:nowrap;transition:color .15s;font-family:var(--f-body)}
+.tab:hover{color:var(--ink)}.tab.on{color:var(--ink);border-bottom-color:var(--accent)}
 /* Profile */
 .prof-hd{display:flex;gap:20px;align-items:flex-start;padding:20px;background:var(--ae-panel);border:1px solid var(--ae-line-soft);border-radius:18px;margin-bottom:20px;box-shadow:0 12px 34px rgba(31,24,12,0.06)}
-.prof-av{width:70px;height:70px;background:linear-gradient(135deg,var(--ae-gold),var(--ae-gold-2));color:#17130c;display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:28px;flex-shrink:0;border-radius:16px}
+.prof-av{width:70px;height:70px;background:color-mix(in oklab,var(--accent) 16%,var(--surface));color:var(--accent);border:1px solid color-mix(in oklab,var(--accent) 26%,transparent);display:flex;align-items:center;justify-content:center;font-family:var(--f-head);font-size:28px;font-weight:600;flex-shrink:0;border-radius:calc(var(--r-sm) + 2px)}
 .prof-info{flex:1}.prof-info h2{font-family:var(--fh);font-size:26px;letter-spacing:1.5px}
 .prof-meta{display:flex;gap:10px;margin-top:6px;flex-wrap:wrap;align-items:center}
 /* Calendar */
@@ -205,90 +294,91 @@ tr.ck{cursor:pointer}tr.ck:hover td{background:var(--g100)}
 .btn-share{background:#128C7E;color:#fff;border-color:#128C7E}.btn-share:hover{background:#075E54}
 .free-left-stepper{display:inline-flex;align-items:center;gap:0;border:2px solid var(--ok);margin-top:4px}
 .free-left-stepper .st-btn{background:var(--ok)}.free-left-stepper .st-btn:hover{background:#008844}
-/* Independent tracing lab */
-.trace-lab{background:#f8fafc;color:#0f172a;border:1px solid #dbe4ee;border-radius:18px;padding:16px;box-shadow:0 18px 44px rgba(15,23,42,.10)}
+/* Tracing Lab — warm token palette */
+.trace-lab{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:var(--r-lg);padding:16px;box-shadow:var(--shadow-sm)}
 .trace-lab *{box-sizing:border-box}
 .trace-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:14px}
-.trace-kicker{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:1.4px;color:#2563eb;margin-bottom:5px}
-.trace-title{font-family:'Playfair Display',serif;font-size:30px;font-weight:700;color:#0f172a;margin:0}
-.trace-sub{font-size:13px;line-height:1.65;color:#475569;margin-top:5px;max-width:720px}
-.trace-score-card{min-width:116px;text-align:center;background:#fff;border:1px solid #dbe4ee;border-radius:14px;padding:10px 14px;box-shadow:0 10px 24px rgba(15,23,42,.08)}
-.trace-score-card .lb{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:1.1px;color:#64748b}
-.trace-score-card .vl{font-family:'Playfair Display',serif;font-size:32px;font-weight:800;line-height:1}
+.trace-kicker{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.16em;color:var(--accent);margin-bottom:5px}
+.trace-title{font-family:var(--f-head);font-size:1.7rem;font-weight:600;color:var(--ink);margin:0}
+.trace-sub{font-size:13px;line-height:1.65;color:var(--muted);margin-top:5px;max-width:720px}
+.trace-score-card{min-width:116px;text-align:center;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 14px;box-shadow:var(--shadow-sm)}
+.trace-score-card .lb{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+.trace-score-card .vl{font-family:var(--f-head);font-size:2rem;font-weight:700;line-height:1}
 .trace-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
-.trace-tab{border:1px solid #dbe4ee;background:#fff;color:#334155;border-radius:999px;padding:8px 13px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:900;cursor:pointer}
-.trace-tab.on{background:#0f172a;color:#fff;border-color:#0f172a}
-.trace-panel{background:#fff;border:1px solid #dbe4ee;border-radius:16px;padding:14px;margin-bottom:14px;box-shadow:0 12px 28px rgba(15,23,42,.06)}
+.trace-tab{border:1px solid var(--line);background:var(--surface);color:var(--ink-2);border-radius:999px;padding:8px 14px;font-family:var(--f-body);font-size:0.78rem;font-weight:600;cursor:pointer;transition:all .18s var(--ease)}
+.trace-tab.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.trace-tab.level.on{background:color-mix(in oklab,var(--accent) 14%,var(--surface));color:var(--accent);border-color:color-mix(in oklab,var(--accent) 30%,transparent)}
+.trace-panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:14px;box-shadow:var(--shadow-sm)}
 .trace-toolbar{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
 .trace-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.trace-control{font-size:12px;color:#475569;display:flex;gap:6px;align-items:center;font-weight:800}
-.trace-control select,.trace-input{background:#fff;border:1px solid #cbd5e1;border-radius:10px;padding:8px 10px;color:#0f172a;font-family:'DM Sans',sans-serif}
-.trace-control input[type="range"]{width:88px;accent-color:#2563eb}
-.trace-target{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;padding:10px 12px;border-radius:12px;background:#eff6ff;border:1px solid #bfdbfe}
-.trace-target-ar{font-size:38px;direction:rtl;color:#0f172a;line-height:1.4}
-.trace-canvas{display:block;width:100%;border-radius:16px;border:1px solid #dbe4ee;background:#fff;touch-action:none;cursor:crosshair;box-shadow:inset 0 0 0 1px rgba(15,23,42,.035),0 14px 28px rgba(15,23,42,.09)}
+.trace-control{font-size:12px;color:var(--ink-2);display:flex;gap:6px;align-items:center;font-weight:600}
+.trace-control select,.trace-input{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:8px 10px;color:var(--ink);font-family:var(--f-body);font-size:13px}
+.trace-control input[type="range"]{width:88px;accent-color:var(--accent)}
+.trace-target{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;padding:10px 12px;border-radius:var(--r-sm);background:color-mix(in oklab,var(--accent) 9%,var(--surface));border:1px solid color-mix(in oklab,var(--accent) 22%,transparent)}
+.trace-target-ar{font-size:38px;direction:rtl;font-family:var(--f-ar);color:var(--ink);line-height:1.4}
+.trace-canvas{display:block;width:100%;border-radius:var(--r);border:1px solid var(--line);background:var(--surface);touch-action:none;cursor:crosshair;box-shadow:var(--shadow-sm)}
 .trace-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px;margin-top:10px}
-.trace-metric{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:8px 10px}
-.trace-metric .lb{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#64748b;font-weight:900}
-.trace-metric .vl{font-size:16px;font-weight:900;color:#0f172a;margin-top:2px}
-.trace-metric .hint{font-size:10px;line-height:1.35;color:#64748b;margin-top:2px}
-.trace-feedback{margin-top:10px;font-size:13px;color:#334155;line-height:1.65;border-left:3px solid #2563eb;padding-left:10px}
-.trace-feedback.bad{border-left-color:#ef4444}
-.trace-feedback.good{border-left-color:#16a34a}
-@media(max-width:640px){
-  .trace-lab{padding:10px;border-radius:14px}
-  .trace-title{font-size:24px}
-  .trace-panel{padding:10px;border-radius:14px}
+.trace-metric{background:var(--surface-2);border:1px solid var(--line-2);border-radius:var(--r-sm);padding:8px 10px}
+.trace-metric .lb{font-size:0.62rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:700}
+.trace-metric .vl{font-size:1rem;font-weight:700;color:var(--ink);margin-top:2px}
+.trace-metric .hint{font-size:10px;line-height:1.35;color:var(--muted);margin-top:2px}
+.trace-feedback{margin-top:10px;font-size:13px;color:var(--ink-2);line-height:1.65;border-left:3px solid var(--accent);padding-left:10px}
+.trace-feedback.bad{border-left-color:var(--bad)}
+.trace-feedback.good{border-left-color:var(--good)}
+@media(max-width:560px){
+  .trace-lab{padding:10px;border-radius:var(--r)}
+  .trace-title{font-size:1.4rem}
+  .trace-panel{padding:10px;border-radius:var(--r-sm)}
   .trace-toolbar{align-items:flex-start}
   .trace-controls{display:grid;grid-template-columns:1fr 1fr;width:100%}
   .trace-control{align-items:flex-start;flex-direction:column;gap:4px}
   .trace-control input[type="range"],.trace-control select{width:100%}
-  .trace-metrics{grid-template-columns:1fr}
+  .trace-metrics{grid-template-columns:1fr 1fr}
   .trace-target{align-items:flex-start;flex-direction:column}
-  .trace-target-ar{font-size:32px}
+  .trace-target-ar{font-size:2rem}
+  /* Stack canvas + side panel on mobile */
+  .trace-grid{grid-template-columns:1fr!important}
 }
+/* Ensure canvas never blocks scrolling — touch-action:none critical for tracing */
+.trace-canvas{touch-action:none;user-select:none;-webkit-user-select:none}
 /* Auth screens */
-.auth-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f4f1e9;font-family:'DM Sans',sans-serif;padding:24px;box-sizing:border-box;overflow-y:auto;position:relative}
+.auth-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--paper);font-family:var(--f-body);padding:24px;box-sizing:border-box;overflow-y:auto;position:relative}
 .auth-wrap::before{content:'';position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(111,75,0,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(111,75,0,0.06) 1px,transparent 1px);background-size:80px 80px}
 .auth-wrap::after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 60% 60% at 50% 38%,rgba(201,162,74,0.14) 0%,transparent 68%)}
-.auth-box{position:relative;z-index:1;background:rgba(255,253,248,0.9);border:1px solid rgba(111,75,0,0.2);border-radius:22px;backdrop-filter:blur(22px);padding:48px 44px;width:100%;max-width:440px;box-shadow:0 24px 80px rgba(67,48,16,0.16)}
-.auth-inp{width:100%;background:rgba(255,255,255,0.72);border:1px solid rgba(111,75,0,0.18);color:#17130c;font-family:'DM Sans',sans-serif;font-size:14px;padding:12px 16px;outline:none;transition:border-color 0.2s;box-sizing:border-box;color-scheme:light}
-.auth-inp:focus{border-color:rgba(229,201,120,0.72);box-shadow:0 0 0 3px rgba(201,162,74,0.12)}
-.auth-inp::placeholder{color:rgba(23,19,12,0.35)}
-.auth-label{display:block;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:#625741;margin-bottom:8px;font-weight:600}
-.auth-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--ae-gold),var(--ae-gold-2));color:#17130c;border:none;border-radius:12px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.8rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;transition:all 0.2s}
+.auth-box{position:relative;z-index:1;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);backdrop-filter:blur(22px);padding:48px 44px;width:100%;max-width:440px;box-shadow:var(--shadow)}
+.auth-inp{width:100%;background:var(--surface);border:1px solid var(--line);color:var(--ink);font-family:var(--f-body);font-size:16px;padding:12px 16px;outline:none;transition:border-color .2s;box-sizing:border-box;border-radius:var(--r);color-scheme:light}
+.auth-inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in oklab,var(--accent) 16%,transparent)}
+.auth-inp::placeholder{color:var(--faint)}
+.auth-label{display:block;font-size:0.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;font-weight:600}
+.auth-btn{width:100%;padding:14px;background:var(--accent);color:var(--on-accent);border:none;border-radius:var(--r);cursor:pointer;font-family:var(--f-body);font-size:0.82rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;transition:all .2s var(--ease);box-shadow:0 4px 14px -8px color-mix(in oklab,var(--accent) 60%,transparent)}
 .auth-btn:hover{filter:brightness(1.05);transform:translateY(-1px)}
 .auth-btn:disabled{opacity:0.5;cursor:not-allowed}
-.auth-btn-ghost{width:100%;padding:13px;background:transparent;color:#4a3b20;border:1px solid rgba(111,75,0,0.24);border-radius:12px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.78rem;letter-spacing:0.08em;text-transform:uppercase;transition:all 0.2s}
-.auth-btn-ghost:hover{border-color:var(--ae-gold);color:#17130c}
-.auth-sel{width:100%;background:rgba(255,255,255,0.72);border:1px solid rgba(111,75,0,0.22);color:#17130c;font-family:'DM Sans',sans-serif;font-size:14px;padding:12px 16px;outline:none;box-sizing:border-box;color-scheme:light}
-.auth-sel:focus{border-color:rgba(229,201,120,0.72);box-shadow:0 0 0 3px rgba(201,162,74,0.12)}
-.auth-sel option{background:#fffdf8;color:#17130c}
-.auth-sel option:checked{background:#c9a24a;color:#17130c}
-.auth-textarea{width:100%;background:rgba(255,255,255,0.72);border:1px solid rgba(111,75,0,0.18);color:#17130c;font-family:'DM Sans',sans-serif;font-size:14px;padding:12px 16px;outline:none;resize:vertical;min-height:80px;box-sizing:border-box;transition:border-color 0.2s;color-scheme:light}
-.auth-textarea:focus{border-color:rgba(255,255,255,0.4)}
-.auth-textarea::placeholder{color:rgba(23,19,12,0.35)}
-.auth-tabs{display:flex;border-bottom:1px solid rgba(111,75,0,0.16);margin-bottom:28px;gap:4px}
-.auth-tab{flex:1;padding:12px 8px;text-align:center;font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.12em;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;color:#756f62;transition:color 0.2s;font-family:'DM Sans',sans-serif}
-.auth-tab:hover{color:#17130c}
-.auth-tab.on{color:#7b560f;border-bottom-color:var(--ae-gold)}
-.auth-theme-btn{position:absolute;top:16px;right:16px;z-index:2;min-height:40px;padding:8px 12px;border-radius:999px;border:1px solid rgba(111,75,0,0.22);background:rgba(255,255,255,0.55);color:#17130c;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
-.auth-wrap[data-auth-theme="dark"]{background:#080808}
-.auth-wrap[data-auth-theme="dark"]::before{background-image:linear-gradient(rgba(229,201,120,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(229,201,120,0.05) 1px,transparent 1px)}
-.auth-wrap[data-auth-theme="dark"]::after{background:radial-gradient(ellipse 60% 60% at 50% 38%,rgba(201,162,74,0.12) 0%,transparent 68%)}
-.auth-wrap[data-auth-theme="dark"] .auth-box{background:rgba(14,12,8,0.88);border-color:rgba(229,201,120,0.22);box-shadow:0 24px 80px rgba(0,0,0,0.34)}
-.auth-wrap[data-auth-theme="dark"] .auth-inp,.auth-wrap[data-auth-theme="dark"] .auth-textarea{background:rgba(255,255,255,0.03);border-color:rgba(255,255,255,0.1);color:#f0f0f0;color-scheme:dark}
-.auth-wrap[data-auth-theme="dark"] .auth-inp::placeholder,.auth-wrap[data-auth-theme="dark"] .auth-textarea::placeholder{color:rgba(240,240,240,0.2)}
-.auth-wrap[data-auth-theme="dark"] .auth-label{color:rgba(255,255,255,0.6)}
-.auth-wrap[data-auth-theme="dark"] .auth-btn-ghost{color:rgba(247,239,224,0.68);border-color:rgba(229,201,120,0.24)}
-.auth-wrap[data-auth-theme="dark"] .auth-btn-ghost:hover{border-color:var(--ae-gold-2);color:#fff8ea}
-.auth-wrap[data-auth-theme="dark"] .auth-sel{background:rgba(255,255,255,0.06);border-color:rgba(229,201,120,0.22);color:#fff8ea;color-scheme:dark}
-.auth-wrap[data-auth-theme="dark"] .auth-sel option{background:#17130c;color:#fff8ea}
-.auth-wrap[data-auth-theme="dark"] .auth-tabs{border-bottom-color:rgba(255,255,255,0.14)}
-.auth-wrap[data-auth-theme="dark"] .auth-tab{color:rgba(240,240,240,0.4)}
-.auth-wrap[data-auth-theme="dark"] .auth-tab:hover{color:rgba(240,240,240,0.7)}
-.auth-wrap[data-auth-theme="dark"] .auth-tab.on{color:var(--ae-gold-2)}
-.auth-wrap[data-auth-theme="dark"] .auth-theme-btn{background:rgba(14,12,8,0.7);color:#fff8ea;border-color:rgba(229,201,120,0.24)}
+.auth-btn-ghost{width:100%;padding:13px;background:transparent;color:var(--ink-2);border:1px solid var(--line);border-radius:var(--r);cursor:pointer;font-family:var(--f-body);font-size:0.78rem;letter-spacing:.08em;text-transform:uppercase;transition:all .2s var(--ease)}
+.auth-btn-ghost:hover{border-color:var(--accent);color:var(--ink)}
+.auth-sel{width:100%;background:var(--surface);border:1px solid var(--line);color:var(--ink);font-family:var(--f-body);font-size:16px;padding:12px 16px;outline:none;box-sizing:border-box;border-radius:var(--r);color-scheme:light}
+.auth-sel:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in oklab,var(--accent) 16%,transparent)}
+.auth-sel option{background:var(--surface);color:var(--ink)}
+.auth-sel option:checked{background:var(--accent);color:var(--on-accent)}
+.auth-textarea{width:100%;background:var(--surface);border:1px solid var(--line);color:var(--ink);font-family:var(--f-body);font-size:16px;padding:12px 16px;outline:none;resize:vertical;min-height:80px;box-sizing:border-box;border-radius:var(--r);transition:border-color .2s;color-scheme:light}
+.auth-textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in oklab,var(--accent) 16%,transparent)}
+.auth-textarea::placeholder{color:var(--faint)}
+.auth-tabs{display:flex;border-bottom:1px solid var(--line);margin-bottom:28px;gap:4px}
+.auth-tab{flex:1;padding:12px 8px;text-align:center;font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.12em;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;color:var(--muted);transition:color .2s;font-family:var(--f-body)}
+.auth-tab:hover{color:var(--ink)}
+.auth-tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+.auth-theme-btn{position:absolute;top:16px;right:16px;z-index:2;min-height:40px;padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink-2);font-family:var(--f-body);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.auth-wrap[data-auth-theme="dark"]{
+  --paper:#141009;--surface:#1e1810;--surface-2:#261f15;--line:#322a1c;--line-2:#2a2317;
+  --ink:#f5efe2;--ink-2:#d2c8b4;--muted:#9a8f7a;--faint:#6f6452;
+  background:var(--paper);
+}
+.auth-wrap[data-auth-theme="dark"] .auth-box{background:var(--surface);border-color:var(--line);box-shadow:0 24px 80px rgba(0,0,0,0.5)}
+.auth-wrap[data-auth-theme="dark"] .auth-inp,.auth-wrap[data-auth-theme="dark"] .auth-textarea{background:var(--surface-2);border-color:var(--line);color:var(--ink);color-scheme:dark}
+.auth-wrap[data-auth-theme="dark"] .auth-inp::placeholder,.auth-wrap[data-auth-theme="dark"] .auth-textarea::placeholder{color:var(--faint)}
+.auth-wrap[data-auth-theme="dark"] .auth-label{color:var(--muted)}
+.auth-wrap[data-auth-theme="dark"] .auth-btn-ghost{color:var(--ink-2);border-color:var(--line)}
+.auth-wrap[data-auth-theme="dark"] .auth-btn-ghost:hover{border-color:var(--accent);color:var(--ink)}
+.auth-wrap[data-auth-theme="dark"] .auth-theme-btn{background:var(--surface);color:var(--ink-2);border-color:var(--line)}
 .auth-role-sel{display:flex;gap:10px;margin-bottom:20px}
 .auth-role{flex:1;padding:14px;border:2px solid var(--g200);text-align:center;cursor:pointer;transition:all .1s}
 .auth-role.on{border-color:var(--bk);background:var(--bk);color:var(--wh)}
@@ -417,10 +507,10 @@ tr.ck{cursor:pointer}tr.ck:hover td{background:var(--g100)}
 .qz-ar{font-family:'Amiri',serif;direction:rtl;font-size:22px;font-weight:700;text-align:center;line-height:1.8;color:#111}
 .qz-opt-ar{font-family:'Amiri',serif;direction:rtl;font-size:20px;font-weight:700;text-align:right}
 /* Library sub-tabs */
-.lib-tab-nav{display:flex;border-bottom:1px solid var(--sp-border);margin-bottom:20px;gap:4px}
-.lib-tab{padding:10px 18px;font-size:0.68rem;font-weight:700;color:var(--sp-txt3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;letter-spacing:0.1em;text-transform:uppercase;background:none;border-top:none;border-left:none;border-right:none;font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap}
-.lib-tab:hover{color:var(--sp-txt2)}
-.lib-tab.on{color:var(--sp-amber);border-bottom-color:var(--sp-amber)}
+.lib-tab-nav{display:flex;border-bottom:1px solid var(--line);margin-bottom:20px;gap:4px}
+.lib-tab{padding:10px 18px;font-size:0.68rem;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;letter-spacing:.1em;text-transform:uppercase;background:none;border-top:none;border-left:none;border-right:none;font-family:var(--f-body);transition:all .15s;white-space:nowrap}
+.lib-tab:hover{color:var(--ink-2)}
+.lib-tab.on{color:var(--accent);border-bottom-color:var(--accent)}
 /* Flashcard — single face, no 3D transform (eliminates backface flash) */
 .fc-scene{cursor:pointer;user-select:none}
 .fc-card{width:100%;min-height:180px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;padding:20px;box-sizing:border-box;animation:fc-in .15s ease}
@@ -437,16 +527,16 @@ tr.ck{cursor:pointer}tr.ck:hover td{background:var(--g100)}
 .conj-tbl .pron{font-family:'Amiri',serif;font-size:17px;direction:rtl;font-weight:700}
 @media(max-width:600px){.conj-tbl th .en{display:none}.conj-tbl .pron-en{display:none}.conj-tbl td .ar{font-size:17px !important}.lib-tab{padding:8px 10px;font-size:10px}}
 /* Resource link cards */
-.res-card{background:var(--sp-card,#16120c);border:1px solid var(--sp-border);border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color .2s,transform .15s,box-shadow .15s;display:flex;flex-direction:column;box-shadow:0 8px 22px rgba(0,0,0,0.06)}
-.res-card:hover{border-color:var(--sp-border-h);transform:translateY(-2px);box-shadow:0 14px 28px rgba(0,0,0,0.12)}
-.res-thumb{position:relative;width:100%;padding-bottom:52%;background:var(--sp-mid);overflow:hidden;flex-shrink:0}
+.res-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:all .25s var(--ease);display:flex;flex-direction:column;box-shadow:var(--shadow-sm)}
+.res-card:hover{border-color:color-mix(in oklab,var(--accent) 40%,var(--line));transform:translateY(-4px);box-shadow:var(--shadow)}
+.res-thumb{position:relative;width:100%;padding-bottom:52%;background:var(--surface-2);overflow:hidden;flex-shrink:0}
 .res-thumb img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover}
 .res-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:48px;height:48px;background:rgba(23,19,12,0.72);border-radius:50%;display:flex;align-items:center;justify-content:center}
 .res-body{padding:12px 14px;flex:1;min-width:0}
-.res-title{font-weight:800;font-size:13px;line-height:1.35;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;color:var(--sp-txt);font-family:'DM Sans',sans-serif}
+.res-title{font-weight:700;font-size:13px;line-height:1.35;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;color:var(--ink);font-family:var(--f-body)}
 .res-desc{font-size:11.5px;color:var(--sp-txt2);margin-top:4px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.5}
 .res-meta{margin-top:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.res-cat{padding:2px 8px;background:var(--sp-glow);color:var(--sp-amber);border:1px solid var(--sp-border-h);border-radius:999px;font-size:0.6rem;font-weight:800;letter-spacing:0.06em;text-transform:uppercase}
+.res-cat{padding:2px 8px;background:color-mix(in oklab,var(--accent) 12%,var(--surface));color:var(--accent);border:1px solid color-mix(in oklab,var(--accent) 26%,transparent);border-radius:99px;font-size:0.6rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
 .res-url{font-size:0.7rem;color:var(--sp-txt2);font-weight:700}
 .res-meta span[style*="text-transform"]{background:var(--sp-glow)!important;color:var(--sp-amber)!important;border:1px solid var(--sp-border-h)!important;border-radius:999px!important}
 .res-meta span:not([style*="text-transform"]){color:var(--sp-txt2)!important;font-weight:700}
@@ -500,61 +590,130 @@ tr.ck{cursor:pointer}tr.ck:hover td{background:var(--g100)}
 .cred-low{color:var(--bd)}.cred-ok{color:var(--ok)}.cred-warn{color:var(--wn)}
 
 /* student-portal-v2 */
-.sp2-root[data-theme="dark"]{--sp-bg:#080808;--sp-mid:#11100d;--sp-card:#17140f;--sp-surface:rgba(229,201,120,0.05);--sp-amber:#c9a24a;--sp-amber-l:#e5c978;--sp-amber-d:#9d7420;--sp-glow:rgba(201,162,74,0.12);--sp-teal:#52C4B8;--sp-green:#4CAF7D;--sp-red:#CF4744;--sp-rose:#E07A90;--sp-txt:#f7efe0;--sp-txt2:#a59b87;--sp-txt3:#6f6655;--sp-border:rgba(229,201,120,0.12);--sp-border-h:rgba(229,201,120,0.34)}
-.sp2-root[data-theme="light"]{--sp-bg:#F4F1E9;--sp-mid:#ECE4D5;--sp-card:#FFFDF8;--sp-surface:rgba(137,94,18,0.09);--sp-amber:#6f4b00;--sp-amber-l:#8a5d00;--sp-amber-d:#5c3c00;--sp-glow:rgba(137,94,18,0.14);--sp-teal:#126E66;--sp-green:#256C45;--sp-red:#A92828;--sp-rose:#A83250;--sp-txt:#120f09;--sp-txt2:#3f372d;--sp-txt3:#625741;--sp-border:rgba(92,66,15,0.22);--sp-border-h:rgba(111,75,0,0.46)}
+/* Student portal — dark mode */
+.sp2-root[data-theme="dark"]{
+  --paper:     #141009;
+  --surface:   #1e1810;
+  --surface-2: #261f15;
+  --surface-3: #2f2718;
+  --ink:       #f5efe2;
+  --ink-2:     #d2c8b4;
+  --muted:     #9a8f7a;
+  --faint:     #6f6452;
+  --line:      #322a1c;
+  --line-2:    #2a2317;
+  --shadow:    20px 40px 80px -44px rgba(0,0,0,0.7);
+  --shadow-sm: 0 2px 12px -4px rgba(0,0,0,0.5);
+  /* re-derive aliases for dark */
+  --ae-bg:      var(--paper);
+  --ae-panel:   var(--surface);
+  --ae-panel-2: var(--surface-2);
+  --ae-ink:     var(--ink);
+  --ae-muted:   var(--muted);
+  --ae-line:    var(--line);
+  --ae-line-soft:var(--line-2);
+  --ae-gold:    var(--accent);
+  --ae-gold-2:  color-mix(in oklab, var(--accent) 65%, white);
+  --g50:  var(--surface-3);
+  --g100: var(--surface-2);
+  --g200: var(--line);
+  --g300: var(--line-2);
+  --g400: var(--faint);
+  --g500: var(--muted);
+  --g600: var(--ink-2);
+  --g700: var(--ink);
+  --g800: var(--ink);
+  --sp-bg:      var(--paper);
+  --sp-mid:     var(--surface);
+  --sp-card:    var(--surface);
+  --sp-surface: var(--surface-2);
+  --sp-amber:   var(--accent);
+  --sp-amber-l: color-mix(in oklab, var(--accent) 60%, white);
+  --sp-amber-d: color-mix(in oklab, var(--accent) 80%, black);
+  --sp-glow:    color-mix(in oklab, var(--accent) 15%, var(--surface));
+  --sp-txt:     var(--ink);
+  --sp-txt2:    var(--ink-2);
+  --sp-txt3:    var(--muted);
+  --sp-border:  var(--line);
+  --sp-border-h:color-mix(in oklab, var(--accent) 40%, var(--line));
+  --sp-teal:    var(--good);
+  --sp-green:   var(--good);
+  --sp-red:     var(--bad);
+  --sp-rose:    var(--bad);
+}
+/* Student portal — light mode (explicit; matches :root defaults) */
+.sp2-root[data-theme="light"]{
+  --sp-bg:      var(--paper);
+  --sp-mid:     var(--surface);
+  --sp-card:    var(--surface);
+  --sp-surface: var(--surface-2);
+  --sp-amber:   var(--accent);
+  --sp-amber-l: var(--accent);
+  --sp-glow:    color-mix(in oklab, var(--accent) 12%, var(--surface));
+  --sp-txt:     var(--ink);
+  --sp-txt2:    var(--ink-2);
+  --sp-txt3:    var(--muted);
+  --sp-border:  var(--line);
+  --sp-border-h:color-mix(in oklab, var(--accent) 40%, var(--line));
+  --sp-teal:    var(--good);
+  --sp-green:   var(--good);
+  --sp-red:     var(--bad);
+  --sp-rose:    var(--bad);
+}
 body:has(.sp2-root){overflow:hidden}
 #root:has(.sp2-root){overflow:hidden;height:100dvh}
-.sp2-root{font-family:'DM Sans',sans-serif;height:100dvh;background:var(--sp-bg);color:var(--sp-txt);display:flex;flex-direction:column;overflow:hidden}
-.sp2-hdr{position:sticky;top:0;z-index:100;background:var(--sp-mid);border-bottom:1px solid var(--sp-border);backdrop-filter:blur(20px);display:flex;align-items:center;gap:14px;padding:0 18px;height:58px;flex-shrink:0}
-.sp2-logo{font-family:'Cinzel',serif;font-size:13px;font-weight:600;color:var(--sp-amber-l);letter-spacing:2px;text-transform:uppercase}
+.sp2-root{font-family:var(--f-body);height:100dvh;background:var(--paper);color:var(--ink);display:flex;flex-direction:column;overflow:hidden}
+.sp2-hdr{position:sticky;top:0;z-index:100;background:color-mix(in oklab,var(--paper) 86%,transparent);border-bottom:1px solid var(--line);backdrop-filter:blur(14px);display:flex;align-items:center;gap:14px;padding:0 18px;height:58px;flex-shrink:0}
+.sp2-logo{font-family:var(--f-head);font-size:14px;font-weight:600;color:var(--ink);letter-spacing:.02em}
 .sp2-layout{display:flex;flex:1;min-height:0;overflow:hidden}
-.sp2-sidebar{width:218px;flex-shrink:0;background:var(--sp-mid);border-right:1px solid var(--sp-border);padding:10px 8px;overflow-y:auto;display:flex;flex-direction:column;gap:1px}
-.sp2-nav-grp{font-size:9.5px;font-weight:700;letter-spacing:1.8px;color:var(--sp-txt3);padding:12px 14px 3px;text-transform:uppercase}
-.sp2-nav-item{display:flex;align-items:center;gap:10px;padding:9px 13px;border-radius:9px;border:none;background:transparent;color:var(--sp-txt2);font-family:'DM Sans',sans-serif;font-weight:500;font-size:13px;cursor:pointer;transition:all 0.18s;width:100%;text-align:left}
-.sp2-nav-item:hover{background:var(--sp-surface);color:var(--sp-txt)}
-.sp2-nav-item.on{background:var(--sp-glow);color:var(--sp-amber);font-weight:700}
-.sp2-content{flex:1;min-height:0;overflow-y:auto;padding:24px}
-.sp2-card{background:var(--sp-card);border:1px solid var(--sp-border);border-radius:16px;padding:20px;box-shadow:0 14px 34px rgba(0,0,0,0.09)}
-.sp2-card-h{cursor:pointer;transition:all 0.25s}
-.sp2-card-h:hover{border-color:var(--sp-border-h);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,0.15)}
-.sp2-tabs{display:flex;gap:4px;background:var(--sp-surface);border-radius:11px;padding:4px;overflow-x:auto;flex-shrink:0}
-.sp2-tab{flex:0 0 auto;padding:9px 18px;border-radius:8px;border:none;background:transparent;color:var(--sp-txt2);font-family:'Outfit',sans-serif;font-weight:600;font-size:13px;cursor:pointer;transition:all 0.18s;white-space:nowrap}
-.sp2-tab.on{background:linear-gradient(135deg,var(--sp-amber),var(--sp-amber-d));color:#fff}
-.sp2-prog{background:var(--sp-surface);border-radius:10px;overflow:hidden;height:7px}
-.sp2-prog-f{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--sp-amber),var(--sp-amber-l));transition:width 0.7s ease}
-.sp2-badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
-.sp2-badge-a{background:var(--sp-glow);color:var(--sp-amber)}
-.sp2-badge-t{background:rgba(82,196,184,0.12);color:var(--sp-teal)}
-.sp2-badge-g{background:rgba(76,175,125,0.12);color:var(--sp-green)}
-.sp2-badge-r{background:rgba(224,122,144,0.12);color:var(--sp-rose)}
-.sp2-btn{border:none;border-radius:10px;cursor:pointer;font-family:'Outfit',sans-serif;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:all 0.18s;white-space:nowrap}
-.sp2-btn:hover{filter:brightness(1.1);transform:translateY(-1px)}
-.sp2-btn-p{background:linear-gradient(135deg,var(--sp-amber),var(--sp-amber-d));color:#fff;padding:10px 22px;font-size:14px}
-.sp2-btn-g{background:var(--sp-surface);border:1px solid var(--sp-border);color:var(--sp-txt2);padding:8px 16px;font-size:13px}
+.sp2-sidebar{width:218px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--line);padding:10px 8px;overflow-y:auto;display:flex;flex-direction:column;gap:1px}
+.sp2-nav-grp{font-size:0.62rem;font-weight:700;letter-spacing:.18em;color:var(--muted);padding:12px 14px 4px;text-transform:uppercase}
+.sp2-nav-item{display:flex;align-items:center;gap:10px;padding:9px 13px;border-radius:var(--r-sm);border:none;background:transparent;color:var(--ink-2);font-family:var(--f-body);font-weight:500;font-size:13px;cursor:pointer;transition:all .18s var(--ease);width:100%;text-align:left}
+.sp2-nav-item:hover{background:var(--surface-2);color:var(--ink)}
+.sp2-nav-item.on{background:color-mix(in oklab,var(--accent) 12%,var(--surface));color:var(--accent);font-weight:600}
+.sp2-content{flex:1;min-height:0;overflow-y:auto;padding:24px;background:var(--paper)}
+.sp2-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:calc(20px * var(--u));box-shadow:var(--shadow-sm)}
+.sp2-card-h{cursor:pointer;transition:all .25s var(--ease)}
+.sp2-card-h:hover{border-color:color-mix(in oklab,var(--accent) 40%,var(--line));transform:translateY(-4px);box-shadow:var(--shadow)}
+.sp2-tabs{display:flex;gap:4px;background:var(--surface-2);border-radius:var(--r-sm);padding:4px;overflow-x:auto;flex-shrink:0}
+.sp2-tab{flex:0 0 auto;padding:8px 16px;border-radius:calc(var(--r-sm) - 2px);border:none;background:transparent;color:var(--ink-2);font-family:var(--f-body);font-weight:600;font-size:0.8rem;cursor:pointer;transition:all .18s var(--ease);white-space:nowrap}
+.sp2-tab.on{background:var(--surface);color:var(--accent);box-shadow:var(--shadow-sm)}
+.sp2-prog{background:var(--surface-3);border-radius:99px;overflow:hidden;height:6px}
+.sp2-prog-f{height:100%;border-radius:99px;background:var(--accent);transition:width 1s var(--ease)}
+.sp2-badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:99px;font-size:0.66rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;border:1px solid}
+.sp2-badge-a{background:color-mix(in oklab,var(--accent) 13%,var(--surface));color:var(--accent);border-color:color-mix(in oklab,var(--accent) 26%,transparent)}
+.sp2-badge-t{background:color-mix(in oklab,var(--good) 14%,var(--surface));color:var(--good);border-color:color-mix(in oklab,var(--good) 30%,transparent)}
+.sp2-badge-g{background:color-mix(in oklab,var(--good) 14%,var(--surface));color:var(--good);border-color:color-mix(in oklab,var(--good) 30%,transparent)}
+.sp2-badge-r{background:color-mix(in oklab,var(--bad) 13%,var(--surface));color:var(--bad);border-color:color-mix(in oklab,var(--bad) 30%,transparent)}
+.sp2-btn{border:1px solid var(--line);border-radius:var(--r);cursor:pointer;font-family:var(--f-body);font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:all .2s var(--ease);white-space:nowrap}
+.sp2-btn:hover{transform:translateY(-1px)}
+.sp2-btn-p{background:var(--accent);color:var(--on-accent);border-color:var(--accent);padding:10px 22px;font-size:0.85rem;box-shadow:0 4px 14px -8px color-mix(in oklab,var(--accent) 60%,transparent)}
+.sp2-btn-p:hover{box-shadow:0 10px 26px -10px color-mix(in oklab,var(--accent) 70%,transparent)}
+.sp2-btn-g{background:var(--surface-2);border-color:var(--line);color:var(--ink-2);padding:8px 16px;font-size:0.82rem}
 .sp2-btn-sm{padding:7px 14px!important;font-size:12px!important}
 .sp2-hdr-actions{display:flex;align-items:center;gap:8px;min-width:0;flex-shrink:0}
 .sp2-icon-btn{width:34px;height:34px;padding:0!important}
-.sp2-chat{display:flex;flex-direction:column;border:1px solid var(--sp-border);border-radius:14px;overflow:hidden;background:var(--sp-card);height:calc(100dvh - 200px);max-height:680px}
+.sp2-chat{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;background:var(--surface);height:calc(100dvh - 200px);max-height:680px}
 .sp2-chat-msgs{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px}
-.sp2-msg{max-width:88%;padding:13px 17px;border-radius:14px;font-size:14px;line-height:1.8;word-break:break-word;animation:sp2Up 0.3s ease}
-.sp2-msg-u{align-self:flex-end;background:linear-gradient(135deg,var(--sp-amber-d),var(--sp-amber));color:#fff;border-bottom-right-radius:4px}
-.sp2-msg-ai{align-self:flex-start;background:var(--sp-surface);border:1px solid var(--sp-border);color:var(--sp-txt);border-bottom-left-radius:4px}
-.sp2-chat-foot{padding:14px;border-top:1px solid var(--sp-border);background:var(--sp-mid);display:flex;gap:10px;flex-shrink:0}
-.sp2-chat-in{flex:1;background:var(--sp-surface);border:1px solid var(--sp-border);border-radius:10px;padding:11px 15px;color:var(--sp-txt);font-family:'Outfit',sans-serif;font-size:14px;outline:none;resize:none;min-height:44px;max-height:120px}
-.sp2-chat-in:focus{border-color:var(--sp-amber)}
-.sp2-letter-cell{aspect-ratio:1;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Amiri',serif;font-size:24px;cursor:pointer;background:var(--sp-surface);border:1px solid var(--sp-border);transition:all 0.18s}
-.sp2-letter-cell:hover,.sp2-letter-cell.on{background:var(--sp-glow);border-color:var(--sp-amber);color:var(--sp-amber)}
-.sp2-flashcard{min-height:200px;border-radius:14px;background:var(--sp-card);border:1.5px solid var(--sp-border);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;padding:28px;text-align:center;user-select:none;transition:border-color 0.2s}
-.sp2-flashcard:hover{border-color:var(--sp-border-h)}
-.sp2-mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--sp-mid);border-top:1px solid var(--sp-border);padding:4px 0 6px;z-index:100;justify-content:space-around}
-.sp2-mob-it{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 8px;border:none;background:none;color:var(--sp-txt3);font-size:10px;font-family:'Outfit',sans-serif;cursor:pointer;border-radius:8px;min-width:48px}
-.sp2-mob-it.on{color:var(--sp-amber)}
+.sp2-msg{max-width:88%;padding:13px 17px;border-radius:var(--r);font-size:14px;line-height:1.8;word-break:break-word;animation:sp2Up 0.3s ease}
+.sp2-msg-u{align-self:flex-end;background:color-mix(in oklab,var(--accent) 14%,var(--surface));color:var(--accent);border:1px solid color-mix(in oklab,var(--accent) 26%,transparent);border-bottom-right-radius:4px}
+.sp2-msg-ai{align-self:flex-start;background:var(--surface-2);border:1px solid var(--line);color:var(--ink);border-bottom-left-radius:4px}
+.sp2-chat-foot{padding:14px;border-top:1px solid var(--line);background:var(--paper);display:flex;gap:10px;flex-shrink:0}
+.sp2-chat-in{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:11px 15px;color:var(--ink);font-family:var(--f-body);font-size:16px;outline:none;resize:none;min-height:44px;max-height:120px}
+.sp2-chat-in:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in oklab,var(--accent) 16%,transparent)}
+.sp2-letter-cell{aspect-ratio:1;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-family:var(--f-ar);font-size:24px;cursor:pointer;background:var(--surface-2);border:1px solid var(--line);transition:all .18s var(--ease);color:var(--ink)}
+.sp2-letter-cell:hover,.sp2-letter-cell.on{background:color-mix(in oklab,var(--accent) 12%,var(--surface));border-color:color-mix(in oklab,var(--accent) 36%,transparent);color:var(--accent)}
+.sp2-flashcard{min-height:200px;border-radius:var(--r-lg);background:var(--surface);border:1.5px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;padding:28px;text-align:center;user-select:none;transition:border-color .2s}
+.sp2-flashcard:hover{border-color:color-mix(in oklab,var(--accent) 40%,var(--line))}
+.sp2-mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:color-mix(in oklab,var(--paper) 92%,transparent);border-top:1px solid var(--line);backdrop-filter:blur(14px);padding:6px 6px env(safe-area-inset-bottom);z-index:100;justify-content:space-around}
+.sp2-mob-it{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 8px;border:none;background:none;color:var(--muted);font-size:10px;font-family:var(--f-body);cursor:pointer;border-radius:var(--r-sm);min-width:48px;min-height:44px;justify-content:center}
+.sp2-mob-it.on{color:var(--accent)}
 .tutor-root .sp2-content{background:var(--sp-bg);color:var(--sp-txt)}
 .tutor-root .tutor-page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:22px}
-.tutor-root .tutor-page-head h1{font-family:'Playfair Display',serif;font-size:clamp(28px,3vw,42px);font-weight:600;line-height:1.08;color:var(--sp-txt);margin:0}
+.tutor-root .tutor-page-head h1{font-family:var(--f-head);font-size:clamp(28px,3vw,42px);font-weight:600;line-height:1.08;color:var(--sp-txt);margin:0}
 .tutor-root .tutor-page-head p{font-size:14px;color:var(--sp-txt2);margin-top:8px}
 .tutor-root .card,.tutor-root .assess-card,.tutor-root .stat,.tutor-root .prof-hd,.tutor-root .stu-card,.tutor-root .mo{background:var(--sp-card)!important;border:1px solid var(--sp-border)!important;border-radius:16px!important;color:var(--sp-txt)!important;box-shadow:0 14px 34px rgba(0,0,0,0.12)}
-.tutor-root .card h3,.tutor-root .assess-card h4,.tutor-root .prof-info h2,.tutor-root .mo-hd h3{color:var(--sp-txt)!important;font-family:'Playfair Display',serif!important;letter-spacing:0!important}
+.tutor-root .card h3,.tutor-root .assess-card h4,.tutor-root .prof-info h2,.tutor-root .mo-hd h3{color:var(--sp-txt)!important;font-family:var(--f-head)!important;letter-spacing:0!important}
 .tutor-root .stat .lb,.tutor-root .stat .su,.tutor-root .fg label,.tutor-root .prof-meta,.tutor-root .sc-stat .sc-sl{color:var(--sp-txt2)!important}
 .tutor-root .stat .vl,.tutor-root .ll,.tutor-root .sc-stat .sc-sv{color:var(--sp-amber-l)!important}
 .tutor-root .btn{border:1px solid var(--sp-border);border-radius:10px;background:var(--sp-surface);color:var(--sp-txt2)}
@@ -609,7 +768,7 @@ body:has(.sp2-root){overflow:hidden}
   box-shadow:0 4px 9px rgba(31,24,12,0.12),inset 0 2px 4px rgba(0,0,0,0.12);
 }
 .btn-p,.sp2-btn-p,.sp2-tab.on,.sp2-mob-it.on,.mob-nav-it.on,.skill-dot.on{
-  box-shadow:0 12px 24px rgba(111,75,0,0.2),inset 0 1px 0 rgba(255,255,255,0.28),inset 0 -2px 0 rgba(0,0,0,0.16);
+  box-shadow:0 12px 24px color-mix(in oklab,var(--accent) 22%,transparent),inset 0 1px 0 rgba(255,255,255,0.24),inset 0 -2px 0 rgba(0,0,0,0.12);
 }
 .bi{
   border-radius:9px;
@@ -651,10 +810,10 @@ body:has(.sp2-root){overflow:hidden}
   box-shadow:0 14px 26px rgba(0,0,0,0.16),inset 0 1px 0 rgba(255,255,255,0.12),inset 3px 0 0 var(--sp-amber,var(--ae-gold));
 }
 .sp2-root[data-theme="light"] .sp2-sidebar{
-  box-shadow:inset -1px 0 0 rgba(255,255,255,0.65),12px 0 28px rgba(92,66,15,0.08);
+  box-shadow:1px 0 0 var(--line);
 }
 .sp2-root[data-theme="light"] .card,.sp2-root[data-theme="light"] .sp2-card,.sp2-root[data-theme="light"] .stat,.sp2-root[data-theme="light"] .assess-card,.sp2-root[data-theme="light"] .prof-hd,.sp2-root[data-theme="light"] .stu-card,.sp2-root[data-theme="light"] .res-card,.sp2-root[data-theme="light"] .ai-plan-metric{
-  box-shadow:0 16px 30px rgba(92,66,15,0.11),inset 0 1px 0 rgba(255,255,255,0.82)!important;
+  box-shadow:var(--shadow-sm)!important;
 }
 .sp2-root[data-theme="dark"] .card,.sp2-root[data-theme="dark"] .sp2-card,.sp2-root[data-theme="dark"] .stat,.sp2-root[data-theme="dark"] .assess-card,.sp2-root[data-theme="dark"] .prof-hd,.sp2-root[data-theme="dark"] .stu-card,.sp2-root[data-theme="dark"] .res-card,.sp2-root[data-theme="dark"] .ai-plan-metric{
   box-shadow:0 18px 38px rgba(0,0,0,0.34),inset 0 1px 0 rgba(255,255,255,0.06)!important;
@@ -704,7 +863,7 @@ tr.ck:hover td,.tutor-root tr.ck:hover td{
 .kit-hero:before{content:"";position:absolute;inset:0;opacity:.12;background-image:linear-gradient(45deg,currentColor 25%,transparent 25%,transparent 75%,currentColor 75%),linear-gradient(45deg,currentColor 25%,transparent 25%,transparent 75%,currentColor 75%);background-size:38px 38px;background-position:0 0,19px 19px;color:var(--sp-amber);pointer-events:none}
 .kit-hero-inner{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
 .kit-kicker{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:1.6px;color:var(--sp-amber);margin-bottom:6px}
-.kit-title{font-family:'Playfair Display',serif;font-size:34px;font-weight:800;color:var(--sp-txt);margin:0;line-height:1.05}
+.kit-title{font-family:var(--f-head);font-size:34px;font-weight:800;color:var(--sp-txt);margin:0;line-height:1.05}
 .kit-sub{font-size:13px;color:var(--sp-txt2);line-height:1.7;margin-top:8px;max-width:620px}
 .kit-stats{display:flex;gap:8px;flex-wrap:wrap}
 .kit-controls{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:12px}
@@ -749,7 +908,7 @@ tr.ck:hover td,.tutor-root tr.ck:hover td{
 .kit-chip{font-family:'Noto Naskh Arabic','Amiri',serif!important;font-size:15px!important;padding:7px 10px!important;animation:kitPop .24s ease both}
 .kit-pantry{border-radius:18px!important;background:linear-gradient(180deg,rgba(47,157,104,.08),rgba(201,162,74,.06)),var(--sp-card)!important}
 .kit-shelf{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
-.kit-ingredient{position:relative;min-height:126px;border-radius:17px!important;padding:12px!important;text-align:center;border:1px solid var(--sp-border)!important;background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(0,0,0,.025)),var(--sp-card)!important;cursor:grab;font-family:'DM Sans',sans-serif!important;transition:transform .16s,box-shadow .16s,border-color .16s,opacity .16s}
+.kit-ingredient{position:relative;min-height:126px;border-radius:17px!important;padding:12px!important;text-align:center;border:1px solid var(--sp-border)!important;background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(0,0,0,.025)),var(--sp-card)!important;cursor:grab;font-family:var(--f-body)!important;transition:transform .16s,box-shadow .16s,border-color .16s,opacity .16s}
 .kit-ingredient:hover{transform:translateY(-3px) rotate(-.4deg);border-color:var(--sp-amber)!important}
 .kit-ingredient.target{border-color:var(--sp-amber)!important;background:linear-gradient(180deg,rgba(201,162,74,.22),rgba(47,157,104,.08)),var(--sp-card)!important;animation:kitPulse 1.4s ease-in-out infinite}
 .kit-ingredient.used{opacity:.42;cursor:default;filter:saturate(.55)}
@@ -780,12 +939,12 @@ tr.ck:hover td,.tutor-root tr.ck:hover td{
 .kit-setting{border:1px solid var(--sp-border);background:var(--sp-surface);border-radius:12px;padding:9px 10px}
 .kit-setting-label{font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:1.2px;color:var(--sp-txt3);margin-bottom:6px}
 .kit-kitchen-map{position:relative;z-index:1;display:grid;grid-template-columns:repeat(7,minmax(86px,1fr));gap:9px;margin:0 0 14px;overflow-x:auto;padding-bottom:2px}
-.kit-zone{min-height:84px;border:1px solid var(--sp-border);border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(0,0,0,.02)),var(--sp-card);color:var(--sp-txt2);font-family:'DM Sans',sans-serif;cursor:pointer;padding:10px 8px;text-align:center;box-shadow:0 14px 24px rgba(0,0,0,.1),inset 0 1px 0 rgba(255,255,255,.08);transition:transform .16s,border-color .16s,background .16s}
+.kit-zone{min-height:84px;border:1px solid var(--sp-border);border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(0,0,0,.02)),var(--sp-card);color:var(--sp-txt2);font-family:var(--f-body);cursor:pointer;padding:10px 8px;text-align:center;box-shadow:0 14px 24px rgba(0,0,0,.1),inset 0 1px 0 rgba(255,255,255,.08);transition:transform .16s,border-color .16s,background .16s}
 .kit-zone:hover,.kit-zone.on{transform:translateY(-2px);border-color:var(--sp-amber);background:linear-gradient(180deg,rgba(201,162,74,.18),rgba(82,196,184,.06)),var(--sp-card);color:var(--sp-txt)}
 .kit-zone.need{box-shadow:0 0 0 3px rgba(201,162,74,.13),0 14px 24px rgba(0,0,0,.12)}
 .kit-zone-ic{font-size:24px;margin-bottom:5px;color:var(--sp-amber)}
 .kit-tool-rack{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:8px;margin-bottom:14px}
-.kit-tool{border:1px solid var(--sp-border);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(0,0,0,.02)),var(--sp-card);color:var(--sp-txt2);padding:10px 8px;text-align:center;font-family:'DM Sans',sans-serif;cursor:pointer;transition:transform .16s,border-color .16s,background .16s}
+.kit-tool{border:1px solid var(--sp-border);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(0,0,0,.02)),var(--sp-card);color:var(--sp-txt2);padding:10px 8px;text-align:center;font-family:var(--f-body);cursor:pointer;transition:transform .16s,border-color .16s,background .16s}
 .kit-tool:hover,.kit-tool.on{transform:translateY(-2px);border-color:var(--sp-amber);background:var(--sp-glow);color:var(--sp-txt)}
 .kit-tool.need{border-color:rgba(76,175,125,.55);box-shadow:0 12px 24px rgba(76,175,125,.12)}
 .kit-tool-ic{font-size:24px;margin-bottom:4px}
@@ -804,14 +963,14 @@ tr.ck:hover td,.tutor-root tr.ck:hover td{
 .quest-hero{position:relative;overflow:hidden;border:1px solid var(--sp-border-h);border-radius:22px;padding:22px;margin-bottom:16px;background:radial-gradient(circle at 16% 22%,rgba(82,196,184,.18),transparent 28%),radial-gradient(circle at 82% 18%,rgba(217,83,79,.17),transparent 30%),linear-gradient(135deg,rgba(201,162,74,.18),rgba(63,141,191,.12)),var(--sp-card);box-shadow:0 28px 56px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.12)}
 .quest-hero:after{content:"";position:absolute;inset:auto 0 0;height:46%;background:linear-gradient(180deg,transparent,rgba(47,157,104,.1));pointer-events:none}
 .quest-hero-inner{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1fr) minmax(230px,.36fr);gap:18px;align-items:end}
-.quest-title{font-family:'Playfair Display',serif;font-size:clamp(30px,4vw,48px);line-height:1.02;color:var(--sp-txt);margin:0;font-weight:800}
+.quest-title{font-family:var(--f-head);font-size:clamp(30px,4vw,48px);line-height:1.02;color:var(--sp-txt);margin:0;font-weight:800}
 .quest-sub{font-size:14px;color:var(--sp-txt2);line-height:1.75;max-width:660px;margin:10px 0 0}
 .quest-map{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:12px;margin-bottom:16px}
-.quest-card{position:relative;min-height:188px;border-radius:18px;border:1px solid var(--sp-border);background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(0,0,0,.025)),var(--sp-card);padding:15px;text-align:left;color:var(--sp-txt);font-family:'DM Sans',sans-serif;cursor:pointer;transition:transform .18s,box-shadow .18s,border-color .18s;box-shadow:0 18px 34px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.09)}
+.quest-card{position:relative;min-height:188px;border-radius:18px;border:1px solid var(--sp-border);background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(0,0,0,.025)),var(--sp-card);padding:15px;text-align:left;color:var(--sp-txt);font-family:var(--f-body);cursor:pointer;transition:transform .18s,box-shadow .18s,border-color .18s;box-shadow:0 18px 34px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.09)}
 .quest-card:hover,.quest-card.on{transform:translateY(-3px);border-color:var(--accent,var(--sp-amber));box-shadow:0 26px 48px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.12)}
 .quest-card.locked{opacity:.58;filter:saturate(.7);cursor:not-allowed}
 .quest-card-icon{width:48px;height:48px;border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:25px;background:var(--sp-glow);border:1px solid var(--sp-border-h);box-shadow:0 14px 24px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.14);margin-bottom:12px}
-.quest-card-title{font-family:'Playfair Display',serif;font-size:19px;font-weight:800;color:var(--sp-txt);line-height:1.15;margin-bottom:5px}
+.quest-card-title{font-family:var(--f-head);font-size:19px;font-weight:800;color:var(--sp-txt);line-height:1.15;margin-bottom:5px}
 .quest-card-desc{font-size:12px;line-height:1.55;color:var(--sp-txt2);margin-bottom:12px}
 .quest-card-foot{position:absolute;left:15px;right:15px;bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:8px}
 .quest-play{border:none;border-radius:11px;background:linear-gradient(135deg,var(--accent,var(--sp-amber)),var(--sp-amber-d));color:#fff;font-weight:900;font-size:11px;padding:7px 11px;box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 -2px 0 rgba(0,0,0,.16)}
@@ -821,7 +980,7 @@ tr.ck:hover td,.tutor-root tr.ck:hover td{
 .quest-dialog{border:1px solid var(--sp-border-h);border-radius:18px;background:var(--sp-card);padding:18px;box-shadow:0 18px 34px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.08)}
 .quest-ar{font-family:'Noto Naskh Arabic','Amiri',serif;font-size:clamp(28px,5vw,46px);line-height:1.7;direction:rtl;text-align:right;color:var(--sp-amber);margin:6px 0 10px}
 .quest-choice-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:14px}
-.quest-choice{border:1px solid var(--sp-border);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(0,0,0,.02)),var(--sp-card);padding:12px;text-align:left;color:var(--sp-txt);font-family:'DM Sans',sans-serif;cursor:pointer;transition:transform .16s,border-color .16s}
+.quest-choice{border:1px solid var(--sp-border);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(0,0,0,.02)),var(--sp-card);padding:12px;text-align:left;color:var(--sp-txt);font-family:var(--f-body);cursor:pointer;transition:transform .16s,border-color .16s}
 .quest-choice:hover{transform:translateY(-2px);border-color:var(--sp-border-h)}
 .quest-choice.good{border-color:rgba(76,175,125,.46);background:linear-gradient(180deg,rgba(76,175,125,.15),rgba(76,175,125,.07));color:var(--sp-green);box-shadow:0 14px 26px rgba(76,175,125,.13),inset 0 1px 0 rgba(255,255,255,.1)}
 .quest-choice.bad{border-color:rgba(207,71,68,.68);background:rgba(207,71,68,.13)}
@@ -829,7 +988,7 @@ tr.ck:hover td,.tutor-root tr.ck:hover td{
 .quest-art-main{font-size:70px;filter:drop-shadow(0 18px 20px rgba(0,0,0,.22));animation:kitFloat 3.2s ease-in-out infinite}
 .quest-shop-grid,.quest-word-bank,.quest-memory-grid{display:grid;gap:10px}
 .quest-shop-grid{grid-template-columns:repeat(auto-fit,minmax(128px,1fr))}
-.quest-shop-item,.quest-tile,.quest-memory-card{border:1px solid var(--sp-border);border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(0,0,0,.02)),var(--sp-card);color:var(--sp-txt);font-family:'DM Sans',sans-serif;cursor:pointer;box-shadow:0 14px 26px rgba(0,0,0,.11),inset 0 1px 0 rgba(255,255,255,.09);transition:transform .16s,border-color .16s,opacity .16s}
+.quest-shop-item,.quest-tile,.quest-memory-card{border:1px solid var(--sp-border);border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(0,0,0,.02)),var(--sp-card);color:var(--sp-txt);font-family:var(--f-body);cursor:pointer;box-shadow:0 14px 26px rgba(0,0,0,.11),inset 0 1px 0 rgba(255,255,255,.09);transition:transform .16s,border-color .16s,opacity .16s}
 .quest-shop-item{min-height:118px;padding:12px;text-align:center}
 .quest-shop-item:hover,.quest-tile:hover,.quest-memory-card:hover{transform:translateY(-2px);border-color:var(--sp-border-h)}
 .quest-emoji{font-size:35px;margin-bottom:6px}.quest-shop-ar{font-family:'Noto Naskh Arabic','Amiri',serif;font-size:20px;direction:rtl;color:var(--sp-amber)}
@@ -861,12 +1020,13 @@ tr.ck:hover td,.tutor-root tr.ck:hover td{
 .ae-load-arc{animation:ae-draw-arc 1.8s cubic-bezier(0.4,0,0.2,1) forwards;transform-origin:70px 70px;transform:rotate(-90deg)}
 .ae-load-letter{animation:ae-fade-letter 1.8s ease forwards;transform-origin:70px 70px;display:inline-block}
 .ae-load-title{animation:ae-fade-title 1.2s ease 0.6s both}
-@media(max-width:640px){
-  .sp2-sidebar{display:none}
-  .sp2-mob-nav{display:flex;overflow-x:auto;justify-content:flex-start;padding-bottom:calc(6px + env(safe-area-inset-bottom));scrollbar-width:none}
+@media(max-width:980px){
+  .sp2-layout{display:block;min-height:0}
+  .sp2-sidebar{display:none!important}
+  .sp2-mob-nav{display:flex!important;justify-content:space-around;padding-bottom:env(safe-area-inset-bottom);scrollbar-width:none}
   .sp2-mob-nav::-webkit-scrollbar{display:none}
-  .sp2-mob-it{flex:0 0 auto;min-width:58px;padding:7px 8px}
-  .sp2-content{padding:14px 12px;padding-bottom:calc(82px + env(safe-area-inset-bottom));overflow-x:hidden}
+  .sp2-mob-it{flex:1;max-width:80px;padding:6px 4px}
+  .sp2-content{padding:16px 14px;padding-bottom:calc(80px + env(safe-area-inset-bottom));overflow-x:hidden;height:calc(100dvh - 58px);overflow-y:auto}
   .sp2-logo{font-size:11px;letter-spacing:1.3px;min-width:0;max-width:34vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .sp2-hdr{gap:8px;padding:8px 10px;height:auto;min-height:58px;align-items:center}
   .sp2-hdr-actions{gap:6px;margin-left:auto}
@@ -1086,6 +1246,61 @@ tr.ck:hover td,.tutor-root tr.ck:hover td{
   .auth-tab,.tab{min-width:max-content;padding-left:10px!important;padding-right:10px!important}
   .sp2-mob-it{min-width:58px}
 }
+/* ── Anagram game ── */
+@keyframes ae-bounce{0%{transform:scale(1)}25%{transform:scale(1.1) rotate(-2deg)}50%{transform:scale(1.07) rotate(2deg)}75%{transform:scale(1.04)}100%{transform:scale(1)}}
+@keyframes ae-pop{0%{opacity:0;transform:scale(0.4)}60%{transform:scale(1.15)}100%{opacity:1;transform:scale(1)}}
+@keyframes ae-confetti{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(-60px) rotate(360deg)}}
+.ae-celebrating{animation:ae-bounce .6s var(--ease);}
+.ae-tile-pop{animation:ae-pop .2s var(--ease);}
+.ae-confetti-dot{position:absolute;width:8px;height:8px;border-radius:50%;pointer-events:none;animation:ae-confetti .8s ease forwards;}
+
+/* ── Search field ── */
+.sp2-search-wrap { display:flex; }
+@media(max-width:980px){ .sp2-search-wrap{display:none} }
+
+/* ── Mobile: density compact + tables → scrollable cards ── */
+@media(max-width:980px){
+  /* Compact density for mobile (smaller card padding) */
+  .sp2-root { --u: 0.85; }
+  /* Arabic text room at small sizes */
+  .ar,.ar-ui,.sp2-root [dir="rtl"]{line-height:1.8}
+}
+@media(max-width:680px){
+  /* Tables: horizontal-scroll wrapper when inside .tbl-wrap */
+  .tbl-wrap,.sp2-content .tbl-wrap,.tutor-content .tbl-wrap{
+    overflow-x:auto;-webkit-overflow-scrolling:touch;
+    border:1px solid var(--line);border-radius:var(--r-sm);
+  }
+  /* Roster table → stacked cards via flex override */
+  .sp2-content table.stacked-mobile,
+  .tutor-content table.stacked-mobile{display:block!important}
+  .sp2-content table.stacked-mobile thead,
+  .tutor-content table.stacked-mobile thead{display:none!important}
+  .sp2-content table.stacked-mobile tbody,
+  .tutor-content table.stacked-mobile tbody{display:flex!important;flex-direction:column;gap:8px}
+  .sp2-content table.stacked-mobile tr,
+  .tutor-content table.stacked-mobile tr{
+    display:flex!important;flex-direction:column;
+    background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--r-sm);padding:12px;
+  }
+  .sp2-content table.stacked-mobile td,
+  .tutor-content table.stacked-mobile td{
+    display:flex!important;padding:4px 0;border:none!important;
+    gap:8px;align-items:center;
+  }
+  .sp2-content table.stacked-mobile td[data-label]::before{
+    content:attr(data-label);
+    font-size:0.6rem;font-weight:700;text-transform:uppercase;
+    letter-spacing:.12em;color:var(--muted);
+    min-width:80px;flex-shrink:0;
+  }
+  /* Student stat tiles: 2-up then 1-up */
+  .stats{grid-template-columns:repeat(2,1fr)!important}
+}
+@media(max-width:400px){
+  .stats{grid-template-columns:1fr!important}
+}
 /* ── PhoneInput ── */
 .phone-wrap{position:relative;display:flex;gap:0}
 .phone-cc-btn{flex-shrink:0;display:flex;align-items:center;gap:5px;padding:0 11px;border:1px solid var(--ae-line-soft,rgba(111,75,0,0.18));border-right:none;cursor:pointer;font-size:13px;font-family:var(--fb);white-space:nowrap;border-radius:10px 0 0 10px;background:rgba(255,255,255,0.72);color:#17130c;transition:background .15s;height:46px}
@@ -1130,14 +1345,23 @@ tr.ck:hover td,.tutor-root tr.ck:hover td{
 }
 /* ── Unified Resources ── */
 .res-filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
-.res-filter-pill{border:1.5px solid var(--sp-border);border-radius:999px;background:transparent;color:var(--sp-txt3);font-size:11px;font-weight:700;padding:6px 13px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;letter-spacing:.05em}
+.res-filter-pill{border:1.5px solid var(--sp-border);border-radius:999px;background:transparent;color:var(--sp-txt3);font-size:11px;font-weight:700;padding:6px 13px;cursor:pointer;font-family:var(--f-body);transition:all .15s;letter-spacing:.05em}
 .res-filter-pill:hover{border-color:var(--sp-amber);color:var(--sp-amber)}
 .res-filter-pill.on{background:var(--sp-amber);border-color:var(--sp-amber);color:#fff}
-.res-search{flex:1;min-width:160px;padding:7px 12px;border:1px solid var(--sp-border);border-radius:999px;background:var(--sp-surface);color:var(--sp-txt);font-family:'DM Sans',sans-serif;font-size:12px;outline:none}
+.res-search{flex:1;min-width:160px;padding:7px 12px;border:1px solid var(--sp-border);border-radius:999px;background:var(--sp-surface);color:var(--sp-txt);font-family:var(--f-body);font-size:12px;outline:none}
 .res-search:focus{border-color:var(--sp-amber)}
 .res-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
-.res-item{background:var(--sp-card);border:1px solid var(--sp-border);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;transition:border-color .18s,transform .15s}
-.res-item:hover{border-color:var(--sp-border-h);transform:translateY(-2px)}
+.res-list{display:flex;flex-direction:column;gap:8px}
+.res-item{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;transition:all .22s var(--ease)}
+.res-item:hover{border-color:color-mix(in oklab,var(--accent) 40%,var(--line));transform:translateY(-2px);box-shadow:var(--shadow)}
+.res-item.list-view{flex-direction:row;align-items:center;padding:10px 14px;border-radius:var(--r-sm)}
+.res-item.list-view .res-item-thumb{display:none}
+.res-item.list-view .res-item-body{padding:0;display:flex;align-items:center;gap:12px;width:100%}
+.res-item.list-view .res-item-title{flex:1;font-size:0.88rem;margin:0;-webkit-line-clamp:1}
+.res-item.list-view .res-item-desc{display:none}
+.res-view-toggle{display:flex;gap:4px;background:var(--surface-2);border-radius:var(--r-sm);padding:3px}
+.res-view-btn{padding:5px 10px;border:none;border-radius:calc(var(--r-sm) - 2px);background:transparent;cursor:pointer;color:var(--muted);transition:all .15s;font-size:14px}
+.res-view-btn.on{background:var(--surface);color:var(--accent);box-shadow:var(--shadow-sm)}
 .res-item-thumb{position:relative;width:100%;padding-bottom:48%;background:var(--sp-mid);overflow:hidden;flex-shrink:0}
 .res-item-thumb img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover}
 .res-item-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px;background:rgba(0,0,0,0.55);border-radius:50%;display:flex;align-items:center;justify-content:center}
@@ -1146,7 +1370,7 @@ tr.ck:hover td,.tutor-root tr.ck:hover td{
 .res-item-desc{font-size:11.5px;color:var(--sp-txt2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .res-item-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:auto;padding-top:6px}
 .res-item-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
-.res-act-btn{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:999px;font-size:11px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;border:1px solid var(--sp-border);background:transparent;color:var(--sp-txt2);transition:all .15s;letter-spacing:.04em}
+.res-act-btn{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:999px;font-size:11px;font-weight:700;font-family:var(--f-body);cursor:pointer;border:1px solid var(--sp-border);background:transparent;color:var(--sp-txt2);transition:all .15s;letter-spacing:.04em}
 .res-act-btn:hover{border-color:var(--sp-amber);color:var(--sp-amber)}
 .res-act-btn.primary{background:var(--sp-amber);border-color:var(--sp-amber);color:#fff}
 .res-act-btn.primary:hover{filter:brightness(1.1)}
@@ -1164,7 +1388,7 @@ tr.ck:hover td,.tutor-root tr.ck:hover td{
 .goal-reg.lebanese{background:rgba(201,162,74,.12);color:var(--sp-amber)}
 .goal-reg.msa{background:rgba(59,130,246,.12);color:#60a5fa}
 .goal-reg.classical-quranic{background:rgba(16,185,129,.12);color:#34d399}
-.goal-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--sp-txt);margin-bottom:7px;line-height:1.3}
+.goal-title{font-family:var(--f-head);font-size:16px;font-weight:700;color:var(--sp-txt);margin-bottom:7px;line-height:1.3}
 .goal-desc{font-size:12px;color:var(--sp-txt2);line-height:1.65}
 .goal-prog-bar{height:5px;border-radius:999px;background:var(--sp-border);margin-top:14px;overflow:hidden}
 .goal-prog-fill{height:100%;border-radius:999px;background:var(--sp-amber);transition:width .4s}
@@ -3072,7 +3296,7 @@ function AuthScreen({onAuth}) {
             <img src="/logo.jpeg" style=${{width:64,height:64,objectFit:"contain",display:"block"}}/>
           </div>
         </div>
-        <div style=${{fontFamily:"'Cinzel',serif",fontSize:"1.05rem",letterSpacing:"0.18em",color:authInk,textTransform:"uppercase",marginBottom:4}}>Arabic Enthusiast</div>
+        <div style=${{fontFamily:"var(--f-head)",fontSize:"1.05rem",letterSpacing:"0.18em",color:authInk,textTransform:"uppercase",marginBottom:4}}>Arabic Enthusiast</div>
         <div style=${{fontSize:"0.68rem",letterSpacing:"0.15em",textTransform:"uppercase",color:authFaint,fontFamily:"'DM Sans',sans-serif"}}>Student Portal</div>
       </div>
 
@@ -4413,7 +4637,7 @@ function GoalsTab({student: s, data, setData, auth}) {
           <span class="goal-cefr">${goal.cefr}</span>
           <span class=${"goal-reg "+goal.register}>${REGISTER_LABELS[goal.register]||goal.register}</span>
         </div>
-        <div style=${{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:"var(--sp-txt)",marginBottom:8}}>${goal.title}</div>
+        <div style=${{fontFamily:"var(--f-head)",fontSize:20,fontWeight:700,color:"var(--sp-txt)",marginBottom:8}}>${goal.title}</div>
         <div style=${{fontSize:13,color:"var(--sp-txt2)",lineHeight:1.7,marginBottom:14}}>${goal.description}</div>
         ${items.length>0?h`<div>
           <div class="goal-prog-bar"><div class="goal-prog-fill" style=${{width:pct+"%"}}></div></div>
@@ -4450,7 +4674,7 @@ function GoalsTab({student: s, data, setData, auth}) {
   }
 
   return h`<div>
-    <div style=${{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700,color:"var(--sp-txt)",marginBottom:6}}>Learning Goals</div>
+    <div style=${{fontFamily:"var(--f-head)",fontSize:22,fontWeight:700,color:"var(--sp-txt)",marginBottom:6}}>Learning Goals</div>
     <div style=${{fontSize:13,color:"var(--sp-txt2)",marginBottom:20,lineHeight:1.65}}>Choose the goals that match what you want to achieve. You can pick more than one.</div>
     <div class="goal-grid">
       ${goals.map(goal=>{
@@ -4658,7 +4882,7 @@ function VerbsTab({data}) {
   return h`<div>
     <div style=${{marginBottom:14,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:10}}>
       <div>
-        <div style=${{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700,color:"var(--sp-txt)",marginBottom:2}}>Verb Pronunciation</div>
+        <div style=${{fontFamily:"var(--f-head)",fontSize:22,fontWeight:700,color:"var(--sp-txt)",marginBottom:2}}>Verb Pronunciation</div>
         <div style=${{fontSize:13,color:"var(--sp-txt2)"}}>Press ▶ to hear the recording. ${verbs.length} verb${verbs.length!==1?"s":""} in the library.</div>
       </div>
       <input placeholder="Search verbs…" value=${search} onInput=${e=>setSearch(e.target.value)}
@@ -4907,10 +5131,11 @@ function VerbsAdmin({data, setData, auth}) {
 // ════════════════════════════════════════
 // LIBRARY TAB — PDF downloads, Flashcards, Conjugation
 // ════════════════════════════════════════
-function StudentLibraryTab({student: s, data, setData, initialTopic}) {
-  const [libTab, setLibTab] = useState("flashcards");
+function StudentLibraryTab({student: s, data, setData, initialTopic, defaultTab, hideNav}) {
+  const [libTab, setLibTab] = useState(defaultTab || "flashcards");
   const [resSearch, setResSearch] = useState("");
   const [resType, setResType] = useState("All");
+  const [resViewMode, setResViewMode] = useState("grid"); // "grid" | "list"
 
   // Build unified resource list: PDFs (curriculum + resources) + links + videos
   const isResPdf = r => r.type==="pdf" || (r.fileData&&r.fileData.length>0) || (r.fileName&&r.fileName.toLowerCase().endsWith(".pdf"));
@@ -4933,50 +5158,57 @@ function StudentLibraryTab({student: s, data, setData, initialTopic}) {
   const safeDomain = url => { try { return new URL(url).hostname.replace(/^www\./,""); } catch { return url; } };
 
   return h`<div style=${{maxWidth:860,margin:"0 auto"}}>
-    <div class="lib-tab-nav">
-      ${[["flashcards","🃏 Flashcards"],["dictation","🎧 Dictation"],["conjugation","📖 تصريف"],["verbs","🔊 Verbs"],["resources","📂 Resources"]].map(([id,label])=>h`
+    ${!hideNav&&h`<div class="lib-tab-nav">
+      ${[["flashcards","🃏 Flashcards"],["dictation","🎧 Dictation"],["verbs","🔊 Verbs"],["resources","📂 Resources"]].map(([id,label])=>h`
         <button key=${id} class=${"lib-tab"+(libTab===id?" on":"")} onClick=${()=>setLibTab(id)}>${label}</button>
       `)}
-    </div>
+    </div>`}
 
     ${libTab==="flashcards"&&h`<${LibraryFlashcards} student=${s} data=${data} setData=${setData} initialTopic=${initialTopic}/>`}
     ${libTab==="dictation"&&h`<${DictationTab} student=${s} data=${data} setData=${setData}/>`}
-    ${libTab==="conjugation"&&h`<${LibraryConjugation} student=${s}/>`}
     ${libTab==="verbs"&&h`<${VerbsTab} data=${data}/>`}
 
     ${libTab==="resources"&&h`<div>
       ${allResources.length===0
         ? h`<div class="sp2-card" style=${{textAlign:"center",padding:40}}>
             <div style=${{fontSize:36,marginBottom:12}}>📂</div>
-            <div style=${{fontWeight:700,fontSize:15,color:"var(--sp-txt)",marginBottom:6}}>No resources yet</div>
-            <div style=${{fontSize:13,color:"var(--sp-txt2)"}}>Hadi will upload PDFs, videos, and links here for you.</div>
+            <div style=${{fontWeight:700,fontSize:"0.95rem",color:"var(--ink)",marginBottom:6}}>No resources yet</div>
+            <div style=${{fontSize:"0.85rem",color:"var(--muted)"}}>Hadi will upload PDFs, videos, and links here for you.</div>
           </div>`
         : h`<div>
             <div class="res-filter-bar">
               <input class="res-search" value=${resSearch} onInput=${e=>setResSearch(e.target.value)} placeholder="Search resources…"/>
               ${resCategories.slice(0,6).map(c=>h`<button key=${c} class=${"res-filter-pill"+(resType===c?" on":"")} onClick=${()=>setResType(c)}>${c}</button>`)}
+              <!-- View toggle -->
+              <div class="res-view-toggle" style=${{marginLeft:"auto",flexShrink:0}}>
+                <button class=${"res-view-btn"+(resViewMode==="grid"?" on":"")} onClick=${()=>setResViewMode("grid")} title="Grid view">⊞</button>
+                <button class=${"res-view-btn"+(resViewMode==="list"?" on":"")} onClick=${()=>setResViewMode("list")} title="List view">≡</button>
+              </div>
             </div>
             ${resFiltered.length===0
-              ? h`<div style=${{padding:32,textAlign:"center",color:"var(--sp-txt3)",fontSize:13}}>No resources match "${resSearch||resType}".</div>`
-              : h`<div class="res-grid">
+              ? h`<div style=${{padding:32,textAlign:"center",color:"var(--muted)",fontSize:"0.88rem"}}>No resources match "${resSearch||resType}".</div>`
+              : h`<div class=${resViewMode==="list"?"res-list":"res-grid"}>
                   ${resFiltered.map(r=>{
                     const isPdf = r._kind==="pdf";
                     const isVideo = r._kind==="video";
                     const thumb = r.ogImage || (isVideo&&r.videoId ? `https://img.youtube.com/vi/${r.videoId}/hqdefault.jpg` : "");
-                    return h`<div key=${r.id||r.fileName} class="res-item">
-                      ${thumb?h`<div class="res-item-thumb">
+                    const title = r.title||r.name||r.fileName||r.url||"Resource";
+                    return h`<div key=${r.id||r.fileName} class=${"res-item"+(resViewMode==="list"?" list-view":"")}>
+                      ${thumb&&resViewMode!=="list"?h`<div class="res-item-thumb">
                         <img src=${thumb} alt="" onError=${e=>{e.target.parentNode.style.display="none"}}/>
                         ${isVideo?h`<div class="res-item-play"><svg viewBox="0 0 24 24" fill="white" width="20" height="20"><polygon points="5 3 19 12 5 21"/></svg></div>`:null}
                       </div>`:null}
                       <div class="res-item-body">
-                        <div class="res-item-title">${r.title||r.name||r.fileName||r.url||"Resource"}</div>
-                        ${(r.description||r.ogDescription)?h`<div class="res-item-desc">${r.description||r.ogDescription}</div>`:null}
-                        <div class="res-item-meta">
+                        <!-- List mode: type badge inline -->
+                        ${resViewMode==="list"?h`<span class="sp2-badge sp2-badge-a" style=${{flexShrink:0,fontSize:"0.58rem"}}>${r._label}</span>`:null}
+                        <div class="res-item-title">${title}</div>
+                        ${(r.description||r.ogDescription)&&resViewMode!=="list"?h`<div class="res-item-desc">${r.description||r.ogDescription}</div>`:null}
+                        ${resViewMode!=="list"?h`<div class="res-item-meta">
                           <span class="res-filter-pill" style=${{padding:"2px 9px",fontSize:"0.6rem",cursor:"default"}}>${r._label}</span>
                           ${r.category?h`<span class="res-filter-pill" style=${{padding:"2px 9px",fontSize:"0.6rem",cursor:"default"}}>${r.category}</span>`:null}
-                          ${!isPdf&&r.url?h`<span style=${{fontSize:"0.7rem",color:"var(--sp-txt3)"}}>${safeDomain(r.url)}</span>`:null}
-                        </div>
-                        <div class="res-item-actions">
+                          ${!isPdf&&r.url?h`<span style=${{fontSize:"0.7rem",color:"var(--muted)"}}>${safeDomain(r.url)}</span>`:null}
+                        </div>`:null}
+                        <div class="res-item-actions" style=${{marginTop:resViewMode==="list"?"0":"auto"}}>
                           ${isPdf&&r.fileData?h`<button class="res-act-btn primary" onClick=${()=>downloadFile(r.fileName||"resource.pdf",r.fileData)}>⬇ Download</button>`:null}
                           ${isPdf&&r.fileData?h`<button class="res-act-btn" onClick=${()=>{const w=window.open("","_blank");const b=atob(r.fileData.split(",")[1]||r.fileData);const arr=new Uint8Array(b.length);for(let i=0;i<b.length;i++)arr[i]=b.charCodeAt(i);const blob=new Blob([arr],{type:"application/pdf"});w.location=URL.createObjectURL(blob);}}>👁 View</button>`:null}
                           ${r.url&&!isPdf?h`<button class="res-act-btn primary" onClick=${()=>window.open(r.url,"_blank")}>${isVideo?"▶ Watch":"🔗 Open"}</button>`:null}
@@ -6078,7 +6310,7 @@ function StudentPreferencesTab({student: s, data, setData, auth}) {
 
   return h`<div style=${{maxWidth:680,margin:"0 auto"}}>
     <div class="sp2-card" style=${{marginBottom:16,borderLeft:"4px solid var(--sp-amber)"}}>
-      <div style=${{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:"var(--sp-txt)",marginBottom:6}}>✨ My Learning Profile</div>
+      <div style=${{fontFamily:"var(--f-head)",fontSize:20,fontWeight:700,color:"var(--sp-txt)",marginBottom:6}}>✨ My Learning Profile</div>
       <div style=${{fontSize:13,color:"var(--sp-txt2)",lineHeight:1.7,marginBottom:14}}>Your answers personalise your quizzes, AI tutor, and lesson direction. Hadi uses this to tailor your lessons specifically to you.</div>
       <div style=${{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
         <div style=${{fontSize:12,color:"var(--sp-txt3)"}}>${pct}% complete</div>
@@ -6195,39 +6427,354 @@ function StudentPreferencesTab({student: s, data, setData, auth}) {
 }
 
 // ════════════════════════════════════════
-// STUDENT PORTAL v2 — PREMIUM DESIGN
+// ARABIC ANAGRAM GAME
+// ════════════════════════════════════════
+function ArabicAnagramGame({student:s}) {
+  // ── Setup screen state ──
+  const [started,   setStarted]   = useState(false);
+  const [level,     setLevel]     = useState('beginner');
+  const [category,  setCategory]  = useState('All');
+  const [wordList,  setWordList]  = useState([]);
+
+  // ── In-game state ──
+  const [idx,        setIdx]        = useState(0);
+  const [score,      setScore]      = useState(0);
+  const [hints,      setHints]      = useState(3);
+  const [phase,      setPhase]      = useState('play'); // play|result|complete
+  const [pool,       setPool]       = useState([]);
+  const [slots,      setSlots]      = useState([]);
+  const [isCorrect,  setIsCorrect]  = useState(false);
+  const [celebrating,setCelebrating]= useState(false);
+  const [history,    setHistory]    = useState([]); // [{word, correct}]
+  const [reviewIdx,  setReviewIdx]  = useState(null); // null = not reviewing
+
+  const word    = wordList[idx] || ANAGRAM_WORDS[0];
+  const letters = word ? [...word.ar] : [];
+  const allCats = ['All', ...new Set(ANAGRAM_WORDS.map(w=>w.cat)), 'Other'];
+
+  // Build filtered word list on start
+  const namedCats = new Set(ANAGRAM_WORDS.map(w=>w.cat));
+  const startGame = () => {
+    let list = ANAGRAM_WORDS.filter(w =>
+      (level==='all' || w.level===level) &&
+      (category==='All' || w.cat===category || (category==='Other' && !namedCats.has(w.cat)))
+    );
+    if (!list.length) list = ANAGRAM_WORDS.filter(w => w.level===level || level==='all');
+    list = [...list].sort(()=>Math.random()-0.5);
+    setWordList(list);
+    setIdx(0); setScore(0); setHints(3);
+    setHistory([]); setReviewIdx(null);
+    setStarted(true); setPhase('play');
+    setCelebrating(false);
+  };
+
+  // Reset tiles when word changes
+  useEffect(() => {
+    if (!started || !wordList.length) return;
+    const w = wordList[idx];
+    if (!w) return;
+    const ls = [...w.ar];
+    const tiles = ls.map((char,i)=>({char, uid:`${idx}-${i}`})).sort(()=>Math.random()-0.5);
+    setPool(tiles);
+    setSlots(new Array(ls.length).fill(null));
+    setPhase('play'); setIsCorrect(false); setCelebrating(false);
+  }, [idx, wordList]);
+
+  // Auto-check when all slots filled
+  useEffect(() => {
+    if (phase!=='play' || !slots.length || slots.some(s=>s===null)) return;
+    const attempt = slots.map(s=>s.char).join('');
+    const ok = attempt === word.ar;
+    setIsCorrect(ok);
+    setPhase('result');
+    setHistory(prev=>[...prev, {word, correct:ok}]);
+    if (ok) { setScore(sc=>sc+10); setCelebrating(true); setTimeout(()=>setCelebrating(false),900); }
+  }, [slots]);
+
+  // AUTO-FILL: tap pool tile → place in first empty slot (left in array = rightmost visually)
+  const tapPool = uid => {
+    if (phase!=='play') return;
+    const tile = pool.find(p=>p.uid===uid);
+    if (!tile) return;
+    const firstEmpty = slots.findIndex(s=>s===null);
+    if (firstEmpty===-1) return;
+    setSlots(prev=>prev.map((s,i)=>i===firstEmpty?tile:s));
+    setPool(prev=>prev.filter(p=>p.uid!==uid));
+  };
+
+  // Tap slot → return tile to pool
+  const tapSlot = i => {
+    if (phase!=='play' || !slots[i]) return;
+    const tile = slots[i];
+    setSlots(prev=>prev.map((s,j)=>j===i?null:s));
+    setPool(prev=>[...prev, tile]);
+  };
+
+  // Hint: place one correct letter in a random empty slot
+  const useHint = () => {
+    if (hints<=0 || phase!=='play') return;
+    const emptyIdxs = slots.map((s,i)=>s===null?i:-1).filter(i=>i>=0);
+    if (!emptyIdxs.length) return;
+    const slotI = emptyIdxs[Math.floor(Math.random()*emptyIdxs.length)];
+    const correctChar = letters[slotI];
+    const tile = pool.find(p=>p.char===correctChar);
+    if (!tile) return;
+    setSlots(prev=>prev.map((s,i)=>i===slotI?tile:s));
+    setPool(prev=>prev.filter(p=>p.uid!==tile.uid));
+    setHints(h=>h-1);
+  };
+
+  const next = () => {
+    if (idx+1>=wordList.length) setPhase('complete');
+    else setIdx(i=>i+1);
+  };
+
+  const goBack = () => {
+    if (idx>0) setIdx(i=>i-1);
+  };
+
+  const quitToSetup = () => { setStarted(false); setWordList([]); };
+
+  // ── SETUP SCREEN ──
+  if (!started) {
+    const LEVELS = [
+      {id:'beginner',     label:'Beginner',     desc:'2–3 letter words',    icon:'🌱'},
+      {id:'intermediate', label:'Intermediate', desc:'4 letter words',      icon:'🌿'},
+      {id:'advanced',     label:'Advanced',     desc:'5+ letter words',     icon:'🌳'},
+      {id:'all',          label:'All Levels',   desc:'Mix everything',      icon:'🎲'},
+    ];
+    const count = ANAGRAM_WORDS.filter(w=>(level==='all'||w.level===level)&&(category==='All'||w.cat===category||(category==='Other'&&!namedCats.has(w.cat)))).length;
+    return h`<div style=${{maxWidth:500,margin:"0 auto"}}>
+      <h3 style=${{fontFamily:"var(--f-head)",fontSize:"1.2rem",fontWeight:600,color:"var(--ink)",marginBottom:4}}>Choose your level</h3>
+      <div style=${{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:20}}>
+        ${LEVELS.map(l=>h`<button key=${l.id} onClick=${()=>setLevel(l.id)} style=${{
+          padding:"12px 14px",borderRadius:"var(--r-sm)",textAlign:"left",
+          border:"1.5px solid "+(level===l.id?"var(--accent)":"var(--line)"),
+          background:level===l.id?"color-mix(in oklab,var(--accent) 10%,var(--surface))":"var(--surface)",
+          cursor:"pointer",transition:"all .15s",fontFamily:"var(--f-body)",
+        }}>
+          <div style=${{fontSize:20,marginBottom:4}}>${l.icon}</div>
+          <div style=${{fontWeight:600,fontSize:"0.9rem",color:"var(--ink)"}}>${l.label}</div>
+          <div style=${{fontSize:"0.75rem",color:"var(--muted)"}}>${l.desc}</div>
+        </button>`)}
+      </div>
+      <h3 style=${{fontFamily:"var(--f-head)",fontSize:"1.1rem",fontWeight:600,color:"var(--ink)",marginBottom:8}}>Category</h3>
+      <div style=${{display:"flex",flexWrap:"wrap",gap:6,marginBottom:24}}>
+        ${allCats.map(c=>h`<button key=${c} onClick=${()=>setCategory(c)} style=${{
+          padding:"6px 14px",borderRadius:99,fontSize:"0.8rem",fontFamily:"var(--f-body)",
+          border:"1px solid "+(category===c?"var(--accent)":"var(--line)"),
+          background:category===c?"color-mix(in oklab,var(--accent) 12%,var(--surface))":"var(--surface)",
+          color:category===c?"var(--accent)":"var(--ink-2)",
+          cursor:"pointer",transition:"all .15s",fontWeight:category===c?600:400,
+        }}>${c}</button>`)}
+      </div>
+      <button class="sp2-btn sp2-btn-p" style=${{width:"100%",padding:"13px",fontSize:"0.92rem"}}
+        onClick=${startGame} disabled=${count===0}>
+        Start Game — ${count} word${count!==1?"s":""} →
+      </button>
+    </div>`;
+  }
+
+  // ── COMPLETE SCREEN ──
+  if (phase==='complete') {
+    const correct = history.filter(h=>h.correct).length;
+    return h`<div style=${{maxWidth:480,margin:"0 auto",textAlign:"center",padding:"40px 16px"}}>
+      <div style=${{fontSize:64,marginBottom:12}}>🏆</div>
+      <h2 style=${{fontFamily:"var(--f-head)",fontSize:"1.8rem",fontWeight:600,color:"var(--ink)",marginBottom:6}}>مبروك!</h2>
+      <p style=${{fontFamily:"var(--f-head)",fontSize:"1.4rem",color:"var(--accent)",fontWeight:600,marginBottom:4}}>${score} / ${wordList.length*10} points</p>
+      <p style=${{fontSize:"0.9rem",color:"var(--muted)",marginBottom:24}}>${correct} correct out of ${wordList.length} words</p>
+      ${history.length?h`<div style=${{marginBottom:24,textAlign:"left",maxHeight:200,overflowY:"auto"}}>
+        ${history.map((h,i)=>h`<div key=${i} style=${{
+          display:"flex",alignItems:"center",gap:10,padding:"8px 12px",
+          borderRadius:"var(--r-sm)",marginBottom:4,
+          background:h.correct?"color-mix(in oklab,var(--good) 10%,var(--surface))":"color-mix(in oklab,var(--bad) 8%,var(--surface))",
+          border:"1px solid "+(h.correct?"color-mix(in oklab,var(--good) 30%,transparent)":"color-mix(in oklab,var(--bad) 20%,transparent)"),
+        }}>
+          <span>${h.correct?"✅":"❌"}</span>
+          <span style=${{fontSize:18}}>${h.word.img}</span>
+          <span style=${{flex:1,fontSize:"0.88rem",color:"var(--ink)"}}>${h.word.en}</span>
+          <span dir="rtl" style=${{fontFamily:"var(--f-ar)",fontSize:"1.1rem",color:h.correct?"var(--good)":"var(--bad)"}}>${h.word.arFull}</span>
+        </div>`)}
+      </div>`:null}
+      <div style=${{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
+        <button class="sp2-btn sp2-btn-p" onClick=${startGame}>Play Again 🔄</button>
+        <button class="sp2-btn sp2-btn-g" onClick=${quitToSetup}>Change Level</button>
+      </div>
+    </div>`;
+  }
+
+  // ── REVIEW mode: viewing a past word ──
+  if (reviewIdx!==null) {
+    const hItem = history[reviewIdx];
+    if (!hItem) { setReviewIdx(null); return null; }
+    return h`<div style=${{maxWidth:500,margin:"0 auto"}}>
+      <div style=${{display:"flex",alignItems:"center",gap:8,marginBottom:16}}>
+        <button class="sp2-btn sp2-btn-g sp2-btn-sm" onClick=${()=>setReviewIdx(null)}>← Back to game</button>
+        <span style=${{fontSize:"0.82rem",color:"var(--muted)"}}>Word ${reviewIdx+1} of ${history.length} reviewed</span>
+      </div>
+      <div class="sp2-card" style=${{textAlign:"center",padding:"28px 20px"}}>
+        <div style=${{fontSize:48,marginBottom:10}}>${hItem.word.img}</div>
+        <div style=${{fontFamily:"var(--f-head)",fontSize:"1.6rem",fontWeight:600,color:"var(--ink)",marginBottom:4}}>${hItem.word.en}</div>
+        <div style=${{fontSize:"0.88rem",color:"var(--muted)",fontStyle:"italic",marginBottom:12}}>${hItem.word.phonetic}</div>
+        <div dir="rtl" style=${{fontFamily:"var(--f-ar)",fontSize:"2rem",lineHeight:1.8,
+          color:hItem.correct?"var(--good)":"var(--bad)",letterSpacing:0}}>${hItem.word.arFull}</div>
+        <div style=${{marginTop:10,fontWeight:600,fontSize:"0.9rem",color:hItem.correct?"var(--good)":"var(--bad)"}}>
+          ${hItem.correct?"✅ You got this right!":"❌ You got this wrong"}
+        </div>
+      </div>
+      <div style=${{display:"flex",justifyContent:"space-between",marginTop:12}}>
+        <button class="sp2-btn sp2-btn-g" onClick=${()=>setReviewIdx(i=>Math.max(0,i-1))} disabled=${reviewIdx===0}>← Prev</button>
+        <button class="sp2-btn sp2-btn-g" onClick=${()=>setReviewIdx(i=>Math.min(history.length-1,i+1))} disabled=${reviewIdx===history.length-1}>Next →</button>
+      </div>
+    </div>`;
+  }
+
+  // ── GAME BOARD ──
+  const slotBorder = phase==='result'?(isCorrect?'var(--good)':'var(--bad)'):'var(--line)';
+  const slotFill   = phase==='result'?(isCorrect
+    ?'color-mix(in oklab,var(--good) 12%,var(--surface))'
+    :'color-mix(in oklab,var(--bad) 10%,var(--surface))'):'var(--surface-2)';
+
+  return h`<div style=${{maxWidth:540,margin:"0 auto"}}>
+
+    <!-- Top bar: score / hints / prev / quit -->
+    <div style=${{display:"flex",alignItems:"center",gap:8,marginBottom:10,flexWrap:"wrap"}}>
+      <span style=${{fontSize:"0.8rem",color:"var(--muted)",flex:1}}>
+        ${idx+1} / ${wordList.length}
+        ${history.length>0?h`<button style=${{background:"none",border:"none",cursor:"pointer",fontSize:"0.78rem",color:"var(--accent)",textDecoration:"underline",fontFamily:"var(--f-body)",padding:"0 4px"}}
+          onClick=${()=>setReviewIdx(history.length-1)}>Review (${history.length})</button>`:null}
+      </span>
+      <span style=${{fontFamily:"var(--f-head)",fontWeight:600,color:"var(--accent)"}}>⭐ ${score}</span>
+      <button class="sp2-btn sp2-btn-g sp2-btn-sm" onClick=${useHint} disabled=${hints<=0||phase!=='play'}
+        title=${hints<=0?"No hints left":"Use a hint"} style=${{opacity:hints>0?1:0.45}}>
+        💡 ${hints} hint${hints!==1?"s":""}
+      </button>
+      <button class="sp2-btn sp2-btn-g sp2-btn-sm" onClick=${quitToSetup} title="Exit game">✕</button>
+    </div>
+
+    <!-- Progress bar -->
+    <div style=${{height:4,background:"var(--surface-3)",borderRadius:99,marginBottom:18,overflow:"hidden"}}>
+      <div style=${{height:"100%",background:"var(--accent)",borderRadius:99,
+        width:((idx)/(wordList.length)*100)+"%",transition:"width .4s var(--ease)"}}></div>
+    </div>
+
+    <!-- Word hint card -->
+    <div class=${"sp2-card "+(celebrating?"ae-celebrating":"")}
+      style=${{textAlign:"center",marginBottom:18,padding:"20px",position:"relative",overflow:"hidden"}}>
+      <div style=${{fontSize:44,marginBottom:8}}>${word.img}</div>
+      <div style=${{fontFamily:"var(--f-head)",fontSize:"1.7rem",fontWeight:600,color:"var(--ink)",marginBottom:2}}>${word.en}</div>
+      <div style=${{fontSize:"0.85rem",color:"var(--muted)",fontStyle:"italic"}}>${word.phonetic}</div>
+      ${phase==='result'?h`<div dir="rtl" style=${{
+        marginTop:12,fontFamily:"var(--f-ar)",fontSize:"1.9rem",lineHeight:1.8,
+        color:isCorrect?"var(--good)":"var(--bad)",letterSpacing:0,
+        animation:isCorrect?"ae-pop .3s var(--ease)":undefined,
+      }}>${word.arFull}</div>`:null}
+      ${celebrating?[0,1,2,3,4,5].map(i=>h`<div key=${i} class="ae-confetti-dot" style=${{
+        left:(15+i*14)+"%",top:"30%",
+        background:["var(--accent)","var(--good)","var(--warn)","var(--bad)","var(--ink)","var(--muted)"][i],
+        animationDelay:(i*0.08)+"s",
+      }}></div>`):null}
+    </div>
+
+    <!-- Answer slots: row-reverse so slot[0] = rightmost = first letter of Arabic word -->
+    <div style=${{display:"flex",flexDirection:"row-reverse",justifyContent:"center",gap:6,marginBottom:18,flexWrap:"wrap"}}>
+      ${slots.map((tile,i)=>h`<button key=${i} onClick=${()=>tapSlot(i)} style=${{
+        width:50,height:58,
+        border:"2px solid "+slotBorder, borderStyle:tile?"solid":"dashed",
+        borderRadius:"var(--r-sm)",
+        background:tile?slotFill:"var(--surface-2)",
+        cursor:tile&&phase==='play'?"pointer":"default",
+        display:"flex",alignItems:"center",justifyContent:"center",
+        fontFamily:"var(--f-ar)",fontSize:"1.5rem",color:"var(--ink)",
+        transition:"all .15s", flexShrink:0,
+      }}>${tile?tile.char:""}</button>`)}
+    </div>
+
+    <!-- Letter pool: tap → auto-place in next empty slot -->
+    <div style=${{display:"flex",flexWrap:"wrap",justifyContent:"center",gap:8,marginBottom:18,minHeight:66}}>
+      ${pool.map(tile=>h`<button key=${tile.uid} class="ae-tile-pop" onClick=${()=>tapPool(tile.uid)} style=${{
+        width:50,height:58,
+        border:"2px solid var(--line)",borderRadius:"var(--r-sm)",
+        background:"var(--surface)",
+        cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",
+        fontFamily:"var(--f-ar)",fontSize:"1.5rem",color:"var(--ink)",
+        transition:"transform .1s, box-shadow .1s",flexShrink:0,
+      }}
+        onMouseEnter=${e=>{e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.boxShadow="var(--shadow-sm)";}}
+        onMouseLeave=${e=>{e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow="none";}}
+      >${tile.char}</button>`)}
+    </div>
+
+    <!-- Result feedback -->
+    ${phase==='result'?h`<div style=${{textAlign:"center"}}>
+      <p style=${{fontWeight:600,fontSize:"1rem",marginBottom:14,
+        color:isCorrect?"var(--good)":"var(--bad)"}}>
+        ${isCorrect?"✓ Correct! +10 points 🎉":"✗ Not quite — see the answer above"}
+      </p>
+      <div style=${{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
+        ${idx>0?h`<button class="sp2-btn sp2-btn-g" onClick=${goBack}>← Previous word</button>`:null}
+        <button class="sp2-btn sp2-btn-p" onClick=${next}>
+          ${idx+1>=wordList.length?"See Results 🏆":"Next Word →"}
+        </button>
+      </div>
+    </div>`:null}
+
+    ${phase==='play'?h`<p style=${{textAlign:"center",fontSize:"0.78rem",color:"var(--muted)"}}>
+      Tap a letter to place it — tap a placed letter to remove it
+    </p>`:null}
+
+  </div>`;
+}
+
+// ════════════════════════════════════════
+// STUDENT PORTAL v2 — SINGLE-NAV SYSTEM
+// 5 top-level destinations + hub sub-screens
 // ════════════════════════════════════════
 
-const SP_NAV = [
-  {id:'home',icon:'🏠',label:'Home',group:null},
-  {id:'ai',icon:'🤖',label:'AI Tutor',group:null},
-  {id:'studio',icon:'🎓',label:'Learning Studio',group:'LEARN'},
-  {id:'trace',icon:'✍️',label:'Trace',group:'LEARN'},
-  {id:'skills',icon:'⚡',label:'Skills',group:'LEARN'},
-  {id:'foundation',icon:'🌿',label:'Foundation',group:'LEARN'},
-  {id:'script',icon:'ب',label:'Script',group:'LEARN'},
-  {id:'goals',icon:'🎯',label:'My Goals',group:'EXPLORE'},
-  {id:'culture',icon:'🕌',label:'Culture',group:'EXPLORE'},
-  {id:'howto',icon:'💡',label:'How-To Guide',group:'EXPLORE'},
-  {id:'library',icon:'📚',label:'Library',group:'MY LESSONS'},
-  {id:'book',icon:'📅',label:'Book a Lesson',group:'MY LESSONS'},
-  {id:'curriculum',icon:'📋',label:'Curriculum',group:'MY LESSONS'},
-  {id:'preferences',icon:'✨',label:'My Journey',group:'MY LESSONS'},
-  {id:'settings',icon:'⚙️',label:'Settings',group:'MY LESSONS'},
+// Single source of truth for all navigation
+const NAV = [
+  {id:'home',   icon:'🏠', label:'Home',      hub:false},
+  {id:'learn',  icon:'🎓', label:'Learn',     hub:true},
+  {id:'ai',     icon:'🤖', label:'AI Tutor',  hub:false},
+  {id:'games',  icon:'🎮', label:'Games',     hub:false},
+  {id:'lessons',icon:'📚', label:'Library',   hub:true},
+  {id:'profile',icon:'👤', label:'Profile',   hub:true},
 ];
-const SP_NAV_GROUPS = [null,'LEARN','EXPLORE','MY LESSONS'];
-const SP_MORE_NAV = [
-  {id:'messages',icon:'M',label:'Messages & Tasks',desc:'See Hadi notes, finish weekly tasks, and send a message.'},
-  {id:'skills',icon:'*',label:'Skills Practice',desc:'Reading, writing, listening, and speaking practice.'},
-  {id:'foundation',icon:'R',label:'Foundation',desc:'Vocabulary, roots, and grammar basics.'},
-  {id:'script',icon:'ب',label:'Arabic Script',desc:'Letters, forms, and script confidence.'},
-  {id:'culture',icon:'C',label:'Culture',desc:'Expressions, context, and cultural notes.'},
-  {id:'goals',icon:'🎯',label:'My Goals',desc:'Choose your learning goals and track your progress step by step.'},
-  {id:'howto',icon:'💡',label:'How-To Guide',desc:'Answers to common Arabic learning questions, reviewed and answered by Hadi.'},
-  {id:'curriculum',icon:'L',label:'Curriculum',desc:'Assigned lessons and class materials.'},
-  {id:'preferences',icon:'J',label:'My Journey',desc:'Goals, interests, study style, and motivation.'},
-  {id:'settings',icon:'S',label:'Settings',desc:'Profile, timezone, notifications, and theme.'},
-];
+
+// Hub definitions: which screens live under each hub
+const HUBS = {
+  learn: [
+    {id:'skills',     icon:'⚡', label:'Skills',      desc:'Reading, writing, listening, and speaking practice.'},
+    {id:'script',     icon:'ب',  label:'Script',      desc:'Explore all 28 Arabic letters and their forms.'},
+    {id:'trace',      icon:'✍️', label:'Tracing Lab', desc:'Practice writing Arabic letters with guided tracing.'},
+    {id:'culture',    icon:'🕌', label:'Culture',     desc:'Expressions, context, and cultural notes.'},
+    {id:'flashcards', icon:'🃏', label:'Flashcards',  desc:'Vocabulary flashcards with spaced repetition.'},
+    {id:'dictation',  icon:'🎧', label:'Dictation',   desc:'Listening and dictation practice exercises.'},
+  ],
+  lessons: [
+    {id:'book',       icon:'📅',label:'Book a Lesson',   desc:'Schedule your next private lesson with Hadi.'},
+    {id:'studio',     icon:'🎓',label:'Course Materials', desc:'Assigned lessons, curriculum, and extras.'},
+    {id:'verbs',      icon:'🔊',label:'Verbs',            desc:'Verb tables and conjugation practice.'},
+    {id:'resources',  icon:'📂',label:'Resources',        desc:'Files, recordings, and links shared by Hadi.'},
+    {id:'messages',   icon:'💬',label:'Messages & Tasks', desc:'Notes from Hadi, weekly tasks, and how-to.'},
+  ],
+  profile: [
+    {id:'preferences',icon:'✨',label:'My Journey',  desc:'Goals, interests, study style, and motivation.'},
+    {id:'progress',   icon:'📈',label:'Progress',    desc:'XP, level, streak, and achievements.'},
+    {id:'settings',   icon:'⚙️',label:'Settings',    desc:'Profile, timezone, notifications, and theme.'},
+  ],
+};
+
+// Map every screen id → which hub it belongs to (for breadcrumb + back)
+const SCREEN_HUB = {};
+Object.entries(HUBS).forEach(([hub, items]) => items.forEach(item => { SCREEN_HUB[item.id] = hub; }));
+
+// Redirect map: old screen ids → new locations (backward compat with saved sessions)
+const REDIRECTS = {goals:'preferences', howto:'messages', curriculum:'studio', library:'resources', foundation:'learn'};
+
+// Kept for legacy references elsewhere in the file
+const SP_NAV = NAV;
+const SP_MORE_NAV = HUBS.lessons;
 
 const SP_VOCAB = [
   {ar:"مَرْحَبًا",leb:"مرحبا / هلا",en:"Hello",phonetic:"marḥaban / hala",cat:"Greetings",img:"👋",root:"ر-ح-ب"},
@@ -6293,6 +6840,43 @@ const SP_SCRIPT = [
   {l:"ه",n:"Hāʾ",p:"h",f:["ه","هـ","ـهـ","ـه"]},
   {l:"و",n:"Wāw",p:"w / ū",f:["و","و","ـو","ـو"]},
   {l:"ي",n:"Yāʾ",p:"y / ī",f:["ي","يـ","ـيـ","ـي"]},
+];
+
+// ── ANAGRAM GAME DATA ──────────────────────────────────────
+const ANAGRAM_WORDS = [
+  // ── BEGINNER (2–3 letters) ──
+  {ar:"يد",    arFull:"يَد",    en:"Hand",      phonetic:"yad",    img:"✋", level:"beginner",     cat:"Body"},
+  {ar:"نور",   arFull:"نُور",   en:"Light",     phonetic:"nūr",    img:"💡", level:"beginner",     cat:"Nature"},
+  {ar:"قلب",   arFull:"قَلْب",  en:"Heart",     phonetic:"qalb",   img:"❤️", level:"beginner",    cat:"Body"},
+  {ar:"بيت",   arFull:"بَيْت",  en:"House",     phonetic:"bayt",   img:"🏠", level:"beginner",     cat:"Places"},
+  {ar:"ماء",   arFull:"مَاء",   en:"Water",     phonetic:"māʾ",    img:"💧", level:"beginner",     cat:"Food"},
+  {ar:"باب",   arFull:"بَاب",   en:"Door",      phonetic:"bāb",    img:"🚪", level:"beginner",     cat:"Places"},
+  {ar:"نهر",   arFull:"نَهْر",  en:"River",     phonetic:"nahr",   img:"🌊", level:"beginner",     cat:"Nature"},
+  {ar:"عين",   arFull:"عَيْن",  en:"Eye",       phonetic:"ʿayn",   img:"👁️", level:"beginner",   cat:"Body"},
+  {ar:"علم",   arFull:"عِلْم",  en:"Knowledge", phonetic:"ʿilm",   img:"📚", level:"beginner",     cat:"Values"},
+  {ar:"حب",    arFull:"حُبّ",   en:"Love",      phonetic:"ḥubb",   img:"💛", level:"beginner",     cat:"Values"},
+  // ── INTERMEDIATE (4 letters) ──
+  {ar:"كتاب",  arFull:"كِتَاب", en:"Book",      phonetic:"kitāb",  img:"📕", level:"intermediate", cat:"Daily Life"},
+  {ar:"شكرا",  arFull:"شُكْرًا",en:"Thank you", phonetic:"shukran",img:"🙏", level:"intermediate", cat:"Greetings"},
+  {ar:"سلام",  arFull:"سَلَام", en:"Peace",     phonetic:"salām",  img:"🕊️", level:"intermediate", cat:"Greetings"},
+  {ar:"جميل",  arFull:"جَمِيل", en:"Beautiful", phonetic:"jamīl",  img:"✨", level:"intermediate", cat:"Adjectives"},
+  {ar:"كبير",  arFull:"كَبِير", en:"Big",       phonetic:"kabīr",  img:"📏", level:"intermediate", cat:"Adjectives"},
+  {ar:"صديق",  arFull:"صَدِيق", en:"Friend",    phonetic:"ṣadīq",  img:"🤝", level:"intermediate", cat:"People"},
+  {ar:"مسجد",  arFull:"مَسْجِد",en:"Mosque",    phonetic:"masjid", img:"🕌", level:"intermediate", cat:"Places"},
+  {ar:"مكتب",  arFull:"مَكْتَب",en:"Office",    phonetic:"maktab", img:"🪑", level:"intermediate", cat:"Places"},
+  {ar:"طبيب",  arFull:"طَبِيب", en:"Doctor",    phonetic:"ṭabīb",  img:"👨‍⚕️", level:"intermediate",cat:"People"},
+  {ar:"قهوة",  arFull:"قَهْوَة",en:"Coffee",    phonetic:"qahwa",  img:"☕", level:"intermediate", cat:"Food"},
+  {ar:"شارع",  arFull:"شَارِع", en:"Street",    phonetic:"shāriʿ", img:"🛣️", level:"intermediate", cat:"Places"},
+  {ar:"خبز",   arFull:"خُبْز",  en:"Bread",     phonetic:"khubz",  img:"🍞", level:"intermediate", cat:"Food"},
+  // ── ADVANCED (5+ letters) ──
+  {ar:"مرحبا", arFull:"مَرْحَبًا",en:"Hello",   phonetic:"marḥaban",img:"👋", level:"advanced",    cat:"Greetings"},
+  {ar:"سيارة", arFull:"سَيَّارَة",en:"Car",     phonetic:"sayyāra", img:"🚗", level:"advanced",    cat:"Transport"},
+  {ar:"مدرسة", arFull:"مَدْرَسَة",en:"School",  phonetic:"madrasa",  img:"🏫", level:"advanced",   cat:"Places"},
+  {ar:"طائرة", arFull:"طَائِرَة",en:"Airplane", phonetic:"ṭāʾira",  img:"✈️", level:"advanced",   cat:"Transport"},
+  {ar:"مدينة", arFull:"مَدِينَة",en:"City",     phonetic:"madīna",  img:"🏙️", level:"advanced",   cat:"Places"},
+  {ar:"جامعة", arFull:"جَامِعَة",en:"University",phonetic:"jāmiʿa", img:"🎓", level:"advanced",   cat:"Places"},
+  {ar:"مكتبة", arFull:"مَكْتَبَة",en:"Library",phonetic:"maktaba",  img:"📚", level:"advanced",   cat:"Places"},
+  {ar:"حديقة", arFull:"حَدِيقَة",en:"Garden",  phonetic:"ḥadīqa",  img:"🌳", level:"advanced",    cat:"Nature"},
 ];
 
 const SP_CULTURE = [
@@ -6574,7 +7158,7 @@ function tracePixelComponents(data, width, height, otherData=null, sample=4) {
 }
 
 function traceScoreLabel(score) {
-  if (score == null) return {text:"OK", color:"#64748b"};
+  if (score == null) return {text:"OK", color:"var(--muted)"};
   const pct = Math.round(Math.max(0,Math.min(1,score))*100);
   return {
     text:pct+"%",
@@ -6680,7 +7264,7 @@ function HowToStudentView({student:s, data, setData}) {
   };
 
   return h`<div style=${{maxWidth:760,margin:"0 auto"}}>
-    <div style=${{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:700,marginBottom:6,color:"var(--sp-txt)"}}>How-To Guide 💡</div>
+    <div style=${{fontFamily:"var(--f-head)",fontSize:24,fontWeight:700,marginBottom:6,color:"var(--sp-txt)"}}>How-To Guide 💡</div>
     <div style=${{fontSize:14,color:"var(--sp-txt2)",marginBottom:22,lineHeight:1.7}}>Practical answers to common Arabic learning questions — reviewed and answered by Hadi.</div>
 
     <input value=${search} onInput=${e=>setSearch(e.target.value)} placeholder="Search questions..." style=${{width:"100%",boxSizing:"border-box",background:"var(--sp-surface)",border:"1px solid var(--sp-border)",borderRadius:10,padding:"10px 14px",color:"var(--sp-txt)",fontFamily:"inherit",fontSize:14,outline:"none",marginBottom:14}}/>
@@ -6931,15 +7515,15 @@ function ArabicTracingLab({student:s, data, setData, sourceText, title, compact}
     }
     if (traceLevel==="advanced") {
       ctx.letterSpacing = "0px";
-      ctx.fillStyle = "#64748b";
-      ctx.font = "800 12px 'DM Sans',sans-serif";
+      ctx.fillStyle = "rgba(138,127,108,0.9)";
+      ctx.font = "700 12px 'Public Sans',system-ui,sans-serif";
       ctx.textAlign = "right";
       ctx.direction = "ltr";
       ctx.fillText("Free write: match the target above without a guide.", w-18, 24);
       return;
     }
     ctx.lineWidth = Math.max(1.25, fontSize*traceFont.stroke);
-    ctx.strokeStyle = "rgba(15,23,42,"+level.guideAlpha+")";
+    ctx.strokeStyle = "rgba(36,28,18,"+level.guideAlpha+")";
     ctx.strokeText(text,x,y);
     if (showHints) {
       const measured = Math.min(ctx.measureText(text).width, w-56);
@@ -6989,8 +7573,8 @@ function ArabicTracingLab({student:s, data, setData, sourceText, title, compact}
       ctx.restore();
     }
     ctx.letterSpacing = "0px";
-    ctx.fillStyle = "#64748b";
-    ctx.font = "800 12px 'DM Sans',sans-serif";
+    ctx.fillStyle = "rgba(138,127,108,0.85)";
+    ctx.font = "600 12px 'Public Sans',system-ui,sans-serif";
     ctx.textAlign = "right";
     ctx.direction = "ltr";
     ctx.fillText("Green is inside the letters. Red is outside.", w-18, 24);
@@ -7005,11 +7589,14 @@ function ArabicTracingLab({student:s, data, setData, sourceText, title, compact}
     for (let i=3; i<k.length; i+=4) {
       if (k[i] > 18) {
         if (traceLevel === "advanced") {
-          overlay.data[i-3] = 37; overlay.data[i-2] = 99; overlay.data[i-1] = 235; overlay.data[i] = 214;
+          // Advanced: warm ink color (--ink = #241c12)
+          overlay.data[i-3] = 36; overlay.data[i-2] = 28; overlay.data[i-1] = 18; overlay.data[i] = 214;
         } else if (g[i] > 18) {
-          overlay.data[i-3] = 22; overlay.data[i-2] = 163; overlay.data[i-1] = 74; overlay.data[i] = 216;
+          // Inside guide: --good = #1c8a5b
+          overlay.data[i-3] = 28; overlay.data[i-2] = 138; overlay.data[i-1] = 91; overlay.data[i] = 216;
         } else {
-          overlay.data[i-3] = 239; overlay.data[i-2] = 68; overlay.data[i-1] = 68; overlay.data[i] = 226;
+          // Outside guide: --bad = #cf4744
+          overlay.data[i-3] = 207; overlay.data[i-2] = 71; overlay.data[i-1] = 68; overlay.data[i] = 226;
         }
         any = true;
       }
@@ -7270,7 +7857,7 @@ function ArabicTracingLab({student:s, data, setData, sourceText, title, compact}
       <div class="trace-toolbar">
         <div>
           <div class="trace-kicker" style=${{marginBottom:4}}>Practice Level</div>
-          <div style=${{fontSize:12,color:"#475569",lineHeight:1.55}}>${level.desc}</div>
+          <div style=${{fontSize:12,color:"var(--muted)",lineHeight:1.55}}>${level.desc}</div>
         </div>
         <div class="trace-tabs" style=${{margin:0}}>
           ${TRACE_LEVELS.map(l=>h`<button key=${l.id} class=${"trace-tab "+(traceLevel===l.id?"on":"")} onClick=${()=>{setTraceLevel(l.id);clearInk();}}>${l.label}</button>`)}
@@ -7281,8 +7868,8 @@ function ArabicTracingLab({student:s, data, setData, sourceText, title, compact}
     <div class="trace-panel">
       <div class="trace-toolbar" style=${{marginBottom:12}}>
         <div>
-          <div style=${{fontWeight:900,color:"#0f172a",fontSize:15}}>${item.label||"Tracing"}</div>
-          <div style=${{fontSize:12,color:"#64748b",marginTop:3}}>${item.hint||currentSet.desc}</div>
+          <div style=${{fontWeight:900,color:"var(--ink)",fontSize:15}}>${item.label||"Tracing"}</div>
+          <div style=${{fontSize:12,color:"var(--muted)",marginTop:3}}>${item.hint||currentSet.desc}</div>
         </div>
         <div class="trace-controls">
           <label class="trace-control"><input type="checkbox" checked=${showGrid} onChange=${e=>setShowGrid(e.target.checked)}/> Grid</label>
@@ -7296,7 +7883,7 @@ function ArabicTracingLab({student:s, data, setData, sourceText, title, compact}
       ${traceLevel==="advanced"&&h`<div class="trace-target">
         <div>
           <div class="trace-kicker" style=${{marginBottom:2}}>Target</div>
-          <div style=${{fontSize:12,color:"#475569"}}>Write this from memory. The score compares shape and line control, not exact placement.</div>
+          <div style=${{fontSize:12,color:"var(--muted)"}}>Write this from memory. The score compares shape and line control, not exact placement.</div>
         </div>
         <div class="trace-target-ar" style=${{fontFamily:traceFont.stack,letterSpacing:tracking+"px"}}>${text}</div>
       </div>`}
@@ -7347,7 +7934,7 @@ function StudentLearningStudio({student: s, data, setData}) {
   if (!s.studioAccess && visible.length === 0) return h`<div style=${{maxWidth:680,margin:"0 auto"}}>
     <div class="sp2-card" style=${{textAlign:"center",padding:34}}>
       <div style=${{fontSize:42,marginBottom:12}}>🎓</div>
-      <h2 style=${{fontFamily:"'Playfair Display',serif",color:"var(--sp-txt)",marginBottom:8}}>Learning Studio</h2>
+      <h2 style=${{fontFamily:"var(--f-head)",color:"var(--sp-txt)",marginBottom:8}}>Learning Studio</h2>
       <p style=${{color:"var(--sp-txt2)",lineHeight:1.7}}>Your Learning Studio membership is not active yet. Ask Hadi to unlock extra activities, drills, tracing sheets, and speaking practice.</p>
     </div>
   </div>`;
@@ -7356,7 +7943,7 @@ function StudentLearningStudio({student: s, data, setData}) {
     <div style=${{display:"flex",justifyContent:"space-between",alignItems:"flex-end",gap:16,flexWrap:"wrap",marginBottom:18}}>
       <div>
         <div class="sp2-nav-grp" style=${{padding:0,marginBottom:6}}>Subscription Learning</div>
-        <h2 style=${{fontFamily:"'Playfair Display',serif",fontSize:30,fontWeight:600,color:"var(--sp-txt)",margin:0}}>Learning Studio</h2>
+        <h2 style=${{fontFamily:"var(--f-head)",fontSize:30,fontWeight:600,color:"var(--sp-txt)",margin:0}}>Learning Studio</h2>
         <p style=${{fontSize:13,color:"var(--sp-txt2)",lineHeight:1.7,marginTop:6}}>Extra drills, uploads, tracing, speaking tasks, quizzes, and activities from Hadi.</p>
       </div>
       <span class="sp2-badge sp2-badge-a">${visible.length} available</span>
@@ -7366,14 +7953,14 @@ function StudentLearningStudio({student: s, data, setData}) {
     </div>
     ${list.length===0 ? h`<div class="sp2-card" style=${{textAlign:"center",padding:34}}>
       <div style=${{fontSize:38,marginBottom:10}}>📭</div>
-      <div style=${{fontFamily:"'Playfair Display',serif",fontSize:21,color:"var(--sp-txt)",marginBottom:6}}>Nothing published here yet</div>
+      <div style=${{fontFamily:"var(--f-head)",fontSize:21,color:"var(--sp-txt)",marginBottom:6}}>Nothing published here yet</div>
       <p style=${{color:"var(--sp-txt2)",fontSize:13}}>Hadi can upload and publish studio activities from the tutor portal.</p>
     </div>` : h`<div style=${{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:16}}>
       ${list.map(item=>h`<div key=${item.id} class="sp2-card sp2-card-h" onClick=${()=>setOpened(item)} style=${{display:"flex",flexDirection:"column",gap:12}}>
         <div style=${{display:"flex",alignItems:"flex-start",gap:12}}>
           <div style=${{width:46,height:46,borderRadius:12,background:"var(--sp-glow)",border:"1px solid var(--sp-border-h)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:23,flexShrink:0}}>${typeIcon(item.type)}</div>
           <div style=${{minWidth:0}}>
-            <div style=${{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,color:"var(--sp-txt)",lineHeight:1.25}}>${item.title||"Untitled"}</div>
+            <div style=${{fontFamily:"var(--f-head)",fontSize:18,fontWeight:700,color:"var(--sp-txt)",lineHeight:1.25}}>${item.title||"Untitled"}</div>
             <div style=${{fontSize:11,color:"var(--sp-txt3)",marginTop:4}}>${item.type} • ${item.level||"All Levels"} • ${item.track||"General"}</div>
           </div>
         </div>
@@ -7419,7 +8006,39 @@ Your role:
 
 function StudentPortal({data, setData, user, auth, onLogout}) {
   const [theme, setTheme] = useState(() => { try { return localStorage.getItem('ae_sp_theme')||'light'; } catch { return 'light'; } });
-  const [spTab, setSpTab] = useState(() => { try { return sessionStorage.getItem('ae_stab')||'home'; } catch { return 'home'; } });
+  const [spTab, setSpTab] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('ae_stab') || 'home';
+      return REDIRECTS[saved] || saved;
+    } catch { return 'home'; }
+  });
+  // Track hub sub-screen navigation for "back" on mobile
+  const [hubHistory, setHubHistory] = useState([]);
+  // Remember the last sub-screen visited per hub
+  const [lastHubTab, setLastHubTab] = useState(() => {
+    try { return JSON.parse(sessionStorage.getItem('ae_last_hub_tab')||'{}'); } catch { return {}; }
+  });
+  // Search
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const searchRef = useRef(null);
+  useEffect(() => { if (searchOpen && searchRef.current) searchRef.current.focus(); }, [searchOpen]);
+  useEffect(() => {
+    const onKey = e => { if ((e.metaKey||e.ctrlKey) && e.key==='k') { e.preventDefault(); setSearchOpen(o=>!o); setSearchQuery(""); } if (e.key==='Escape') { setSearchOpen(false); setSearchQuery(""); } };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  // All searchable destinations (flat list: top-level + all hub sub-screens)
+  const allSearchTargets = [
+    ...NAV.filter(n=>!n.hub).map(n=>({id:n.id,label:n.label,icon:n.icon,hub:null})),
+    ...Object.entries(HUBS).flatMap(([hubId,items])=>
+      items.map(item=>({id:item.id,label:item.label,icon:item.icon,hub:NAV.find(n=>n.id===hubId)?.label}))
+    ),
+  ];
+  const searchResults = searchQuery.trim()
+    ? allSearchTargets.filter(t=>(t.label+' '+(t.hub||'')).toLowerCase().includes(searchQuery.toLowerCase()))
+    : [];
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState("");
   const [jumpTopic, setJumpTopic] = useState(null);
@@ -7448,8 +8067,12 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
   const [vocabFlipped, setVocabFlipped] = useState(false);
   const [gramIdx, setGramIdx] = useState(null);
 
-  // Script
+  // Script + Trace (merged)
   const [scriptLetter, setScriptLetter] = useState(null);
+  const [scriptTab, setScriptTab] = useState("recognise");
+
+  // Studio + Curriculum (merged)
+  const [studioTab, setStudioTab] = useState("assigned");
 
   // Shop
 
@@ -7476,17 +8099,50 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
   }, [auth]);
 
   const switchTab = t => {
-    try{sessionStorage.setItem('ae_stab',t);}catch{}
-    setSpTab(t);
+    // Apply redirects for old route names
+    const dest = REDIRECTS[t] || t;
+    // Track hub history for mobile "back"
+    const parentHub = SCREEN_HUB[dest];
+    if (parentHub) {
+      setHubHistory(prev => [...prev, spTab]);
+      // Remember last sub-screen per hub
+      setLastHubTab(prev => {
+        const next = {...prev, [parentHub]: dest};
+        try { sessionStorage.setItem('ae_last_hub_tab', JSON.stringify(next)); } catch {}
+        return next;
+      });
+    } else {
+      setHubHistory([]); // clear when navigating to top-level
+    }
+    try{sessionStorage.setItem('ae_stab',dest);}catch{}
+    setSpTab(dest);
     apiPost("/api/data",{token:auth.token,action:"studentWrite",data}).catch(()=>{});
+  };
+
+  // Navigate to a hub: go directly to last visited sub-screen if remembered
+  const openHub = hubId => {
+    const last = lastHubTab[hubId];
+    if (last && HUBS[hubId]?.find(item => item.id === last)) {
+      switchTab(last);
+    } else {
+      switchTab(hubId); // show hub landing
+    }
+  };
+  const goBack = () => {
+    if (hubHistory.length) {
+      const prev = hubHistory[hubHistory.length - 1];
+      setHubHistory(h => h.slice(0, -1));
+      try{sessionStorage.setItem('ae_stab',prev);}catch{}
+      setSpTab(prev);
+    }
   };
   const toggleTheme = () => {
     const n = theme==='dark'?'light':'dark';
     setTheme(n);
     try{localStorage.setItem('ae_sp_theme',n);}catch{}
   };
-  const goToFlashcards = topic => { setJumpTopic(topic); switchTab("library"); };
-  const goToQuiz = topic => { setJumpTopic(topic); switchTab("library"); };
+  const goToFlashcards = topic => { setJumpTopic(topic); switchTab("foundation"); };
+  const goToQuiz = topic => { setJumpTopic(topic); switchTab("foundation"); };
   const doRefresh = async () => {
     setSyncing(true); setSyncMsg("");
     const r = await apiPost("/api/data",{token:auth.token,action:"studentRead"});
@@ -7513,11 +8169,11 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
   const startAISession = async prompt => {
     const msgs = [{role:"user",content:prompt}];
     setAiMsgs(msgs); setAiInput(""); setAiLoading(true);
+    switchTab("ai"); // Switch immediately so student sees the loading indicator
     const prof = s ? {name:s.name,level:s.level,type:s.type,learnType:s.learnType,goals:s.goals} : {};
     const r = await apiPost("/api/tutor",{token:auth.token,messages:msgs,studentProfile:prof,systemPrompt:SP_TUTOR_PROMPT});
     setAiMsgs([...msgs,{role:"assistant",content:r.error?"⚠️ "+r.error:r.reply}]);
     setAiLoading(false);
-    switchTab("ai");
   };
   const submitWriting = async () => {
     if(!writeText.trim()||writeLd) return;
@@ -7530,7 +8186,8 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
   // Not found screen
   if(!s) return h`<div class="sp2-root" data-theme=${theme}>
     <div class="sp2-hdr">
-      <span class="sp2-logo">ARABIC ENTHUSIAST</span>
+      <div style=${{width:32,height:32,borderRadius:8,background:"var(--accent)",color:"var(--on-accent)",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"var(--f-ar)",fontSize:"1.1rem"}}>ع</div>
+      <span class="sp2-logo">Arabic Enthusiast</span>
       <div style=${{flex:1}}></div>
       <div class="sp2-hdr-actions">
         <button class="sp2-btn sp2-btn-g sp2-btn-sm sp2-mobile-label" data-mobile-label=${theme==='dark'?'Lt':'Dk'} onClick=${toggleTheme}>${theme==='dark'?'☀️ Light':'🌙 Dark'}</button>
@@ -7539,7 +8196,7 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
     </div>
     <div style=${{padding:60,textAlign:"center",color:"var(--sp-txt)"}}>
       <div style=${{fontSize:48,marginBottom:16}}>👤</div>
-      <h2 style=${{fontFamily:"'Playfair Display',serif",fontSize:26,color:"var(--sp-amber)",marginBottom:12}}>Profile Not Found</h2>
+      <h2 style=${{fontFamily:"var(--f-head)",fontSize:26,color:"var(--sp-amber)",marginBottom:12}}>Profile Not Found</h2>
       <p style=${{color:"var(--sp-txt2)",fontSize:14,lineHeight:1.7,maxWidth:400,margin:"0 auto"}}>Your account (${user.email||user.phone}) isn't linked to a student profile yet. Please ask Hadi to add your email to your student record.</p>
     </div>
   </div>`;
@@ -7573,22 +8230,118 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
   const prefFilled = [lp.why,lp.style,lp.time,(lp.topics||[]).length>0,lp.challenge,lp.personalGoal].filter(Boolean).length;
   const prefBadge = 6-prefFilled;
   const taskBadge = (s.weeklyTasks||[]).filter(t=>!t.doneAt).length;
-  const moreBadge = prefBadge + settingsBadge + taskBadge;
-  const navById = id => SP_NAV.find(item=>item.id===id) || {id,icon:'',label:id,group:null};
-  const studentNav = [
-    {...navById('home'),group:null},
-    {...navById('ai'),group:null},
-    {...navById('trace'),group:null},
-    {...navById('studio'),group:null},
-    {...navById('book'),label:'Book',group:null},
-    {...navById('library'),label:'Resources',group:null},
-    {id:'more',icon:'...',label:'More',group:null}
-  ];
-  const studentNavGroups = [null];
-  const navActiveId = SP_MORE_NAV.some(item=>item.id===spTab) ? 'more' : spTab;
+  // Determine which top-level nav item is "active"
+  const navActiveId = SCREEN_HUB[spTab] || spTab;
+  // Determine if current screen is a hub sub-screen (has a parent hub)
+  const currentHub = SCREEN_HUB[spTab] || null;
+  const hubLabel = currentHub ? NAV.find(n=>n.id===currentHub)?.label : null;
+  const subLabel = currentHub ? HUBS[currentHub]?.find(item=>item.id===spTab)?.label : null;
+
+  // Badge counts + dynamic subtitles per screen id — used on hub cards
+  const screenBadge = {messages:taskBadge, preferences:prefBadge, settings:settingsBadge};
+  const screenSub = {
+    messages: taskBadge>0?`${taskBadge} task${taskBadge!==1?"s":""} pending`:null,
+    preferences: prefBadge>0?`${prefBadge} section${prefBadge!==1?"s":""} incomplete`:null,
+    settings: settingsBadge>0?`${settingsBadge} item${settingsBadge!==1?"s":""} need attention`:null,
+    skills: null,
+    flashcards: (()=>{const allDecks=(s.flashcardDecks||[]);const total=allDecks.reduce((n,d)=>(d.cards||[]).length+n,0);return total>0?`${total} card${total!==1?"s":""} across ${allDecks.length} deck${allDecks.length!==1?"s":""}`:null;})(),
+    book: nextLesson?`Next: ${fmt(nextLesson.date)}`:null,
+    studio: (()=>{const open=(data.homework||[]).filter(h=>h.studentId===s.id&&h.status==="assigned").length;return open>0?`${open} assigned item${open!==1?"s":""}`:null;})(),
+    progress: `Level ${level} · ⭐ ${xp} XP`,
+  };
+
+  // Hub card renderer
+  const renderHub = (hubId) => {
+    const items = HUBS[hubId] || [];
+    const hubNav = NAV.find(n=>n.id===hubId);
+    const isLast = id => lastHubTab[hubId] === id;
+    return h`<div>
+      <div style=${{marginBottom:22,display:"flex",alignItems:"center",gap:12}}>
+        <div style=${{
+          width:44,height:44,borderRadius:"var(--r-sm)",flexShrink:0,
+          background:"color-mix(in oklab,var(--accent) 12%,var(--surface))",
+          display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,
+        }}>${hubNav?.icon}</div>
+        <div>
+          <h2 style=${{fontFamily:"var(--f-head)",fontSize:"1.5rem",fontWeight:600,color:"var(--ink)",lineHeight:1.1}}>${hubNav?.label}</h2>
+          <p style=${{fontSize:"0.82rem",color:"var(--muted)",marginTop:2}}>Choose where to go</p>
+        </div>
+      </div>
+      <div style=${{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:12}}>
+        ${items.map(item=>{
+          const badge  = screenBadge[item.id]||0;
+          const sub    = screenSub[item.id];
+          const last   = isLast(item.id);
+          return h`<button key=${item.id}
+            class="sp2-card"
+            onClick=${()=>switchTab(item.id)}
+            style=${{
+              textAlign:"left",
+              border:last?"1.5px solid color-mix(in oklab, var(--accent) 40%, transparent)":"1px solid var(--line)",
+              background:last?"color-mix(in oklab, var(--accent) 7%, var(--surface))":"var(--surface)",
+              cursor:"pointer",transition:"all .22s var(--ease)",
+              padding:"18px 18px",borderRadius:"var(--r-lg)",width:"100%",
+              position:"relative",
+            }}
+            onMouseEnter=${e=>{e.currentTarget.style.transform="translateY(-4px)";e.currentTarget.style.boxShadow="var(--shadow)";e.currentTarget.style.borderColor="color-mix(in oklab, var(--accent) 50%, var(--line))";}}
+            onMouseLeave=${e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="none";e.currentTarget.style.borderColor=last?"1.5px solid color-mix(in oklab, var(--accent) 40%, transparent)":"var(--line)";}}
+          >
+            <!-- Badge -->
+            ${badge>0?h`<span style=${{
+              position:"absolute",top:10,right:10,
+              background:"var(--accent)",color:"var(--on-accent)",
+              borderRadius:99,fontSize:"0.58rem",fontWeight:700,padding:"2px 7px",
+            }}>${badge}</span>`:null}
+            <!-- Last-visited dot -->
+            ${last&&!badge?h`<span style=${{
+              position:"absolute",top:12,right:12,width:7,height:7,
+              borderRadius:99,background:"var(--accent)",
+            }}></span>`:null}
+            <div style=${{fontSize:24,marginBottom:10}}>${item.icon}</div>
+            <div style=${{fontFamily:"var(--f-head)",fontSize:"1rem",fontWeight:600,color:"var(--ink)",marginBottom:sub?3:0}}>${item.label}</div>
+            ${sub?h`<div style=${{fontSize:"0.72rem",color:"var(--accent)",fontWeight:600,marginBottom:4}}>${sub}</div>`:null}
+            <div style=${{fontSize:"0.8rem",color:"var(--muted)",lineHeight:1.5,marginTop:sub?0:4}}>${item.desc}</div>
+            <!-- Arrow -->
+            <div style=${{position:"absolute",bottom:14,right:14,fontSize:"0.7rem",color:"var(--faint)"}}>→</div>
+          </button>`;
+        })}
+      </div>
+    </div>`;
+  };
+
+  // Breadcrumb for sub-screens
+  const renderBreadcrumb = () => {
+    if (!currentHub) return null;
+    return h`<div style=${{
+      display:"flex",alignItems:"center",gap:8,
+      marginBottom:16,fontSize:"0.82rem",color:"var(--muted)",
+      flexWrap:"wrap",
+    }}>
+      ${hubHistory.length>0?h`<button onClick=${goBack} style=${{
+        background:"none",border:"none",cursor:"pointer",
+        color:"var(--accent)",fontFamily:"var(--f-body)",fontSize:"0.82rem",
+        padding:"4px 10px 4px 0",display:"flex",alignItems:"center",gap:4,
+      }}>← Back</button>`:null}
+      <button onClick=${()=>switchTab(currentHub)} style=${{
+        background:"none",border:"none",cursor:"pointer",
+        color:"var(--accent)",fontFamily:"var(--f-body)",fontSize:"0.82rem",
+        padding:0,
+      }}>${hubLabel}</button>
+      <span style=${{color:"var(--faint)"}}>›</span>
+      <span style=${{color:"var(--ink-2)",fontWeight:500}}>${subLabel}</span>
+    </div>`;
+  };
 
   // Tab content
   const renderContent = () => {
+
+    // ── HUB REDIRECTS — handle old routes ──
+    if(REDIRECTS[spTab]) { switchTab(REDIRECTS[spTab]); return null; }
+
+    // ── HUB LANDING VIEWS ──
+    if(spTab==='learn')   return renderHub('learn');
+    if(spTab==='lessons') return renderHub('lessons');
+    if(spTab==='profile') return renderHub('profile');
 
     // ── HOME ──
     if(spTab==='home') return h`<div style=${{maxWidth:760,margin:"0 auto"}}>
@@ -7598,13 +8351,13 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
             ${s.avatar?h`<img src=${s.avatar} style=${{width:52,height:52,objectFit:"cover"}}/>`:h`<div style=${{width:52,height:52,background:"var(--sp-glow)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>👤</div>`}
           </div>
           <div style=${{flex:1}}>
-            <div style=${{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:"var(--sp-txt)",marginBottom:4}}>${greeting}, ${firstName}!</div>
+            <div style=${{fontFamily:"var(--f-head)",fontSize:20,fontWeight:700,color:"var(--sp-txt)",marginBottom:4}}>${greeting}, ${firstName}!</div>
             <div style=${{fontSize:13,color:"var(--sp-txt2)"}}>${att.streak>=2?"🔥 "+att.streak+"-lesson streak — keep going!":lessonSummary.taken===0?"Your Arabic journey begins here ✨":"Ready to practice today?"}</div>
           </div>
           <div style=${{display:"flex",gap:8,flexShrink:0}}>
             ${(()=>{const credColor=left<=2?"var(--sp-red)":left<=4?"#f59e0b":"var(--sp-green)";const credBorder=left<=2?"rgba(207,71,68,0.3)":left<=4?"rgba(245,158,11,0.3)":"rgba(76,175,125,0.3)";return h`<div style=${{textAlign:"center",background:"var(--sp-glow)",border:"1px solid "+credBorder,borderRadius:12,padding:"10px 14px"}}>
               <div style=${{fontSize:9,fontWeight:700,color:credColor,textTransform:"uppercase",letterSpacing:1,marginBottom:3}}>Lessons Left</div>
-              <div style=${{fontSize:22,fontWeight:900,fontFamily:"'Playfair Display',serif",color:credColor,lineHeight:1}}>${left<=0?"0":left}</div>
+              <div style=${{fontSize:22,fontWeight:900,fontFamily:"var(--f-head)",color:credColor,lineHeight:1}}>${left<=0?"0":left}</div>
               <div style=${{fontSize:9,color:"var(--sp-txt3)",marginTop:2}}>of ${lessonSummary.total||0}</div>
               ${lessonSummary.freeTotal>0?h`<div style=${{fontSize:9,color:"var(--sp-green)",marginTop:3,fontWeight:700}}>${lessonSummary.freeLeft} free left</div>`:null}
               ${lessonSummary.overdue>0?h`<div style=${{fontSize:9,color:"var(--sp-red)",marginTop:3,fontWeight:800}}>Overdue ${lessonSummary.overdue}</div>`:null}
@@ -7622,7 +8375,7 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
       <div style=${{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:18}}>
         ${[["📚","Lessons Done",lessonSummary.taken,"var(--sp-amber)"],["📅","Attendance",att.rate+"%",att.rate>=80?"var(--sp-green)":att.rate>=60?"#f59e0b":"var(--sp-red)"],["🔥","Streak",(s.streakDays||0)+" days","#ff6b35"],["📖","Topics",doneCount+"/"+assigned.length,"var(--sp-teal)"]].map(([icon,label,val,color])=>h`<div class="sp2-card" style=${{textAlign:"center",padding:16,borderTop:"3px solid "+color}} key=${label}>
           <div style=${{fontSize:22,marginBottom:6}}>${icon}</div>
-          <div style=${{fontSize:20,fontWeight:700,fontFamily:"'Playfair Display',serif",color}}>${val}</div>
+          <div style=${{fontSize:20,fontWeight:700,fontFamily:"var(--f-head)",color}}>${val}</div>
           <div style=${{fontSize:10,color:"var(--sp-txt3)",textTransform:"uppercase",letterSpacing:0.8,marginTop:3}}>${label}</div>
         </div>`)}
       </div>
@@ -7630,7 +8383,7 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
       <div class="sp2-card" style=${{marginBottom:18,display:"flex",alignItems:"center",gap:14}}>
         <div style=${{background:"var(--sp-glow)",borderRadius:10,padding:"8px 14px",textAlign:"center",minWidth:56,flexShrink:0}}>
           <div style=${{fontSize:10,fontWeight:700,color:"var(--sp-amber)",textTransform:"uppercase",letterSpacing:1}}>LVL</div>
-          <div style=${{fontSize:28,fontWeight:900,fontFamily:"'Playfair Display',serif",color:"var(--sp-amber)",lineHeight:1}}>${level}</div>
+          <div style=${{fontSize:28,fontWeight:900,fontFamily:"var(--f-head)",color:"var(--sp-amber)",lineHeight:1}}>${level}</div>
         </div>
         <div style=${{flex:1}}>
           <div style=${{display:"flex",justifyContent:"space-between",marginBottom:6}}>
@@ -7689,7 +8442,7 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
     // ── AI TUTOR ──
     if(spTab==='ai') {
       if(aiMsgs.length===0) return h`<div style=${{maxWidth:700,margin:"0 auto"}}>
-        <div style=${{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:700,marginBottom:6,color:"var(--sp-txt)"}}>AI Tutor 🤖</div>
+        <div style=${{fontFamily:"var(--f-head)",fontSize:24,fontWeight:700,marginBottom:6,color:"var(--sp-txt)"}}>AI Tutor 🤖</div>
         <div style=${{fontSize:14,color:"var(--sp-txt2)",marginBottom:22,lineHeight:1.7}}>Your personal Arabic coach, available 24/7. Start a session below or ask anything.</div>
         <div style=${{marginBottom:22}}>
           <div style=${{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:1.5,color:"var(--sp-txt3)",marginBottom:12}}>Quick Start a Session</div>
@@ -7740,7 +8493,7 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
 
     // ── SKILLS ──
     if(spTab==='skills') return h`<div>
-      <div style=${{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:700,marginBottom:14,color:"var(--sp-txt)"}}>Skills</div>
+      <div style=${{fontFamily:"var(--f-head)",fontSize:24,fontWeight:700,marginBottom:14,color:"var(--sp-txt)"}}>Skills</div>
       <div class="sp2-tabs" style=${{marginBottom:20}}>
         ${[["read","📖 Read"],["write","✍️ Write"],["listen","🎧 Listen"],["speak","🗣️ Speak"]].map(([id,label])=>h`<button key=${id} class=${"sp2-tab "+(skillTab===id?"on":"")} onClick=${()=>setSkillTab(id)}>${label}</button>`)}
       </div>
@@ -7754,7 +8507,7 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
                 <span class="sp2-badge sp2-badge-a">${p.level}</span>
                 <span class=${"sp2-badge "+(p.dialect==="Lebanese"?"sp2-badge-t":"sp2-badge-g")}>${p.dialect}</span>
               </div>
-              <div style=${{fontFamily:"'Playfair Display',serif",fontSize:17,fontWeight:700,color:"var(--sp-txt)",marginBottom:5}}>${p.titleEn}</div>
+              <div style=${{fontFamily:"var(--f-head)",fontSize:17,fontWeight:700,color:"var(--sp-txt)",marginBottom:5}}>${p.titleEn}</div>
               <div style=${{fontFamily:"'Amiri',serif",fontSize:15,direction:"rtl",textAlign:"right",color:"var(--sp-amber)"}}>${p.title}</div>
             </div>`)}
           </div>
@@ -7824,7 +8577,7 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
 
     // ── FOUNDATION ──
     if(spTab==='foundation') return h`<div>
-      <div style=${{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:700,marginBottom:14,color:"var(--sp-txt)"}}>Foundation</div>
+      <div style=${{fontFamily:"var(--f-head)",fontSize:24,fontWeight:700,marginBottom:14,color:"var(--sp-txt)"}}>Foundation</div>
       <div class="sp2-tabs" style=${{marginBottom:20}}>
         ${[["vocab","📚 Vocab"],["roots","🌿 Roots"],["grammar","📐 Grammar"]].map(([id,label])=>h`<button key=${id} class=${"sp2-tab "+(foundTab===id?"on":"")} onClick=${()=>setFoundTab(id)}>${label}</button>`)}
       </div>
@@ -7883,7 +8636,7 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
               <div style=${{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
                 <span class="sp2-badge sp2-badge-a">${g.level}</span>
               </div>
-              <div style=${{fontFamily:"'Playfair Display',serif",fontSize:16,fontWeight:700,color:"var(--sp-txt)",marginBottom:5}}>${g.title}</div>
+              <div style=${{fontFamily:"var(--f-head)",fontSize:16,fontWeight:700,color:"var(--sp-txt)",marginBottom:5}}>${g.title}</div>
               <div style=${{fontFamily:"'Amiri',serif",fontSize:15,color:"var(--sp-amber)",direction:"rtl"}}>${g.titleAr}</div>
             </div>`)}
           </div>
@@ -7893,7 +8646,7 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
           ${(()=>{const g=SP_GRAMMAR[gramIdx];return h`<div>
             <div class="sp2-card" style=${{marginBottom:14}}>
               <div style=${{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-                <div style=${{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:"var(--sp-txt)"}}>${g.title}</div>
+                <div style=${{fontFamily:"var(--f-head)",fontSize:20,fontWeight:700,color:"var(--sp-txt)"}}>${g.title}</div>
                 <span class="sp2-badge sp2-badge-a">${g.level}</span>
               </div>
               <div style=${{fontFamily:"'Amiri',serif",fontSize:20,color:"var(--sp-amber)",direction:"rtl",textAlign:"right",marginBottom:14}}>${g.titleAr}</div>
@@ -7916,45 +8669,58 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
       </div>`:null}
     </div>`;
 
-    // ── SCRIPT ──
-    if(spTab==='script') return h`<div>
-      <div style=${{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:700,marginBottom:6,color:"var(--sp-txt)"}}>Arabic Script</div>
-      <div style=${{fontSize:13,color:"var(--sp-txt2)",marginBottom:20,lineHeight:1.6}}>The Arabic alphabet has 28 letters, written right-to-left. Each letter has 4 forms depending on its position. Click any letter to explore it.</div>
-      <div style=${{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(62px,1fr))",gap:8,marginBottom:20}}>
-        ${SP_SCRIPT.map((l,i)=>h`<div key=${i} class=${"sp2-letter-cell "+(scriptLetter===i?"on":"")} onClick=${()=>setScriptLetter(scriptLetter===i?null:i)} title=${l.n}>
-          ${l.l}
-        </div>`)}
-      </div>
-      ${scriptLetter!==null?h`<div class="sp2-card" style=${{borderLeft:"4px solid var(--sp-amber)",marginBottom:14}}>
-        ${(()=>{const l=SP_SCRIPT[scriptLetter];return h`<div>
-          <div style=${{display:"flex",alignItems:"center",gap:20,marginBottom:16}}>
-            <div style=${{fontFamily:"'Amiri',serif",fontSize:64,color:"var(--sp-amber)",lineHeight:1}}>${l.l}</div>
-            <div>
-              <div style=${{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:"var(--sp-txt)"}}>${l.n}</div>
-              <div style=${{fontSize:14,color:"var(--sp-txt2)",marginTop:4}}>Pronunciation: <strong style=${{color:"var(--sp-amber)"}}>${l.p}</strong></div>
-            </div>
+    // ── SCRIPT + TRACE (merged) ──
+    if(spTab==='script'||spTab==='trace') {
+      // if navigated via 'trace' directly, switch active tab
+      const activeScriptTab = spTab==='trace' ? 'trace' : scriptTab;
+      return h`<div>
+        <div style=${{marginBottom:16}}>
+          <h2 style=${{fontFamily:"var(--f-head)",fontSize:"1.5rem",fontWeight:600,color:"var(--ink)",marginBottom:4}}>Script</h2>
+          <p style=${{fontSize:"0.88rem",color:"var(--muted)",marginBottom:12}}>Explore the 28 Arabic letters and practise tracing them.</p>
+          <div class="sp2-tabs" style=${{marginBottom:20}}>
+            <button class=${"sp2-tab "+(activeScriptTab==="recognise"?"on":"")} onClick=${()=>setScriptTab("recognise")}>Recognise</button>
+            <button class=${"sp2-tab "+(activeScriptTab==="trace"?"on":"")} onClick=${()=>setScriptTab("trace")}>Trace</button>
           </div>
-          <div style=${{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
-            ${["Isolated","Initial","Medial","Final"].map((pos,pi)=>h`<div key=${pi} style=${{textAlign:"center",padding:"12px 8px",borderRadius:10,background:"var(--sp-surface)",border:"1px solid var(--sp-border)"}}>
-              <div style=${{fontFamily:"'Amiri',serif",fontSize:28,color:"var(--sp-amber)",marginBottom:6}}>${l.f[pi]}</div>
-              <div style=${{fontSize:11,color:"var(--sp-txt3)"}}>${pos}</div>
+        </div>
+
+        ${activeScriptTab==="recognise"?h`<div>
+          <div style=${{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(62px,1fr))",gap:8,marginBottom:20}}>
+            ${SP_SCRIPT.map((l,i)=>h`<div key=${i} class=${"sp2-letter-cell "+(scriptLetter===i?"on":"")} onClick=${()=>setScriptLetter(scriptLetter===i?null:i)} title=${l.n}>
+              ${l.l}
             </div>`)}
           </div>
-          <div style=${{marginTop:14,textAlign:"center"}}>
-            <button class="sp2-btn sp2-btn-g sp2-btn-sm" onClick=${()=>startAISession("Give me 5 common Arabic words that feature the letter "+l.l+" ("+l.n+"). Show each word in Arabic with full diacritics, transliteration, and English meaning.")}>🤖 Words with ${l.l}</button>
-          </div>
-        </div>`})()}
-      </div>`:null}
-    </div>`;
+          ${scriptLetter!==null?h`<div class="sp2-card" style=${{borderLeft:"4px solid var(--accent)",marginBottom:14}}>
+            ${(()=>{const l=SP_SCRIPT[scriptLetter];return h`<div>
+              <div style=${{display:"flex",alignItems:"center",gap:20,marginBottom:16}}>
+                <div style=${{fontFamily:"var(--f-ar)",fontSize:64,color:"var(--accent)",lineHeight:1}}>${l.l}</div>
+                <div>
+                  <div style=${{fontFamily:"var(--f-head)",fontSize:20,fontWeight:600,color:"var(--ink)"}}>${l.n}</div>
+                  <div style=${{fontSize:14,color:"var(--ink-2)",marginTop:4}}>/${l.p}/</div>
+                </div>
+              </div>
+              <div style=${{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
+                ${["Isolated","Initial","Medial","Final"].map((pos,pi)=>h`<div key=${pi} style=${{textAlign:"center",padding:"12px 8px",borderRadius:"var(--r-sm)",background:"var(--surface-2)",border:"1px solid var(--line)"}}>
+                  <div style=${{fontFamily:"var(--f-ar)",fontSize:28,color:"var(--accent)",marginBottom:6}}>${l.f[pi]}</div>
+                  <div style=${{fontSize:11,color:"var(--muted)"}}>${pos}</div>
+                </div>`)}
+              </div>
+              <div style=${{marginTop:14,textAlign:"center"}}>
+                <button class="sp2-btn sp2-btn-g sp2-btn-sm" onClick=${()=>startAISession("Give me 5 common Arabic words that feature the letter "+l.l+" ("+l.n+"). Show each word in Arabic with full diacritics, transliteration, and English meaning.")}>🤖 Words with ${l.l}</button>
+              </div>
+            </div>`})()}
+          </div>`:null}
+        </div>`:h`<${ArabicTracingLab} student=${s} data=${data} setData=${setData}/>`}
+      </div>`;
+    }
 
     // ── CULTURE ──
     if(spTab==='culture') return h`<div>
-      <div style=${{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:700,marginBottom:6,color:"var(--sp-txt)"}}>Culture</div>
+      <div style=${{fontFamily:"var(--f-head)",fontSize:24,fontWeight:700,marginBottom:6,color:"var(--sp-txt)"}}>Culture</div>
       <div style=${{fontSize:13,color:"var(--sp-txt2)",marginBottom:20,lineHeight:1.6}}>Language and culture are inseparable. Understanding Arab culture deepens your fluency and connection with the language.</div>
       <div style=${{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:16}}>
         ${SP_CULTURE.map((c,i)=>h`<div key=${i} class="sp2-card sp2-card-h">
           <div style=${{width:56,height:56,borderRadius:12,background:"var(--sp-glow)",border:"1px solid var(--sp-border-h)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,marginBottom:12}}>${c.emoji}</div>
-          <div style=${{fontFamily:"'Playfair Display',serif",fontSize:17,fontWeight:700,color:"var(--sp-txt)",marginBottom:4}}>${c.title}</div>
+          <div style=${{fontFamily:"var(--f-head)",fontSize:17,fontWeight:700,color:"var(--sp-txt)",marginBottom:4}}>${c.title}</div>
           <div style=${{fontFamily:"'Amiri',serif",fontSize:15,color:"var(--sp-amber)",direction:"rtl",marginBottom:10}}>${c.titleAr}</div>
           <p style=${{fontSize:13,color:"var(--sp-txt2)",lineHeight:1.7,marginBottom:14}}>${c.desc}</p>
           <div style=${{background:"var(--sp-glow)",borderRadius:10,padding:"10px 12px",border:"1px solid var(--sp-border)"}}>
@@ -7965,68 +8731,208 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
       </div>
     </div>`;
 
-    if(spTab==='goals') return h`<${GoalsTab} student=${s} data=${data} setData=${setData} auth=${auth}/>`;
-    if(spTab==='howto') return h`<${HowToStudentView} student=${s} data=${data} setData=${setData}/>`;
+    // goals → preferences (handled above); howto → messages (handled above)
 
-    if(spTab==='more') return h`<div style=${{maxWidth:760,margin:"0 auto"}}>
-      <div style=${{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:700,marginBottom:6,color:"var(--sp-txt)"}}>More</div>
-      <div style=${{fontSize:13,color:"var(--sp-txt2)",marginBottom:18,lineHeight:1.7}}>Extra tools and account settings are here when you need them.</div>
-      <div style=${{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:12}}>
-        ${SP_MORE_NAV.map(item=>{
-          const badge = item.id==='messages' ? taskBadge : item.id==='preferences' ? prefBadge : item.id==='settings' ? settingsBadge : 0;
-          return h`<button key=${item.id} class="sp2-card sp2-card-h" onClick=${()=>switchTab(item.id)} style=${{textAlign:"left",border:"1px solid var(--sp-border)",color:"var(--sp-txt)",fontFamily:"'DM Sans',sans-serif",position:"relative"}}>
-            ${badge>0?h`<span style=${{position:"absolute",top:10,right:10,background:"var(--sp-amber)",color:"#fff",borderRadius:10,fontSize:10,fontWeight:800,padding:"1px 7px"}}>${badge}</span>`:null}
-            <div style=${{fontSize:22,marginBottom:10}}>${item.icon}</div>
-            <div style=${{fontWeight:800,fontSize:14,marginBottom:5,color:"var(--sp-txt)"}}>${item.label}</div>
-            <div style=${{fontSize:12,lineHeight:1.55,color:"var(--sp-txt2)"}}>${item.desc}</div>
-          </button>`;
-        })}
+    // "more" is no longer a top-level destination — redirect to lessons hub
+    if(spTab==='more') { switchTab('lessons'); return null; }
+
+    // trace already handled by the script+trace merged block above
+    if(spTab==='trace') { setScriptTab('trace'); return h`<${ArabicTracingLab} student=${s} data=${data} setData=${setData}/>`; }
+
+    // ── STUDIO + CURRICULUM (merged: Assigned / Course) ──
+    if(spTab==='studio'||spTab==='curriculum') return h`<div>
+      <div style=${{marginBottom:16}}>
+        <h2 style=${{fontFamily:"var(--f-head)",fontSize:"1.5rem",fontWeight:600,color:"var(--ink)",marginBottom:4}}>Course Materials</h2>
+        <p style=${{fontSize:"0.88rem",color:"var(--muted)",marginBottom:12}}>Your assigned activities and the full course curriculum.</p>
+        <div class="sp2-tabs" style=${{marginBottom:20}}>
+          <button class=${"sp2-tab "+(studioTab==="assigned"?"on":"")} onClick=${()=>setStudioTab("assigned")}>Assigned</button>
+          <button class=${"sp2-tab "+(studioTab==="curriculum"?"on":"")} onClick=${()=>setStudioTab("curriculum")}>Curriculum</button>
+        </div>
       </div>
+      ${studioTab==="assigned"
+        ?h`<${StudentLearningStudio} student=${s} data=${data} setData=${setData}/>`
+        :h`<${StudentCurriculumTab} student=${s} data=${data} setData=${setData} onGoFlashcards=${goToFlashcards} onGoQuiz=${goToQuiz}/>`}
     </div>`;
 
-    if(spTab==='trace') return h`<${ArabicTracingLab} student=${s} data=${data} setData=${setData}/>`;
-    if(spTab==='studio') return h`<${StudentLearningStudio} student=${s} data=${data} setData=${setData}/>`;
-    if(spTab==='library') return h`<${StudentLibraryTab} student=${s} data=${data} setData=${setData} initialTopic=${jumpTopic}/>`;
+    // ── FLASHCARDS (moved to Learn) ──
+    if(spTab==='flashcards') return h`<div style=${{maxWidth:860,margin:"0 auto"}}>
+      <h2 style=${{fontFamily:"var(--f-head)",fontSize:"1.5rem",fontWeight:600,color:"var(--ink)",marginBottom:4}}>Flashcards</h2>
+      <p style=${{fontSize:"0.88rem",color:"var(--muted)",marginBottom:20}}>Vocabulary flashcards with spaced repetition.</p>
+      <${LibraryFlashcards} student=${s} data=${data} setData=${setData} initialTopic=${jumpTopic}/>
+    </div>`;
 
-    if(spTab==='messages') return h`<div style=${{maxWidth:760,margin:"0 auto"}}>
-      <div style=${{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:700,marginBottom:6,color:"var(--sp-txt)"}}>Messages & Tasks</div>
-      <div style=${{fontSize:13,color:"var(--sp-txt2)",marginBottom:18,lineHeight:1.7}}>Your teacher's notes, assigned weekly tasks, and your message box are collected here.</div>
+    // ── DICTATION (moved to Learn) ──
+    if(spTab==='dictation') return h`<div style=${{maxWidth:860,margin:"0 auto"}}>
+      <h2 style=${{fontFamily:"var(--f-head)",fontSize:"1.5rem",fontWeight:600,color:"var(--ink)",marginBottom:4}}>Dictation</h2>
+      <p style=${{fontSize:"0.88rem",color:"var(--muted)",marginBottom:20}}>Listening and dictation practice.</p>
+      <${DictationTab} student=${s} data=${data} setData=${setData}/>
+    </div>`;
+
+    // ── VERBS (Library hub) ──
+    if(spTab==='verbs') return h`<div style=${{maxWidth:860,margin:"0 auto"}}>
+      <h2 style=${{fontFamily:"var(--f-head)",fontSize:"1.5rem",fontWeight:600,color:"var(--ink)",marginBottom:4}}>Verbs</h2>
+      <p style=${{fontSize:"0.88rem",color:"var(--muted)",marginBottom:20}}>Verb tables and conjugation practice.</p>
+      <${VerbsTab} data=${data}/>
+    </div>`;
+
+    // ── RESOURCES (Library hub — was 'library') ──
+    if(spTab==='resources'||spTab==='library') return h`<div style=${{maxWidth:860,margin:"0 auto"}}>
+      <h2 style=${{fontFamily:"var(--f-head)",fontSize:"1.5rem",fontWeight:600,color:"var(--ink)",marginBottom:4}}>Resources</h2>
+      <p style=${{fontSize:"0.88rem",color:"var(--muted)",marginBottom:16}}>Files, recordings, and links shared by Hadi.</p>
+      <${StudentLibraryTab} student=${s} data=${data} setData=${setData} initialTopic=${jumpTopic} defaultTab="resources" hideNav=${true}/>
+    </div>`;
+
+    // ── MESSAGES + TASKS + HOW-TO (merged) ──
+    if(spTab==='messages'||spTab==='howto') return h`<div style=${{maxWidth:760,margin:"0 auto"}}>
+      <h2 style=${{fontFamily:"var(--f-head)",fontSize:"1.5rem",fontWeight:600,color:"var(--ink)",marginBottom:4}}>Messages & Tasks</h2>
+      <p style=${{fontSize:"0.88rem",color:"var(--muted)",marginBottom:20}}>Your teacher's notes, weekly tasks, message box, and how-to guide.</p>
       <${StudentWeeklyTasks} student=${s} data=${data} setData=${setData} auth=${auth}/>
       <${StudentTeacherUpdates} student=${s}/>
-      ${(s.weeklyTasks||[]).length===0&&!s.teacherStrengths&&!s.teacherImprove&&!s.teacherSummary&&!s.nextSteps&&!s.homeworkNotes?h`<div class="sp2-card" style=${{marginBottom:18,textAlign:"center",color:"var(--sp-txt2)",lineHeight:1.7}}>No notes or weekly tasks from Hadi yet.</div>`:null}
+      ${(s.weeklyTasks||[]).length===0&&!s.teacherStrengths&&!s.teacherImprove&&!s.teacherSummary&&!s.nextSteps&&!s.homeworkNotes?h`<div class="sp2-card" style=${{marginBottom:18,textAlign:"center",color:"var(--muted)",lineHeight:1.7}}>No notes or weekly tasks from Hadi yet.</div>`:null}
       <${StudentNoteToTeacher} student=${s} data=${data} setData=${setData} auth=${auth}/>
+      <div class="sp2-card" style=${{marginTop:18}}>
+        <div style=${{fontFamily:"var(--f-head)",fontSize:"1.1rem",fontWeight:600,color:"var(--ink)",marginBottom:4}}>💡 How-To Guide</div>
+        <div style=${{fontSize:"0.88rem",color:"var(--muted)",marginBottom:14}}>Common Arabic learning questions answered by Hadi.</div>
+        <${HowToStudentView} student=${s} data=${data} setData=${setData}/>
+      </div>
     </div>`;
 
     // ── BOOK ──
     if(spTab==='book') return h`<div style=${{maxWidth:680,margin:"0 auto"}}><${StudentScheduler} student=${s} data=${data} setData=${setData} auth=${auth}/></div>`;
 
-    // ── CURRICULUM ──
-    if(spTab==='curriculum') return h`<${StudentCurriculumTab} student=${s} data=${data} setData=${setData} onGoFlashcards=${goToFlashcards} onGoQuiz=${goToQuiz}/>`;
+    // ── MY JOURNEY = Preferences + Goals (merged) ──
+    if(spTab==='preferences'||spTab==='goals') return h`<div style=${{maxWidth:720,margin:"0 auto"}}>
+      <h2 style=${{fontFamily:"var(--f-head)",fontSize:"1.5rem",fontWeight:600,color:"var(--ink)",marginBottom:4}}>My Journey</h2>
+      <p style=${{fontSize:"0.88rem",color:"var(--muted)",marginBottom:20}}>Your learning profile, goals, and progress preferences.</p>
+      <${StudentPreferencesTab} student=${s} data=${data} setData=${setData} auth=${auth}/>
+      <div style=${{marginTop:16}}>
+        <${GoalsTab} student=${s} data=${data} setData=${setData} auth=${auth}/>
+      </div>
+    </div>`;
 
-    // ── PREFERENCES ──
-    if(spTab==='preferences') return h`<${StudentPreferencesTab} student=${s} data=${data} setData=${setData} auth=${auth}/>`;
+    // ── PROGRESS — surface XP/streak/level ──
+    if(spTab==='progress') return h`<div style=${{maxWidth:720,margin:"0 auto"}}>
+      <h2 style=${{fontFamily:"var(--f-head)",fontSize:"1.5rem",fontWeight:600,color:"var(--ink)",marginBottom:4}}>Progress</h2>
+      <p style=${{fontSize:"0.9rem",color:"var(--muted)",marginBottom:20}}>Your learning journey at a glance.</p>
+      <div class="sp2-card" style=${{marginBottom:16,display:"flex",alignItems:"center",gap:16}}>
+        <div style=${{background:"var(--sp-glow)",borderRadius:"var(--r-sm)",padding:"10px 16px",textAlign:"center",minWidth:64,flexShrink:0}}>
+          <div style=${{fontSize:"0.6rem",fontWeight:700,color:"var(--accent)",textTransform:"uppercase",letterSpacing:"0.14em"}}>Level</div>
+          <div style=${{fontSize:"2rem",fontWeight:700,fontFamily:"var(--f-head)",color:"var(--accent)",lineHeight:1}}>${level}</div>
+        </div>
+        <div style=${{flex:1}}>
+          <div style=${{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+            <span style=${{fontSize:13,fontWeight:600,color:"var(--ink)"}}>⭐ ${xp} XP total</span>
+            <span style=${{fontSize:11,color:"var(--muted)"}}>${xpPct}/100 to level ${level+1}</span>
+          </div>
+          <div class="sp2-prog"><div class="sp2-prog-f" style=${{width:xpPct+"%"}}></div></div>
+          ${(s.streakDays||0)>=3?h`<div style=${{marginTop:6,fontSize:12,color:"#ff6b35",fontWeight:600}}>🔥 ${s.streakDays}-day streak!</div>`:null}
+        </div>
+      </div>
+      <div style=${{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:12}}>
+        ${[["📚","Lessons Done",lessonSummary.taken,"var(--accent)"],["📅","Attendance",att.rate+"%",att.rate>=80?"var(--good)":att.rate>=60?"var(--warn)":"var(--bad)"],["🔥","Streak",(s.streakDays||0)+" days","#ff6b35"],["📖","Topics",doneCount+"/"+assigned.length,"var(--accent)"]].map(([icon,label,val,color])=>h`<div class="sp2-card" style=${{textAlign:"center",padding:16,borderTop:"3px solid "+color}} key=${label}>
+          <div style=${{fontSize:22,marginBottom:6}}>${icon}</div>
+          <div style=${{fontSize:22,fontWeight:700,fontFamily:"var(--f-head)",color}}>${val}</div>
+          <div style=${{fontSize:"0.62rem",color:"var(--muted)",textTransform:"uppercase",letterSpacing:"0.08em",marginTop:3}}>${label}</div>
+        </div>`)}
+      </div>
+    </div>`;
 
     // ── SETTINGS ──
     if(spTab==='settings') return h`<${StudentSettingsTab} student=${s} data=${data} setData=${setData} auth=${auth}/>`;
 
+    // ── GAMES (top-level nav item) ──
+    if(spTab==='games') return h`<div style=${{maxWidth:600,margin:"0 auto"}}>
+      <div style=${{display:"flex",alignItems:"center",gap:10,marginBottom:4}}>
+        <h2 style=${{fontFamily:"var(--f-head)",fontSize:"1.5rem",fontWeight:600,color:"var(--ink)"}}>Games</h2>
+      </div>
+      <p style=${{fontSize:"0.88rem",color:"var(--muted)",marginBottom:24}}>Sharpen your Arabic vocabulary through play.</p>
+      <div class="sp2-card" style=${{padding:0,overflow:"hidden"}}>
+        <div style=${{display:"flex",alignItems:"center",gap:14,padding:"16px 20px",borderBottom:"1px solid var(--line-2)",background:"var(--surface-2)"}}>
+          <div style=${{fontSize:26,flexShrink:0}}>🔤</div>
+          <div style=${{flex:1}}>
+            <div style=${{fontFamily:"var(--f-head)",fontSize:"1.05rem",fontWeight:600,color:"var(--ink)"}}>Arabic Anagram</div>
+            <div style=${{fontSize:"0.82rem",color:"var(--muted)"}}>Unscramble ${ANAGRAM_WORDS.length} vocabulary words — tap to rearrange letters</div>
+          </div>
+        </div>
+        <div style=${{padding:"22px 20px"}}>
+          <${ArabicAnagramGame} student=${s}/>
+        </div>
+      </div>
+    </div>`;
+
     return null;
   };
 
-  const mobNavItems = ['home','ai','trace','studio','book','more'].map(id=>studentNav.find(item=>item.id===id)).filter(Boolean);
-
   return h`<div class="sp2-root" data-theme=${theme}>
     <header class="sp2-hdr">
-      <div style=${{width:36,height:36,borderRadius:8,overflow:"hidden",border:"2px solid var(--sp-amber)",flexShrink:0,background:"#000",display:"flex",alignItems:"center",justifyContent:"center"}}>
-        <img src="/logo.jpeg" style=${{width:36,height:36,objectFit:"contain",display:"block"}}/>
-      </div>
+      <div style=${{width:32,height:32,borderRadius:8,background:"var(--accent)",color:"var(--on-accent)",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"var(--f-ar)",fontSize:"1.1rem",flexShrink:0}}>ع</div>
       <span class="sp2-logo">Arabic Enthusiast</span>
-      <div style=${{flex:1}}></div>
+
+      <!-- Search field (desktop only) -->
+      <div style=${{flex:1,maxWidth:280,margin:"0 16px",position:"relative"}} class="sp2-search-wrap">
+        <button
+          onClick=${()=>{setSearchOpen(true);setSearchQuery("");}}
+          style=${{
+            display:searchOpen?"none":"flex",alignItems:"center",gap:8,
+            width:"100%",padding:"7px 12px",
+            background:"var(--surface-2)",border:"1px solid var(--line)",
+            borderRadius:"var(--r-sm)",cursor:"text",
+            color:"var(--faint)",fontSize:"0.82rem",fontFamily:"var(--f-body)",
+            textAlign:"left",
+          }}
+        >
+          <span>🔍</span>
+          <span style=${{flex:1}}>Search screens…</span>
+          <kbd style=${{fontSize:"0.66rem",padding:"1px 5px",border:"1px solid var(--line)",borderRadius:4,color:"var(--muted)",background:"var(--surface)"}}>⌘K</kbd>
+        </button>
+        ${searchOpen?h`<div style=${{position:"relative"}}>
+          <input
+            ref=${searchRef}
+            value=${searchQuery}
+            onInput=${e=>setSearchQuery(e.target.value)}
+            onBlur=${()=>{ setTimeout(()=>{setSearchOpen(false);setSearchQuery("");},160); }}
+            placeholder="Search screens…"
+            style=${{
+              width:"100%",padding:"8px 12px",
+              background:"var(--surface)",border:"1px solid var(--accent)",
+              borderRadius:"var(--r-sm)",
+              boxShadow:"0 0 0 3px color-mix(in oklab, var(--accent) 16%, transparent)",
+              color:"var(--ink)",fontSize:"0.88rem",fontFamily:"var(--f-body)",
+              outline:"none",
+            }}
+          />
+          ${searchResults.length>0?h`<div style=${{
+            position:"absolute",top:"calc(100% + 6px)",left:0,right:0,zIndex:200,
+            background:"var(--surface)",border:"1px solid var(--line)",
+            borderRadius:"var(--r-sm)",boxShadow:"var(--shadow)",overflow:"hidden",
+          }}>
+            ${searchResults.map(t=>h`<button
+              key=${t.id}
+              onMouseDown=${()=>{switchTab(t.id);setSearchOpen(false);setSearchQuery("");}}
+              style=${{
+                display:"flex",alignItems:"center",gap:10,width:"100%",
+                padding:"10px 14px",background:"none",border:"none",
+                cursor:"pointer",textAlign:"left",transition:"background .12s",
+              }}
+              onMouseEnter=${e=>e.currentTarget.style.background="var(--surface-2)"}
+              onMouseLeave=${e=>e.currentTarget.style.background="none"}
+            >
+              <span style=${{fontSize:16,width:20,textAlign:"center"}}>${t.icon}</span>
+              <span style=${{flex:1}}>
+                <span style=${{fontSize:"0.88rem",fontWeight:500,color:"var(--ink)"}}>${t.label}</span>
+                ${t.hub?h`<span style=${{fontSize:"0.72rem",color:"var(--muted)",marginLeft:6}}>${t.hub}</span>`:null}
+              </span>
+            </button>`)}
+          </div>`:null}
+        </div>`:null}
+      </div>
+
       <div class="sp2-hdr-actions">
         ${(s.streakDays||0)>=2?h`<span class="sp2-badge sp2-badge-a" style=${{fontSize:12}}>🔥 ${s.streakDays}</span>`:null}
         <span class="sp2-badge sp2-badge-t" style=${{fontSize:12}}>⭐ ${xp} XP</span>
         <div style=${{display:"flex",flexDirection:"column",alignItems:"center"}}>
-          <button class="sp2-icon-btn" onClick=${doRefresh} disabled=${syncing} title="Sync latest data" style=${{background:"none",border:"1px solid var(--sp-border)",borderRadius:8,cursor:"pointer",color:"var(--sp-txt3)",fontSize:13}}>${syncing?"⏳":"🔄"}</button>
-          ${syncMsg?h`<span style=${{fontSize:9,color:syncMsg==="Synced!"?"var(--sp-green)":"var(--sp-red)",fontWeight:700}}>${syncMsg}</span>`:null}
+          <button class="sp2-icon-btn" onClick=${doRefresh} disabled=${syncing} title="Sync latest data" style=${{background:"none",border:"1px solid var(--line)",borderRadius:8,cursor:"pointer",color:"var(--muted)",fontSize:13}}>${syncing?"⏳":"🔄"}</button>
+          ${syncMsg?h`<span style=${{fontSize:9,color:syncMsg==="Synced!"?"var(--good)":"var(--bad)",fontWeight:700}}>${syncMsg}</span>`:null}
         </div>
         <button class="sp2-btn sp2-btn-g sp2-btn-sm" onClick=${toggleTheme} title="Toggle theme">${theme==='dark'?'☀️':'🌙'}</button>
         <button class="sp2-btn sp2-btn-g sp2-btn-sm sp2-mobile-label" data-mobile-label="Out" onClick=${onLogout}>Log Out</button>
@@ -8034,31 +8940,58 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
     </header>
 
     <div class="sp2-layout">
-      <nav class="sp2-sidebar">
-        ${studentNavGroups.map(g => {
-          const items = studentNav.filter(item => item.group === g);
-          return h`<div key=${g||'top'}>
-            ${g?h`<div class="sp2-nav-grp">${g}</div>`:null}
-            ${items.map(item => h`<button key=${item.id} class=${"sp2-nav-item "+(navActiveId===item.id?"on":"")} onClick=${()=>switchTab(item.id)}>
-              <span style=${{fontSize:15,width:20,flexShrink:0,textAlign:"center"}}>${item.icon}</span>
-              ${item.label}
-              ${item.id==='preferences'&&prefBadge>0?h`<span style=${{marginLeft:"auto",background:"var(--sp-amber)",color:"#fff",borderRadius:10,fontSize:10,fontWeight:700,padding:"1px 6px"}}>${prefBadge}</span>`:null}
-              ${item.id==='settings'&&settingsBadge>0?h`<span style=${{marginLeft:"auto",background:"var(--sp-amber)",color:"#fff",borderRadius:10,fontSize:10,fontWeight:700,padding:"1px 6px"}}>${settingsBadge}</span>`:null}
-              ${item.id==='more'&&moreBadge>0?h`<span style=${{marginLeft:"auto",background:"var(--sp-amber)",color:"#fff",borderRadius:10,fontSize:10,fontWeight:700,padding:"1px 6px"}}>${moreBadge}</span>`:null}
-            </button>`)}
-          </div>`;
+      <!-- Desktop sidebar — rendered from NAV (single source of truth) -->
+      <nav class="sp2-sidebar" aria-label="Main navigation">
+        ${NAV.map(item => {
+          const itemBadge = item.id==='lessons' ? taskBadge : item.id==='profile' ? prefBadge+settingsBadge : 0;
+          return h`<button
+            key=${item.id}
+            class=${"sp2-nav-item "+(navActiveId===item.id?"on":"")}
+            onClick=${()=>item.hub?openHub(item.id):switchTab(item.id)}
+            aria-current=${navActiveId===item.id?"page":undefined}
+            style=${{minHeight:44}}
+          >
+            <span style=${{fontSize:16,width:22,flexShrink:0,textAlign:"center"}}>${item.icon}</span>
+            <span style=${{flex:1}}>${item.label}</span>
+            ${itemBadge>0?h`<span style=${{background:"var(--accent)",color:"var(--on-accent)",borderRadius:99,fontSize:"0.6rem",fontWeight:700,padding:"1px 7px",marginLeft:2}}>${itemBadge}</span>`:null}
+          </button>`;
         })}
+        <!-- User block at bottom -->
+        <div style=${{marginTop:"auto",paddingTop:12,borderTop:"1px solid var(--line-2)",display:"flex",alignItems:"center",gap:10,padding:"14px 12px"}}>
+          <div style=${{width:32,height:32,borderRadius:"var(--r-sm)",background:"color-mix(in oklab, var(--accent) 16%, var(--surface))",color:"var(--accent)",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"var(--f-head)",fontSize:13,fontWeight:600,flexShrink:0}}>
+            ${s.name?s.name.split(" ").map(n=>n[0]).join("").slice(0,2).toUpperCase():"U"}
+          </div>
+          <div style=${{flex:1,minWidth:0}}>
+            <div style=${{fontSize:13,fontWeight:600,color:"var(--ink)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>${s.name||user.email||"Student"}</div>
+            <div style=${{fontSize:"0.65rem",color:"var(--muted)"}}>${s.level||""}${s.learnType?" · "+s.learnType:""}</div>
+          </div>
+        </div>
       </nav>
       <main class="sp2-content">
         <${NotificationNudge} auth=${auth} audience="student"/>
+        ${renderBreadcrumb()}
         ${renderContent()}
       </main>
     </div>
 
-    <nav class="sp2-mob-nav">
-      ${mobNavItems.map(item=>h`<button key=${item.id} class=${"sp2-mob-it "+(navActiveId===item.id?"on":"")} onClick=${()=>switchTab(item.id)}>
-        <span style=${{fontSize:20}}>${item.icon}</span>${item.label}
-      </button>`)}
+    <!-- Mobile bottom tab bar — exactly 5 tabs from NAV, NO More tab -->
+    <nav class="sp2-mob-nav" aria-label="Mobile navigation">
+      ${NAV.map(item => {
+        const itemBadge = item.id==='lessons' ? taskBadge : item.id==='profile' ? prefBadge+settingsBadge : 0;
+        return h`<button
+          key=${item.id}
+          class=${"sp2-mob-it "+(navActiveId===item.id?"on":"")}
+          onClick=${()=>item.hub?openHub(item.id):switchTab(item.id)}
+          aria-current=${navActiveId===item.id?"page":undefined}
+          style=${{minHeight:44,minWidth:44}}
+        >
+          <span style=${{fontSize:20,position:"relative",display:"inline-block"}}>
+            ${item.icon}
+            ${itemBadge>0?h`<span style=${{position:"absolute",top:-4,right:-6,background:"var(--accent)",color:"var(--on-accent)",borderRadius:99,fontSize:"0.55rem",fontWeight:700,padding:"1px 4px",lineHeight:1}}>${itemBadge}</span>`:null}
+          </span>
+          <span>${item.label}</span>
+        </button>`;
+      })}
     </nav>
   </div>`;
 }
@@ -10419,7 +11352,7 @@ function Settings({data, setData}) {
         </div>
       </div>
     </div>
-    <div class="card" style=${{display:"none"}}><h3>🎨 THEME COLORS</h3>
+    <div class="card"><h3>🎨 THEME COLORS</h3>
       <p style=${{fontSize:12,color:"var(--g500)",marginBottom:16}}>Pick a preset — one click applies all colors at once.</p>
       ${(()=>{
         const presets = [
@@ -10452,7 +11385,7 @@ function Settings({data, setData}) {
         </div>`;
       })()}
     </div>
-    <div class="card" style=${{display:"none"}}><h3>🔤 FONTS</h3>
+    <div class="card"><h3>🔤 FONTS</h3>
       <p style=${{fontSize:12,color:"var(--g500)",marginBottom:14}}>Pick fonts for headings and body text across the whole dashboard.</p>
       <div class="fr">
         <div class="fg">
@@ -10646,7 +11579,7 @@ function Settings({data, setData}) {
       </div>`}
     </div>
 
-    <div class="card" style=${{display:"none"}}><h3>🖼 BACKGROUND IMAGES</h3>
+    <div class="card"><h3>🖼 BACKGROUND IMAGES</h3>
       <p style=${{fontSize:12,color:"var(--g500)",marginBottom:18}}>Upload images for each area. They overlay the color settings above.</p>
       <div style=${{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:16}}>
         ${[
@@ -11721,7 +12654,7 @@ function App() {
         <circle class="ae-load-arc" cx="70" cy="70" r="56" fill="none" stroke="#c9a24a" stroke-width="2" stroke-dasharray="352" stroke-dashoffset="352" stroke-linecap="round"/>
         <text class="ae-load-letter" x="70" y="93" text-anchor="middle" font-family="Amiri,serif" font-size="62" fill="#17130c">ع</text>
       </svg>
-      <div class="ae-load-title" style=${{fontFamily:"'Cinzel',serif",fontSize:"0.8rem",letterSpacing:"0.2em",color:"#625741",textTransform:"uppercase"}}>Arabic Enthusiast</div>
+      <div class="ae-load-title" style=${{fontFamily:"var(--f-head)",fontSize:"0.8rem",letterSpacing:"0.2em",color:"#625741",textTransform:"uppercase"}}>Arabic Enthusiast</div>
     </div>
   </div>`;
 

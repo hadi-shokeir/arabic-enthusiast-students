@@ -10,7 +10,9 @@
     "vercel-build": "node -e \"console.log('Static app: no build step needed')\""
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.110.3",
     "@vercel/blob": "^0.27.0",
+    "stripe": "^22.3.1",
     "web-push": "^3.6.7"
   }
 }
