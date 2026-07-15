@@ -1828,7 +1828,7 @@ function earnXP(s, amount) {
   const newStreak = dayDiff === 0 ? cur : dayDiff === 1 ? cur + 1 : 1;
   return { xp: (s.xp||0) + amount, streakDays: newStreak, streakLastDate: td };
 }
-const mkResource = () => ({id:uid(),title:"",url:"",description:"",ogTitle:"",ogImage:"",ogDescription:"",type:"link",videoId:"",category:"General",fileName:"",fileData:"",addedAt:new Date().toISOString()});
+const mkResource = () => ({id:uid(),title:"",url:"",description:"",ogTitle:"",ogImage:"",ogDescription:"",type:"link",videoId:"",category:"General",track:"",level:"",fileName:"",fileData:"",addedAt:new Date().toISOString()});
 
 // ── Reliable cross-device file download (Blob URL method) ──────────────────
 // Using <a href="data:..."> directly fails on iOS Safari and some Android browsers.
@@ -3031,7 +3031,7 @@ function TeacherWeeklyTasks({student, upd, auth}) {
   </div>`;
 }
 
-function LessonPlanAI({student, data}) {
+function LessonPlanAI({student, data, onSave}) {
   const [plan, setPlan] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -3071,7 +3071,7 @@ function LessonPlanAI({student, data}) {
         recentLessons:recentLogs, homeworkSummary, openTasks
       }});
       if (d.error) setError(d.error);
-      else setPlan(d.result || "No plan returned.");
+      else { const result = d.result||"No plan returned."; setPlan(result); if(onSave) onSave(result); }
     } catch(e) {
       setError(e.message || "Could not generate plan.");
     }
@@ -3092,7 +3092,8 @@ function LessonPlanAI({student, data}) {
       <div class="ai-plan-metric"><div class="lb">Open Tasks</div><div class="vl">${(s.weeklyTasks||[]).filter(t=>!t.doneAt).length}</div></div>
     </div>
     ${error&&h`<div style=${{padding:"10px 12px",background:"#fff5f5",border:"1px solid #ffd0d0",borderRadius:8,color:"var(--bd)",fontSize:13,marginBottom:12}}>${error}</div>`}
-    ${plan&&h`<div style=${{padding:"14px 16px",background:"var(--g50)",border:"1px solid var(--g200)",borderRadius:10,whiteSpace:"pre-wrap",fontSize:13,lineHeight:1.75,fontFamily:"var(--fb)"}}>${plan}</div>`}
+    ${s.aiPlanDate&&!plan&&h`<div style=${{fontSize:11,color:"var(--g400)",marginBottom:8}}>Last generated: ${s.aiPlanDate} · Generating a new plan will replace this one.</div>`}
+    ${(plan||s.aiPlan)&&h`<div style=${{padding:"14px 16px",background:"var(--g50)",border:"1px solid var(--g200)",borderRadius:10,whiteSpace:"pre-wrap",fontSize:13,lineHeight:1.75,fontFamily:"var(--fb)"}}>${plan||s.aiPlan}</div>`}
   </div>`;
 }
 
@@ -9133,7 +9134,7 @@ function StudentProfile({data, setData, profileId, auth}) {
 
   const markReviewed = hw => setData({...data,homework:data.homework.map(x=>x.id===hw.id?{...x,status:"reviewed",reviewedAt:today()}:x)});
 
-  const tabs = [["assessment","Ratings"],["overview","Overview"],["logs","Lesson Logs"+(sLessonLogs.length?" ("+sLessonLogs.length+")":" ")],["homework","Homework ("+sHomework.length+")"],["ai","AI Analysis"]];
+  const tabs = [["assessment","Ratings"],["overview","Overview"],["plan","Plan & Goals"],["logs","Lesson Logs"+(sLessonLogs.length?" ("+sLessonLogs.length+")":" ")],["homework","Homework ("+sHomework.length+")"],["ai","AI Analysis"]];
 
   return h`<div>
     <div class="prof-hd" style=${{marginBottom:20}}>
@@ -9322,6 +9323,66 @@ function StudentProfile({data, setData, profileId, auth}) {
       </div>
     </div>`}
 
+    ${tab==="plan" && h`<div>
+      <div class="assess-card">
+        <h4>🎯 Goals & Next Steps</h4>
+        <div class="fg"><label>Student Goals</label><textarea value=${draft.goals} onInput=${e=>dset("goals",e.target.value)} onBlur=${()=>dsave("goals")} placeholder="What does this student want to achieve?"/></div>
+        <div class="fg"><label>Next Steps</label><textarea value=${draft.nextSteps} onInput=${e=>dset("nextSteps",e.target.value)} onBlur=${()=>dsave("nextSteps")} placeholder="What are we working on next?"/></div>
+        <div style=${{display:"flex",alignItems:"center",gap:10,marginTop:8}}>
+          <button class="btn btn-p btn-sm" onClick=${()=>saveCard("goals")} style=${{background:savedCard==="goals"?"var(--ok)":"",borderColor:savedCard==="goals"?"var(--ok)":""}}>${savedCard==="goals"?"✓ Saved!":"Save Goals"}</button>
+        </div>
+      </div>
+      ${(data.goals||[]).length>0&&h`<div class="assess-card">
+        <h4>📌 Assigned Learning Goals</h4>
+        <p style=${{fontSize:12,color:"var(--g500)",marginBottom:12,lineHeight:1.5}}>Toggle which goals from your library are assigned to ${s.name}. Assigned goals appear on the student portal.</p>
+        <div style=${{display:"flex",flexDirection:"column",gap:8}}>
+          ${(data.goals||[]).map(g=>{
+            const assigned=(s.assignedGoalIds||[]).includes(g.id);
+            return h`<label key=${g.id} style=${{display:"flex",alignItems:"flex-start",gap:10,cursor:"pointer",padding:"10px 12px",background:assigned?"#f0f4ff":"var(--g50)",border:"1px solid "+(assigned?"var(--p,#2f4a7a)":"var(--g200)"),borderRadius:8,userSelect:"none"}}>
+              <input type="checkbox" checked=${assigned} onChange=${()=>upd("assignedGoalIds",assigned?(s.assignedGoalIds||[]).filter(x=>x!==g.id):[...(s.assignedGoalIds||[]),g.id])} style=${{marginTop:2,accentColor:"var(--p,#2f4a7a)"}}/>
+              <div>
+                <div style=${{fontWeight:700,fontSize:13}}>${g.title}</div>
+                ${g.description&&h`<div style=${{fontSize:11,color:"var(--g500)",marginTop:2}}>${g.description}</div>`}
+              </div>
+            </label>`;
+          })}
+        </div>
+      </div>`}
+      <div class="assess-card" style=${{borderLeftColor:"var(--sp-amber,#c9a24a)"}}>
+        <div style=${{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:12,flexWrap:"wrap",marginBottom:10}}>
+          <div>
+            <h4 style=${{marginBottom:4}}>📋 4-Week AI Lesson Plan</h4>
+            ${s.aiPlanDate?h`<div style=${{fontSize:11,color:"var(--g400)",marginTop:2}}>Last generated: ${s.aiPlanDate}</div>`:null}
+          </div>
+          <button class="btn btn-sm" onClick=${()=>setTab("ai")}>Regenerate in AI tab →</button>
+        </div>
+        ${s.aiPlan?h`<div style=${{padding:"14px 16px",background:"var(--g50)",border:"1px solid var(--g200)",borderRadius:10,whiteSpace:"pre-wrap",fontSize:13,lineHeight:1.75,fontFamily:"var(--fb)"}}>${s.aiPlan}</div>`:
+          h`<div style=${{padding:"20px 0",textAlign:"center",color:"var(--g400)",fontSize:13}}>No plan saved yet. Go to <strong>AI Analysis</strong> → <strong>Generate 4-Week Plan</strong> — it will save here automatically.</div>`}
+      </div>
+      ${(data.resources||[]).length>0&&h`<div class="assess-card">
+        <h4>📚 Resources for ${s.name}</h4>
+        <p style=${{fontSize:12,color:"var(--g500)",marginBottom:12}}>Showing resources matching ${s.name}'s level or type. Manage all resources in the Resources section.</p>
+        ${(()=>{
+          const rel=(data.resources||[]).filter(r=>(!r.level||r.level===s.level||!s.level)||(!r.track||r.track===s.type||!s.type));
+          const matched=rel.filter(r=>(r.level&&r.level===s.level)||(r.track&&r.track===s.type));
+          const shown=matched.length>0?matched:rel;
+          return shown.length>0?h`<div style=${{display:"flex",flexDirection:"column",gap:6}}>
+            ${shown.slice(0,8).map(r=>h`<div key=${r.id} style=${{padding:"8px 12px",background:"var(--g50)",border:"1px solid var(--g200)",borderRadius:7,display:"flex",alignItems:"center",gap:10,cursor:"pointer"}} onClick=${()=>r.fileData?downloadFile(r.fileName||"file.pdf",r.fileData):window.open(r.url,"_blank")}>
+              <span style=${{fontSize:16,flexShrink:0}}>${r.type==="pdf"?"📄":r.type==="youtube"?"▶":"🔗"}</span>
+              <div style=${{minWidth:0}}>
+                <div style=${{fontSize:13,fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>${r.title||r.ogTitle||r.fileName||r.url}</div>
+                <div style=${{display:"flex",gap:4,marginTop:2,flexWrap:"wrap"}}>
+                  ${r.category&&h`<span class="tg" style=${{fontSize:9,padding:"1px 5px"}}>${r.category}</span>`}
+                  ${r.level&&h`<span class="tg" style=${{fontSize:9,padding:"1px 5px",background:"#e8f5e9",color:"#2e7d32"}}>${r.level}</span>`}
+                  ${r.track&&h`<span class="tg" style=${{fontSize:9,padding:"1px 5px",background:"#e3f2fd",color:"#1565c0"}}>${r.track}</span>`}
+                </div>
+              </div>
+            </div>`)}
+          </div>`:h`<div style=${{fontSize:13,color:"var(--g400)"}}>No resources yet. Add resources in the Resources section and tag them with a level or type to show them here.</div>`;
+        })()}
+      </div>`}
+    </div>`}
+
     ${tab==="logs" && h`<div>
       <div style=${{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
         <div>
@@ -9443,7 +9504,7 @@ function StudentProfile({data, setData, profileId, auth}) {
         <button class="btn btn-p" onClick=${runAI} disabled=${aiLoading}>${aiLoading?"Analyzing...":"Run AI Analysis"}</button>
         ${aiResult&&h`<div style=${{marginTop:16,padding:"14px 16px",background:"var(--g50)",border:"2px solid var(--bk)",whiteSpace:"pre-wrap",fontSize:13,lineHeight:1.8,fontFamily:"var(--fb)"}}>${aiResult}</div>`}
       </div>
-      <${LessonPlanAI} student=${s} data=${data}/>
+      <${LessonPlanAI} student=${s} data=${data} onSave=${plan=>setData({...data,students:data.students.map(x=>x.id===s.id?{...x,aiPlan:plan,aiPlanDate:today()}:x)})}/>
       ${s.studentNote&&h`<div class="assess-card" style=${{marginTop:14,borderLeftColor:"#1976d2"}}>
         <h4>📝 Student's Note to You</h4>
         <p style=${{fontSize:13,lineHeight:1.7,color:"var(--g700)",whiteSpace:"pre-wrap"}}>${s.studentNote}</p>
@@ -10778,6 +10839,8 @@ function Resources({data, setData, auth}) {
             ${(r.description||r.ogDescription)&&h`<div class="res-desc">${r.description||r.ogDescription}</div>`}
             <div class="res-meta">
               ${r.category&&h`<span class="tg" style=${{fontSize:9,padding:"1px 6px"}}>${r.category}</span>`}
+              ${r.level&&h`<span class="tg" style=${{fontSize:9,padding:"1px 6px",background:"#e8f5e9",color:"#2e7d32"}}>${r.level}</span>`}
+              ${r.track&&h`<span class="tg" style=${{fontSize:9,padding:"1px 6px",background:"#e3f2fd",color:"#1565c0"}}>${r.track}</span>`}
               <span style=${{fontSize:10,color:"var(--g400)"}}>${isPdf?"📎 PDF":(r.type==="youtube"?"▶ YouTube":"🔗 "+safeDomain(r.url))}</span>
               <div style=${{marginLeft:"auto",display:"flex",gap:2}} onClick=${e=>e.stopPropagation()}>
                 <button class="bi" style=${{padding:4}} onClick=${()=>openEdit(r)}>${ic('edt')}</button>
@@ -10815,7 +10878,14 @@ function Resources({data, setData, auth}) {
       </div>`}
       <div class="fg"><label>Title</label><input value=${form.title||(rType==="link"?form.ogTitle:"")} onInput=${e=>setForm({...form,title:e.target.value})} placeholder=${rType==="link"?"Auto-filled after preview":"Name for this PDF"}/></div>
       <div class="fg"><label>Description (optional)</label><textarea value=${form.description||(rType==="link"?form.ogDescription:"")} onInput=${e=>setForm({...form,description:e.target.value})} placeholder="What is this resource about?"/></div>
-      <div class="fg"><label>Category</label><input value=${form.category} onInput=${e=>setForm({...form,category:e.target.value})} placeholder="e.g. Grammar, Vocabulary, Quran, Listening..."/></div>
+      <div class="fg"><label>Category</label>
+        <input value=${form.category} onInput=${e=>setForm({...form,category:e.target.value})} placeholder="e.g. Grammar, Vocabulary, Quran, Listening..." list="res-cat-list"/>
+        <datalist id="res-cat-list">${(data.settings.resourceCategories||["Grammar","Vocabulary","Quran","Conversation","Pronunciation","Culture","Literature"]).map(c=>h`<option key=${c} value=${c}/>`)}</datalist>
+      </div>
+      <div class="fr">
+        <div class="fg"><label>Level (optional — helps filter)</label><select value=${form.level} onChange=${e=>setForm({...form,level:e.target.value})}><option value="">Any level</option>${(data.settings.levels||[]).map(l=>h`<option key=${l}>${l}</option>`)}</select></div>
+        <div class="fg"><label>Type / Track (optional)</label><select value=${form.track} onChange=${e=>setForm({...form,track:e.target.value})}><option value="">Any type</option>${(data.settings.types||[]).map(t=>h`<option key=${t}>${t}</option>`)}</select></div>
+      </div>
     <//>`}
   </div>`;
 }
@@ -11733,9 +11803,10 @@ function Settings({data, setData}) {
         </select></div>
       </div>
     </div>
-    <div class="card"><h3>CATEGORIES</h3><p style=${{fontSize:12,color:"var(--g500)",marginBottom:14}}>Custom options for all dropdowns.</p>
+    <div class="card"><h3>CATEGORIES</h3><p style=${{fontSize:12,color:"var(--g500)",marginBottom:14}}>Custom options for all dropdowns and filters.</p>
       <${Chips} items=${S.types} onUpdate=${v=>u("types",v)} label="Arabic Types"/>
       <${Chips} items=${S.levels} onUpdate=${v=>u("levels",v)} label="Student Levels"/>
+      <${Chips} items=${S.resourceCategories||["Grammar","Vocabulary","Quran","Conversation","Pronunciation","Culture","Literature"]} onUpdate=${v=>u("resourceCategories",v)} label="Resource Categories"/>
       <${Chips} items=${S.payPlans} onUpdate=${v=>u("payPlans",v)} label="Payment Plans"/>
       <${Chips} items=${S.payMethods} onUpdate=${v=>u("payMethods",v)} label="Payment Methods"/>
     </div>

@@ -15,100 +15,105 @@ function AboutPage({ setPage }) {
 
   const interests = ['Classical', 'Levantine', 'Quranic', 'Quranic + Dialect', 'Private Lessons'];
 
+  const inputStyle = {
+    width: '100%', background: 'var(--surface)', border: '1px solid var(--line)',
+    color: 'var(--ink)', padding: '12px 16px', fontFamily: 'var(--f-body)', fontSize: '16px',
+    outline: 'none', transition: 'border-color .2s', borderRadius: 'var(--r-sm)',
+  };
+
   return (
     <div style={{ paddingTop: 100 }}>
-      {/* Instructor Hero */}
-      <section style={{ padding: '60px 80px 80px', position: 'relative', overflow: 'hidden', background: 'rgba(8,8,8,0.5)' }}>
-        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none',
-          background: 'radial-gradient(ellipse 50% 80% at 70% 50%, rgba(255,255,255,0.03) 0%, transparent 60%)',
-        }} />
-        <div style={{ maxWidth: 1400, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'center', position: 'relative', zIndex: 1 }}>
-          <Reveal>
-            <Eyebrow>Your Instructor</Eyebrow>
-            <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: 'clamp(2.6rem, 4vw, 4rem)', color: '#f0f0f0', fontWeight: 600, lineHeight: 1.1, marginBottom: 24 }}>
-              {profile.name}
-            </h1>
-            <div style={{ fontFamily: 'Amiri, serif', fontSize: '1.6rem', color: 'rgba(255,255,255,0.7)', marginBottom: 28, direction: 'rtl', textAlign: 'right', textShadow: '0 0 30px rgba(255,255,255,0.3)' }}>{profile.arabicTitle || 'مدرّس اللغة العربية'}</div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 36 }}>
-              {(profile.specialties || ['Classical Arabic', 'Conversational Arabic', 'Quranic Arabic']).map(s => (
-                <span key={s} style={{ padding: '6px 14px', border: '1px solid rgba(255,255,255,0.2)', fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{s}</span>
-              ))}
-            </div>
-
-            {/* Bio */}
-            <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 32, display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <p style={{ color: 'rgba(240,240,240,0.7)', fontSize: '1rem', lineHeight: 1.85, margin: 0 }}>
-                {profile.bio1 || 'Hadi Shokeir is a linguist, translator, and Arabic language instructor with teaching experience across Classical Arabic, Levantine dialect, and Quranic studies.'}
-              </p>
-              <p style={{ color: 'rgba(240,240,240,0.5)', fontSize: '0.92rem', lineHeight: 1.85, margin: 0 }}>
-                {profile.bio2 || "His lessons combine linguistic structure, patient correction, and a personal relationship with the language so students can learn with clarity and confidence."}
-              </p>
-              {/* Credential row */}
-              <div style={{ display: 'flex', gap: 32, marginTop: 8 }}>
-                {(profile.stats || [{value:'7+',label:'Years teaching'},{value:'3',label:'Specialisations'},{value:'1:1',label:'Private lessons'}]).map(({value:num, label}) => (
-                  <div key={label}>
-                    <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.6rem', color: '#ffffff', fontWeight: 600, lineHeight: 1 }}>{num}</div>
-                    <div style={{ fontSize: '0.65rem', color: 'rgba(240,240,240,0.4)', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: 4 }}>{label}</div>
-                  </div>
+      {/* Instructor hero */}
+      <section style={{ padding: 'clamp(48px,8vw,96px) clamp(20px,5vw,80px)', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ maxWidth: 1240, margin: '0 auto' }}>
+          <div className="about-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'clamp(32px,6vw,80px)', alignItems: 'center' }}>
+            {/* Copy */}
+            <Reveal>
+              <Eyebrow>Your teacher</Eyebrow>
+              <h1 style={{ fontFamily: 'var(--f-head)', fontSize: 'clamp(2.4rem,4vw,3.6rem)', color: 'var(--ink)', fontWeight: 600, lineHeight: 1.1, marginBottom: 10, letterSpacing: '-0.01em' }}>
+                {profile.name || 'Hadi Shokeir'}
+              </h1>
+              <div className="ar" style={{ fontFamily: 'var(--f-ar)', fontSize: '1.5rem', color: 'var(--accent)', marginBottom: 20, textAlign: 'right', lineHeight: 1.6 }}>
+                {profile.arabicTitle || 'مدرّس اللغة العربية'}
+              </div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 28 }}>
+                {(profile.specialties || ['Classical Arabic', 'Levantine', 'Quranic Arabic']).map(s => (
+                  <Badge key={s} tone="neutral">{s}</Badge>
                 ))}
               </div>
-            </div>
-          </Reveal>
+              <div style={{ borderTop: '1px solid var(--line-2)', paddingTop: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <p style={{ color: 'var(--ink-2)', fontSize: '1rem', lineHeight: 1.8, margin: 0 }}>
+                  {profile.bio1 || 'Hadi Shokeir is a linguist, translator, and Arabic language instructor with teaching experience across Classical Arabic, Levantine dialect, and Quranic studies.'}
+                </p>
+                <p style={{ color: 'var(--muted)', fontSize: '0.92rem', lineHeight: 1.8, margin: 0 }}>
+                  {profile.bio2 || "His lessons combine linguistic structure, patient correction, and a personal relationship with the language so students learn with clarity and confidence."}
+                </p>
+                <div style={{ display: 'flex', gap: 32, marginTop: 8 }}>
+                  {(profile.stats || [{value:'7+',label:'Years teaching'},{value:'3',label:'Specialisations'},{value:'1:1',label:'Private lessons'}]).map(({value, label}) => (
+                    <div key={label}>
+                      <div style={{ fontFamily: 'var(--f-head)', fontSize: '1.5rem', color: 'var(--ink)', fontWeight: 600, lineHeight: 1 }}>{value}</div>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--muted)', letterSpacing: '.1em', textTransform: 'uppercase', marginTop: 4 }}>{label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={{ marginTop: 28 }}>
+                <button onClick={() => window.location.href = '/portal?signup=1'} style={{
+                  fontFamily: 'var(--f-body)', fontSize: '0.85rem', fontWeight: 600,
+                  padding: '13px 28px', background: 'var(--accent)', color: 'var(--on-accent)',
+                  border: '1px solid var(--accent)', cursor: 'pointer', borderRadius: 'var(--r)',
+                  transition: 'all .2s var(--ease)',
+                }}>Book a free intro lesson →</button>
+              </div>
+            </Reveal>
 
-          {/* Instructor photo */}
-          <Reveal delay={0.15}>
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
-              <div style={{ position: 'relative', width: 340, height: 400 }}>
-                <div style={{ position: 'absolute', inset: 0, border: '1px solid rgba(255,255,255,0.15)' }} />
-                <div style={{ position: 'absolute', inset: 12, border: '1px solid rgba(255,255,255,0.07)' }} />
-                {/* Photo */}
-                <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
+            {/* Photo */}
+            <Reveal delay={0.15}>
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <div style={{
+                  position: 'relative', width: 'min(340px, 80vw)', borderRadius: 'var(--r-lg)', overflow: 'hidden',
+                  border: '1px solid var(--line)', boxShadow: 'var(--shadow)',
+                }}>
                   <img src="/logo.jpeg" alt="Hadi — Arabic Instructor" style={{
-                    width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top',
-                    display: 'block',
-                    filter: 'brightness(0.92) contrast(1.05)',
-                  }} />
-                  {/* Subtle gradient overlay at bottom */}
-                  <div style={{
-                    position: 'absolute', bottom: 0, left: 0, right: 0, height: '35%',
-                    background: 'linear-gradient(transparent, rgba(8,8,8,0.7))',
-                    pointerEvents: 'none',
+                    width: '100%', height: 'auto', objectFit: 'cover', display: 'block',
                   }} />
                   <div style={{
-                    position: 'absolute', bottom: 20, left: 0, right: 0,
-                    textAlign: 'center',
+                    position: 'absolute', bottom: 0, left: 0, right: 0,
+                    background: 'color-mix(in oklab, var(--ink) 80%, transparent)',
+                    backdropFilter: 'blur(4px)', padding: '14px 16px',
                   }}>
-                    <div style={{ fontFamily: 'Cinzel, serif', fontSize: '0.75rem', letterSpacing: '0.2em', color: '#ffffff', textTransform: 'uppercase', marginBottom: 4 }}>{profile.name || 'Hadi Shokeir'}</div>
-                    <div style={{ fontSize: '0.62rem', color: 'rgba(240,240,240,0.45)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>{profile.title || 'Arabic Instructor'}</div>
+                    <div style={{ fontFamily: 'var(--f-head)', fontSize: '0.85rem', fontWeight: 600, color: 'var(--paper)' }}>{profile.name || 'Hadi Shokeir'}</div>
+                    <div style={{ fontSize: '0.65rem', color: 'var(--muted)', letterSpacing: '.1em', textTransform: 'uppercase', marginTop: 2 }}>{profile.title || 'Arabic Instructor'}</div>
                   </div>
                 </div>
-                {/* Corner accents */}
-                {['top:0;left:0', 'top:0;right:0', 'bottom:0;left:0', 'bottom:0;right:0'].map((pos, i) => (
-                  <div key={i} style={{ position: 'absolute', width: 20, height: 20, border: '2px solid rgba(255,255,255,0.6)', ...Object.fromEntries(pos.split(';').map(p => p.split(':'))), borderTop: i < 2 ? '2px solid rgba(255,255,255,0.6)' : 'none', borderBottom: i >= 2 ? '2px solid rgba(255,255,255,0.6)' : 'none', borderLeft: i % 2 === 0 ? '2px solid rgba(255,255,255,0.6)' : 'none', borderRight: i % 2 !== 0 ? '2px solid rgba(255,255,255,0.6)' : 'none' }} />
-                ))}
               </div>
-            </div>
-          </Reveal>
+            </Reveal>
+          </div>
         </div>
       </section>
 
-      {/* Teaching Philosophy */}
-      <section style={{ padding: '80px', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <div style={{ maxWidth: 1400, margin: '0 auto' }}>
-          <Reveal>
-            <SectionHeading eyebrow="Approach" heading="Teaching Philosophy" center={true} />
-          </Reveal>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+      {/* Teaching philosophy */}
+      <section style={{ padding: 'clamp(48px,8vw,80px) clamp(20px,5vw,80px)', background: 'var(--surface-2)', borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
+        <div style={{ maxWidth: 1240, margin: '0 auto' }}>
+          <Reveal><SectionHeading eyebrow="Approach" heading="Teaching philosophy" center={true} /></Reveal>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
             {(profile.philosophy || [
-              { title: 'Structure First', arabic: 'البنية أولاً', desc: 'Arabic has an elegant, logical grammar. Learning the system — not just memorising phrases — is what gives you lasting ability.' },
-              { title: 'Authentic Sounds', arabic: 'الأصوات الأصيلة', desc: 'From the first lesson, you\'ll learn to produce real Arabic sounds. No shortcuts that create bad habits to unlearn later.' },
-              { title: 'Your Pace', arabic: 'بالسرعة التي تناسبك', desc: 'Every student\'s journey is different. Lessons adapt to your goals — whether Quran, dialect, conversation, or classical literature.' },
+              { title: 'Structure first', arabic: 'البنية أولاً', desc: 'Arabic has an elegant, logical grammar. Learning the system — not just memorising phrases — is what gives lasting ability.' },
+              { title: 'Authentic sounds', arabic: 'الأصوات الأصيلة', desc: 'From the first lesson you\'ll produce real Arabic sounds. No shortcuts that create bad habits to unlearn later.' },
+              { title: 'Your pace', arabic: 'بالسرعة التي تناسبك', desc: 'Every student\'s journey is different. Lessons adapt to your goals — Quran, dialect, conversation, or classical literature.' },
             ]).map((p, i) => (
               <Reveal key={p.title} delay={i * 0.1}>
-                <div style={{ background: 'rgba(14,14,14,0.8)', border: '1px solid rgba(255,255,255,0.07)', padding: '36px 32px', textAlign: 'center' }}>
-                  <div style={{ fontFamily: 'Amiri, serif', fontSize: '1.8rem', color: 'rgba(255,255,255,0.6)', marginBottom: 12, textShadow: '0 0 25px rgba(255,255,255,0.25)' }}>{p.arabic}</div>
-                  <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.2rem', color: '#f0f0f0', marginBottom: 14 }}>{p.title}</div>
-                  <div style={{ fontSize: '0.85rem', color: 'rgba(240,240,240,0.45)', lineHeight: 1.7 }}>{p.desc}</div>
+                <div style={{
+                  background: 'var(--surface)', border: '1px solid var(--line)',
+                  padding: '28px 24px', textAlign: 'center',
+                  borderRadius: 'var(--r-lg)', transition: 'all .25s var(--ease)',
+                }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = 'var(--shadow)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+                >
+                  <div className="ar" style={{ fontFamily: 'var(--f-ar)', fontSize: '1.6rem', color: 'var(--accent)', marginBottom: 12, lineHeight: 1.6 }}>{p.arabic}</div>
+                  <div style={{ fontFamily: 'var(--f-head)', fontSize: '1.1rem', color: 'var(--ink)', marginBottom: 10, fontWeight: 600 }}>{p.title}</div>
+                  <div style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.7 }}>{p.desc}</div>
                 </div>
               </Reveal>
             ))}
@@ -116,80 +121,85 @@ function AboutPage({ setPage }) {
         </div>
       </section>
 
-      {/* Contact Form */}
-      <section id="contact" style={{ padding: '80px' }}>
-        <div style={{ maxWidth: 1400, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80 }}>
-          <Reveal>
-            <Eyebrow>Get in Touch</Eyebrow>
-            <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 'clamp(2rem, 3vw, 2.8rem)', color: '#f0f0f0', fontWeight: 600, lineHeight: 1.2, marginBottom: 20 }}>
-              {profile.contactHeadingLine1 || 'Ready to begin?'}<br /><em style={{ color: '#ffffff' }}>{profile.contactHeadingAccent || "Let's talk"}</em>
-            </h2>
-            <p style={{ color: 'rgba(240,240,240,0.45)', fontSize: '0.95rem', lineHeight: 1.7, marginBottom: 40, maxWidth: 400 }}>
-              {profile.contactPrompt || 'Whether you have questions about courses, want a free intro lesson, or are ready to enrol, send a message and Hadi will get back to you.'}
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              {[['📧', 'Email', profile.email || 'hadishokeir@gmail.com'], ['🕌', 'Response time', profile.responseTime || 'Within 24 hours'], ['🌍', 'Location', profile.location || 'Online - worldwide']].map(([icon, label, val]) => (
-                <div key={label} style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-                  <span style={{ fontSize: '1.2rem' }}>{icon}</span>
-                  <div>
-                    <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>{label}</div>
-                    <div style={{ fontSize: '0.9rem', color: 'rgba(240,240,240,0.6)', marginTop: 2 }}>{val}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Reveal>
-
-          <Reveal delay={0.1}>
-            {sent ? (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', textAlign: 'center', padding: 48, background: 'rgba(74,122,90,0.08)', border: '1px solid rgba(74,122,90,0.25)' }}>
-                <div style={{ fontFamily: 'Amiri, serif', fontSize: '3rem', color: '#6abf80', marginBottom: 16 }}>شكراً</div>
-                <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.4rem', color: '#f0f0f0', marginBottom: 10 }}>Message received!</div>
-                <div style={{ fontSize: '0.85rem', color: 'rgba(240,240,240,0.45)', lineHeight: 1.6 }}>Hadi will be in touch within 24 hours.</div>
+      {/* Contact */}
+      <section id="contact" style={{ padding: 'clamp(48px,8vw,96px) clamp(20px,5vw,80px)' }}>
+        <div style={{ maxWidth: 1240, margin: '0 auto' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'clamp(32px,6vw,80px)' }} className="about-grid">
+            <Reveal>
+              <Eyebrow>Get in touch</Eyebrow>
+              <h2 style={{ fontFamily: 'var(--f-head)', fontSize: 'clamp(2rem,3vw,2.8rem)', color: 'var(--ink)', fontWeight: 600, lineHeight: 1.15, marginBottom: 16 }}>
+                {profile.contactHeadingLine1 || "Let's"}{' '}
+                <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}>{profile.contactHeadingAccent || 'talk'}</em>
+              </h2>
+              <p style={{ color: 'var(--muted)', fontSize: '0.95rem', lineHeight: 1.7, marginBottom: 32, maxWidth: 400 }}>
+                {profile.contactPrompt || 'Whether you have questions about courses, want a free intro lesson, or are ready to enrol — send a message and Hadi will reply within 24 hours.'}
+              </p>
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                <button onClick={() => window.location.href = '/portal?signup=1'} style={{
+                  fontFamily: 'var(--f-body)', fontSize: '0.85rem', fontWeight: 600,
+                  padding: '12px 24px', background: 'var(--accent)', color: 'var(--on-accent)',
+                  border: '1px solid var(--accent)', cursor: 'pointer', borderRadius: 'var(--r)',
+                }}>Send a message</button>
+                <button onClick={() => { setPage('pricing'); window.scrollTo(0,0); }} style={{
+                  fontFamily: 'var(--f-body)', fontSize: '0.85rem', fontWeight: 500,
+                  padding: '12px 20px', background: 'transparent', color: 'var(--ink-2)',
+                  border: '1px solid var(--line)', cursor: 'pointer', borderRadius: 'var(--r)',
+                }}>See pricing</button>
               </div>
-            ) : (
-              <form onSubmit={handleSubmit} style={{ background: 'rgba(14,14,14,0.8)', border: '1px solid rgba(255,255,255,0.08)', padding: '40px 36px' }}>
-                <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: 'block', fontSize: '0.62rem', color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 8 }}>Your Name</label>
-                  <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required style={{ width: '100%', background: 'rgba(8,8,8,0.8)', border: '1px solid rgba(255,255,255,0.12)', color: '#f0f0f0', padding: '12px 16px', fontFamily: 'DM Sans, sans-serif', fontSize: '0.9rem', outline: 'none', transition: 'border-color 0.2s' }}
-                    onFocus={e => e.target.style.borderColor = 'rgba(255,255,255,0.4)'}
-                    onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.12)'}
-                  />
-                </div>
-                <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: 'block', fontSize: '0.62rem', color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 8 }}>Email Address</label>
-                  <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required style={{ width: '100%', background: 'rgba(8,8,8,0.8)', border: '1px solid rgba(255,255,255,0.12)', color: '#f0f0f0', padding: '12px 16px', fontFamily: 'DM Sans, sans-serif', fontSize: '0.9rem', outline: 'none', transition: 'border-color 0.2s' }}
-                    onFocus={e => e.target.style.borderColor = 'rgba(255,255,255,0.4)'}
-                    onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.12)'}
-                  />
-                </div>
-                <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: 'block', fontSize: '0.62rem', color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 8 }}>I'm interested in</label>
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    {interests.map(int => (
-                      <button key={int} type="button" onClick={() => setForm(f => ({ ...f, interest: int }))} style={{
-                        padding: '6px 14px', fontFamily: 'DM Sans, sans-serif', fontSize: '0.72rem', cursor: 'pointer', transition: 'all 0.15s',
-                        background: form.interest === int ? 'rgba(255,255,255,0.1)' : 'transparent',
-                        border: `1px solid ${form.interest === int ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.12)'}`,
-                        color: form.interest === int ? '#ffffff' : 'rgba(240,240,240,0.45)',
-                      }}>{int}</button>
-                    ))}
+            </Reveal>
+
+            <Reveal delay={0.1}>
+              <div style={{ background: 'var(--surface-2)', border: '1px solid var(--line)', borderRadius: 'var(--r-lg)', padding: '28px 24px' }}>
+                {sent ? (
+                  <div style={{ textAlign: 'center', padding: '32px 0' }}>
+                    <div className="ar" style={{ fontFamily: 'var(--f-ar)', fontSize: '2.5rem', color: 'var(--good)', marginBottom: 12 }}>شكراً</div>
+                    <div style={{ fontFamily: 'var(--f-head)', fontSize: '1.3rem', color: 'var(--ink)', marginBottom: 8 }}>Message received!</div>
+                    <div style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.6 }}>Hadi will be in touch within 24 hours.</div>
                   </div>
-                </div>
-                <div style={{ marginBottom: 28 }}>
-                  <label style={{ display: 'block', fontSize: '0.62rem', color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 8 }}>Message</label>
-                  <textarea value={form.message} onChange={e => setForm(f => ({ ...f, message: e.target.value }))} required rows={4} style={{ width: '100%', background: 'rgba(8,8,8,0.8)', border: '1px solid rgba(255,255,255,0.12)', color: '#f0f0f0', padding: '12px 16px', fontFamily: 'DM Sans, sans-serif', fontSize: '0.9rem', outline: 'none', resize: 'vertical', transition: 'border-color 0.2s' }}
-                    onFocus={e => e.target.style.borderColor = 'rgba(255,255,255,0.4)'}
-                    onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.12)'}
-                  />
-                </div>
-                <button type="submit" style={{ width: '100%', padding: '16px', background: '#ffffff', border: 'none', color: '#080808', fontFamily: 'DM Sans, sans-serif', fontSize: '0.8rem', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}
-                  onMouseEnter={e => { e.target.style.background = '#e0e0e0'; }}
-                  onMouseLeave={e => { e.target.style.background = '#ffffff'; }}
-                >Send Message →</button>
-              </form>
-            )}
-          </Reveal>
+                ) : (
+                  <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    {[['text','Your Name','name'],['email','Email Address','email']].map(([type, label, key]) => (
+                      <div key={key}>
+                        <label style={{ display: 'block', fontSize: '0.7rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 6, fontWeight: 600 }}>{label}</label>
+                        <input type={type} value={form[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))} required style={inputStyle}
+                          onFocus={e => e.target.style.borderColor = 'var(--accent)'}
+                          onBlur={e => e.target.style.borderColor = 'var(--line)'}
+                        />
+                      </div>
+                    ))}
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.7rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 8, fontWeight: 600 }}>I'm interested in</label>
+                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                        {interests.map(int => (
+                          <button key={int} type="button" onClick={() => setForm(f => ({ ...f, interest: int }))} style={{
+                            padding: '6px 12px', fontFamily: 'var(--f-body)', fontSize: '0.78rem', cursor: 'pointer',
+                            background: form.interest === int ? 'color-mix(in oklab, var(--accent) 12%, var(--surface))' : 'var(--surface)',
+                            border: `1px solid ${form.interest === int ? 'color-mix(in oklab, var(--accent) 40%, transparent)' : 'var(--line)'}`,
+                            color: form.interest === int ? 'var(--accent)' : 'var(--muted)',
+                            borderRadius: 'var(--r-sm)', transition: 'all .15s',
+                          }}>{int}</button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.7rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 6, fontWeight: 600 }}>Message</label>
+                      <textarea value={form.message} onChange={e => setForm(f => ({ ...f, message: e.target.value }))} required rows={4} style={{ ...inputStyle, resize: 'vertical', minHeight: 80 }}
+                        onFocus={e => e.target.style.borderColor = 'var(--accent)'}
+                        onBlur={e => e.target.style.borderColor = 'var(--line)'}
+                      />
+                    </div>
+                    <button type="submit" style={{
+                      width: '100%', padding: '13px',
+                      background: 'var(--accent)', color: 'var(--on-accent)',
+                      border: 'none', fontFamily: 'var(--f-body)', fontSize: '0.85rem',
+                      fontWeight: 600, cursor: 'pointer', borderRadius: 'var(--r)',
+                      transition: 'all .2s var(--ease)',
+                    }}>Send Message →</button>
+                  </form>
+                )}
+              </div>
+            </Reveal>
+          </div>
         </div>
       </section>
     </div>
