@@ -4674,17 +4674,23 @@ function GoalsTab({student: s, data, setData, auth}) {
     </div>`;
   }
 
+  const assignedIds = s.assignedGoalIds || [];
+  const sortedGoals = [...goals].sort((a,b)=>(assignedIds.includes(b.id)?1:0)-(assignedIds.includes(a.id)?1:0));
+
   return h`<div>
     <div style=${{fontFamily:"var(--f-head)",fontSize:22,fontWeight:700,color:"var(--sp-txt)",marginBottom:6}}>Learning Goals</div>
-    <div style=${{fontSize:13,color:"var(--sp-txt2)",marginBottom:20,lineHeight:1.65}}>Choose the goals that match what you want to achieve. You can pick more than one.</div>
+    <div style=${{fontSize:13,color:"var(--sp-txt2)",marginBottom:assignedIds.length>0?10:20,lineHeight:1.65}}>Choose the goals that match what you want to achieve. You can pick more than one.</div>
+    ${assignedIds.length>0&&h`<div style=${{fontSize:"0.7rem",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.12em",color:"var(--accent)",marginBottom:16,display:"flex",alignItems:"center",gap:6}}>⭐ Hadi's picks for you appear first</div>`}
     <div class="goal-grid">
-      ${goals.map(goal=>{
+      ${sortedGoals.map(goal=>{
         const enrolled = isEnrolled(goal.id);
         const prog = getProgress(goal.id);
         const items = getPathItems(goal.id);
         const done = items.filter(c=>prog.completedItems.includes(c.id)).length;
         const pct = items.length ? Math.round(done/items.length*100) : 0;
-        return h`<div key=${goal.id} class=${"goal-card "+(enrolled?"selected":"")} onClick=${()=>{setActiveGoalId(goal.id);setView('detail');}}>
+        const isAssigned = assignedIds.includes(goal.id);
+        return h`<div key=${goal.id} class=${"goal-card "+(enrolled?"selected":"")} onClick=${()=>{setActiveGoalId(goal.id);setView('detail');}} style=${isAssigned?{borderColor:"var(--accent)",boxShadow:"0 0 0 2px color-mix(in oklab,var(--accent) 18%,transparent)"}:{}}>
+          ${isAssigned&&h`<div style=${{fontSize:"0.6rem",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.12em",color:"var(--accent)",marginBottom:6}}>⭐ Assigned by Hadi</div>`}
           <div class="goal-check">✓</div>
           <div style=${{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>
             <span class="goal-cefr">${goal.cefr}</span>
@@ -8239,10 +8245,12 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
   const subLabel = currentHub ? HUBS[currentHub]?.find(item=>item.id===spTab)?.label : null;
 
   // Badge counts + dynamic subtitles per screen id — used on hub cards
+  const recentLogCount=(data.lessonLogs||[]).filter(l=>l.studentId===s.id).length;
+  const assignedGoalCount=(s.assignedGoalIds||[]).length;
   const screenBadge = {messages:taskBadge, preferences:prefBadge, settings:settingsBadge};
   const screenSub = {
-    messages: taskBadge>0?`${taskBadge} task${taskBadge!==1?"s":""} pending`:null,
-    preferences: prefBadge>0?`${prefBadge} section${prefBadge!==1?"s":""} incomplete`:null,
+    messages: taskBadge>0?`${taskBadge} task${taskBadge!==1?"s":""} pending`:(recentLogCount>0?`${recentLogCount} lesson log${recentLogCount!==1?"s":""}`:null),
+    preferences: assignedGoalCount>0?`${assignedGoalCount} goal${assignedGoalCount!==1?"s":""} assigned by Hadi`:(prefBadge>0?`${prefBadge} section${prefBadge!==1?"s":""} incomplete`:null),
     settings: settingsBadge>0?`${settingsBadge} item${settingsBadge!==1?"s":""} need attention`:null,
     skills: null,
     flashcards: (()=>{const allDecks=(s.flashcardDecks||[]);const total=allDecks.reduce((n,d)=>(d.cards||[]).length+n,0);return total>0?`${total} card${total!==1?"s":""} across ${allDecks.length} deck${allDecks.length!==1?"s":""}`:null;})(),
@@ -8425,6 +8433,22 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
         <p style=${{fontSize:14,lineHeight:1.8,color:"var(--sp-txt)",margin:0}}>${ll.notes}</p>
         <div style=${{fontSize:11,color:"var(--sp-txt3)",marginTop:8}}>${fmt(ll.date)} · ${ll.type}</div>
       </div>`:null;})()}
+
+      ${(s.assignedGoalIds||[]).length>0&&h`<div class="sp2-card sp2-card-h" style=${{marginBottom:18,borderLeft:"3px solid var(--accent)",display:"flex",alignItems:"center",gap:14,padding:"14px 18px"}} onClick=${()=>switchTab("preferences")}>
+        <div style=${{fontSize:28,flexShrink:0}}>🎯</div>
+        <div style=${{flex:1}}>
+          <div style=${{fontWeight:700,fontSize:"0.9rem",color:"var(--ink)",marginBottom:2}}>Hadi has set ${(s.assignedGoalIds||[]).length} goal${(s.assignedGoalIds||[]).length!==1?"s":""} for you</div>
+          <div style=${{fontSize:"0.78rem",color:"var(--muted)"}}>Open My Journey to see your roadmap and track your progress →</div>
+        </div>
+      </div>`}
+
+      ${s.aiPlan&&h`<div class="sp2-card sp2-card-h" style=${{marginBottom:18,borderLeft:"3px solid var(--accent)",display:"flex",alignItems:"center",gap:14,padding:"14px 18px"}} onClick=${()=>switchTab("preferences")}>
+        <div style=${{fontSize:28,flexShrink:0}}>📋</div>
+        <div style=${{flex:1}}>
+          <div style=${{fontWeight:700,fontSize:"0.9rem",color:"var(--ink)",marginBottom:2}}>Your 4-week plan is ready</div>
+          <div style=${{fontSize:"0.78rem",color:"var(--muted)"}}>${s.aiPlanDate?"Updated "+s.aiPlanDate+" · ":""}Tap to open My Journey and read it →</div>
+        </div>
+      </div>`}
 
       <div style=${{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
         <div class="sp2-card sp2-card-h" style=${{textAlign:"center",padding:20}} onClick=${()=>switchTab("ai")}>
@@ -8784,59 +8808,146 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
     </div>`;
 
     // ── MESSAGES + TASKS + HOW-TO (merged) ──
-    if(spTab==='messages'||spTab==='howto') return h`<div style=${{maxWidth:760,margin:"0 auto"}}>
-      <h2 style=${{fontFamily:"var(--f-head)",fontSize:"1.5rem",fontWeight:600,color:"var(--ink)",marginBottom:4}}>Messages & Tasks</h2>
-      <p style=${{fontSize:"0.88rem",color:"var(--muted)",marginBottom:20}}>Your teacher's notes, weekly tasks, message box, and how-to guide.</p>
-      <${StudentWeeklyTasks} student=${s} data=${data} setData=${setData} auth=${auth}/>
-      <${StudentTeacherUpdates} student=${s}/>
-      ${(s.weeklyTasks||[]).length===0&&!s.teacherStrengths&&!s.teacherImprove&&!s.teacherSummary&&!s.nextSteps&&!s.homeworkNotes?h`<div class="sp2-card" style=${{marginBottom:18,textAlign:"center",color:"var(--muted)",lineHeight:1.7}}>No notes or weekly tasks from Hadi yet.</div>`:null}
-      <${StudentNoteToTeacher} student=${s} data=${data} setData=${setData} auth=${auth}/>
-      <div class="sp2-card" style=${{marginTop:18}}>
-        <div style=${{fontFamily:"var(--f-head)",fontSize:"1.1rem",fontWeight:600,color:"var(--ink)",marginBottom:4}}>💡 How-To Guide</div>
-        <div style=${{fontSize:"0.88rem",color:"var(--muted)",marginBottom:14}}>Common Arabic learning questions answered by Hadi.</div>
-        <${HowToStudentView} student=${s} data=${data} setData=${setData}/>
-      </div>
-    </div>`;
+    if(spTab==='messages'||spTab==='howto') {
+      const recentLogs=(data.lessonLogs||[]).filter(l=>l.studentId===s.id).sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
+      return h`<div style=${{maxWidth:760,margin:"0 auto"}}>
+        <h2 style=${{fontFamily:"var(--f-head)",fontSize:"1.5rem",fontWeight:600,color:"var(--ink)",marginBottom:4}}>Messages & Tasks</h2>
+        <p style=${{fontSize:"0.88rem",color:"var(--muted)",marginBottom:20}}>Lesson summaries, weekly tasks, and notes from Hadi.</p>
+
+        ${recentLogs.length>0&&h`<div class="sp2-card" style=${{marginBottom:18}}>
+          <div style=${{fontSize:"0.6rem",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.14em",color:"var(--muted)",marginBottom:16}}>📋 Recent Lesson Summaries</div>
+          ${recentLogs.map((log,i)=>h`<div key=${log.id} style=${{paddingBottom:i<recentLogs.length-1?16:0,marginBottom:i<recentLogs.length-1?16:0,borderBottom:i<recentLogs.length-1?"1px solid var(--line-2)":"none"}}>
+            <div style=${{display:"flex",justifyContent:"space-between",alignItems:"center",gap:8,marginBottom:8,flexWrap:"wrap"}}>
+              <div style=${{fontWeight:700,fontSize:"0.9rem",color:"var(--ink)"}}>${fmt(log.date)}</div>
+              ${log.performance&&h`<span class="sp2-badge sp2-badge-a" style=${{fontSize:"0.65rem",maxWidth:200,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>${log.performance}</span>`}
+            </div>
+            ${log.coveredTopics&&h`<div style=${{fontSize:"0.82rem",color:"var(--ink-2)",marginBottom:log.aiNextSteps?10:0,lineHeight:1.65}}><span style=${{fontWeight:700,color:"var(--ink)"}}>Topics: </span>${log.coveredTopics}</div>`}
+            ${log.aiNextSteps&&h`<div style=${{padding:"10px 14px",background:"color-mix(in oklab,var(--accent) 8%,var(--surface))",border:"1px solid color-mix(in oklab,var(--accent) 20%,transparent)",borderRadius:"var(--r-sm)",fontSize:"0.82rem",lineHeight:1.7,color:"var(--ink-2)"}}>
+              <div style=${{fontSize:"0.58rem",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.12em",color:"var(--accent)",marginBottom:5}}>⚡ Next Steps from Hadi</div>
+              ${log.aiNextSteps}
+            </div>`}
+          </div>`)}
+        </div>`}
+
+        <${StudentWeeklyTasks} student=${s} data=${data} setData=${setData} auth=${auth}/>
+        <${StudentTeacherUpdates} student=${s}/>
+        ${recentLogs.length===0&&(s.weeklyTasks||[]).length===0&&!s.teacherStrengths&&!s.teacherImprove&&!s.teacherSummary&&!s.nextSteps?h`<div class="sp2-card" style=${{marginBottom:18,textAlign:"center",color:"var(--muted)",lineHeight:1.7,padding:30}}>No lesson summaries or messages from Hadi yet.</div>`:null}
+        <${StudentNoteToTeacher} student=${s} data=${data} setData=${setData} auth=${auth}/>
+        <div class="sp2-card" style=${{marginTop:18}}>
+          <div style=${{fontFamily:"var(--f-head)",fontSize:"1.1rem",fontWeight:600,color:"var(--ink)",marginBottom:4}}>💡 How-To Guide</div>
+          <div style=${{fontSize:"0.88rem",color:"var(--muted)",marginBottom:14}}>Common Arabic learning questions answered by Hadi.</div>
+          <${HowToStudentView} student=${s} data=${data} setData=${setData}/>
+        </div>
+      </div>`;
+    }
 
     // ── BOOK ──
     if(spTab==='book') return h`<div style=${{maxWidth:680,margin:"0 auto"}}><${StudentScheduler} student=${s} data=${data} setData=${setData} auth=${auth}/></div>`;
 
     // ── MY JOURNEY = Preferences + Goals (merged) ──
-    if(spTab==='preferences'||spTab==='goals') return h`<div style=${{maxWidth:720,margin:"0 auto"}}>
-      <h2 style=${{fontFamily:"var(--f-head)",fontSize:"1.5rem",fontWeight:600,color:"var(--ink)",marginBottom:4}}>My Journey</h2>
-      <p style=${{fontSize:"0.88rem",color:"var(--muted)",marginBottom:20}}>Your learning profile, goals, and progress preferences.</p>
-      <${StudentPreferencesTab} student=${s} data=${data} setData=${setData} auth=${auth}/>
-      <div style=${{marginTop:16}}>
-        <${GoalsTab} student=${s} data=${data} setData=${setData} auth=${auth}/>
-      </div>
-    </div>`;
+    if(spTab==='preferences'||spTab==='goals') {
+      const assignedGoalIds = s.assignedGoalIds || [];
+      const assignedGoalsList = (data.goals||[]).filter(g=>assignedGoalIds.includes(g.id));
+      return h`<div style=${{maxWidth:720,margin:"0 auto"}}>
+        <h2 style=${{fontFamily:"var(--f-head)",fontSize:"1.5rem",fontWeight:600,color:"var(--ink)",marginBottom:4}}>My Journey</h2>
+        <p style=${{fontSize:"0.88rem",color:"var(--muted)",marginBottom:16}}>Your roadmap, learning profile, and goals.</p>
+
+        ${s.aiPlan&&h`<div class="sp2-card" style=${{marginBottom:16,borderLeft:"4px solid var(--accent)"}}>
+          <div style=${{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10,marginBottom:10,flexWrap:"wrap"}}>
+            <div style=${{fontSize:"0.6rem",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.14em",color:"var(--accent)"}}>📋 Your 4-Week Plan from Hadi</div>
+            ${s.aiPlanDate&&h`<div style=${{fontSize:"0.7rem",color:"var(--muted)"}}>Updated ${s.aiPlanDate}</div>`}
+          </div>
+          <div style=${{whiteSpace:"pre-wrap",fontSize:"0.85rem",lineHeight:1.85,color:"var(--ink)",fontFamily:"var(--f-body)"}}>${s.aiPlan}</div>
+        </div>`}
+
+        ${assignedGoalsList.length>0&&h`<div class="sp2-card" style=${{marginBottom:16}}>
+          <div style=${{fontSize:"0.6rem",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.14em",color:"var(--accent)",marginBottom:12}}>🎯 Goals Hadi Has Set For You</div>
+          <div style=${{display:"flex",flexDirection:"column",gap:8}}>
+            ${assignedGoalsList.map(g=>{
+              const prog=(s.goalProgress||[]).find(p=>p.goalId===g.id)||{completedItems:[]};
+              const items=(data.goalPaths||[]).filter(p=>p.goalId===g.id).map(p=>(data.contentItems||[]).find(c=>c.id===p.contentId)).filter(Boolean);
+              const done=items.filter(c=>prog.completedItems.includes(c.id)).length;
+              const pct=items.length?Math.round(done/items.length*100):0;
+              return h`<div key=${g.id} style=${{background:"var(--surface-2)",border:"1px solid color-mix(in oklab,var(--accent) 25%,var(--line))",borderRadius:"var(--r-sm)",padding:"12px 14px"}}>
+                <div style=${{fontWeight:700,fontSize:"0.9rem",color:"var(--ink)",marginBottom:4}}>${g.title}</div>
+                ${g.description&&h`<div style=${{fontSize:"0.78rem",color:"var(--muted)",marginBottom:8,lineHeight:1.5}}>${g.description}</div>`}
+                ${items.length>0?h`<div>
+                  <div class="sp2-prog" style=${{marginBottom:4}}><div class="sp2-prog-f" style=${{width:pct+"%"}}></div></div>
+                  <div style=${{fontSize:"0.7rem",color:"var(--muted)"}}>${done} of ${items.length} steps · ${pct}%</div>
+                </div>`:h`<div style=${{fontSize:"0.72rem",color:"var(--muted)",fontStyle:"italic"}}>Hadi is adding content to this path.</div>`}
+              </div>`;
+            })}
+          </div>
+          <div style=${{fontSize:"0.75rem",color:"var(--muted)",marginTop:12}}>Enroll and track your progress in the Goals section below ↓</div>
+        </div>`}
+
+        <div style=${{fontSize:"0.62rem",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.14em",color:"var(--muted)",marginBottom:12,marginTop:s.aiPlan||assignedGoalsList.length>0?8:0}}>Your Learning Profile</div>
+        <${StudentPreferencesTab} student=${s} data=${data} setData=${setData} auth=${auth}/>
+        <div style=${{marginTop:24,borderTop:"1px solid var(--line)",paddingTop:24}}>
+          <${GoalsTab} student=${s} data=${data} setData=${setData} auth=${auth}/>
+        </div>
+      </div>`;
+    }
 
     // ── PROGRESS — surface XP/streak/level ──
-    if(spTab==='progress') return h`<div style=${{maxWidth:720,margin:"0 auto"}}>
-      <h2 style=${{fontFamily:"var(--f-head)",fontSize:"1.5rem",fontWeight:600,color:"var(--ink)",marginBottom:4}}>Progress</h2>
-      <p style=${{fontSize:"0.9rem",color:"var(--muted)",marginBottom:20}}>Your learning journey at a glance.</p>
-      <div class="sp2-card" style=${{marginBottom:16,display:"flex",alignItems:"center",gap:16}}>
-        <div style=${{background:"var(--sp-glow)",borderRadius:"var(--r-sm)",padding:"10px 16px",textAlign:"center",minWidth:64,flexShrink:0}}>
-          <div style=${{fontSize:"0.6rem",fontWeight:700,color:"var(--accent)",textTransform:"uppercase",letterSpacing:"0.14em"}}>Level</div>
-          <div style=${{fontSize:"2rem",fontWeight:700,fontFamily:"var(--f-head)",color:"var(--accent)",lineHeight:1}}>${level}</div>
-        </div>
-        <div style=${{flex:1}}>
-          <div style=${{display:"flex",justifyContent:"space-between",marginBottom:6}}>
-            <span style=${{fontSize:13,fontWeight:600,color:"var(--ink)"}}>⭐ ${xp} XP total</span>
-            <span style=${{fontSize:11,color:"var(--muted)"}}>${xpPct}/100 to level ${level+1}</span>
+    if(spTab==='progress') {
+      const snaps=[...(s.skillSnapshots||[])].sort((a,b)=>new Date(a.date)-new Date(b.date));
+      const latestSnap=snaps[snaps.length-1];
+      const prevSnap=snaps.length>1?snaps[snaps.length-2]:null;
+      const skillDefs=[['skillReading','📖','Reading'],['skillWriting','✍️','Writing'],['skillListening','🎧','Listening'],['skillSpeaking','🗣️','Speaking']];
+      return h`<div style=${{maxWidth:720,margin:"0 auto"}}>
+        <h2 style=${{fontFamily:"var(--f-head)",fontSize:"1.5rem",fontWeight:600,color:"var(--ink)",marginBottom:4}}>Progress</h2>
+        <p style=${{fontSize:"0.9rem",color:"var(--muted)",marginBottom:20}}>Your learning journey at a glance.</p>
+
+        <div class="sp2-card" style=${{marginBottom:16,display:"flex",alignItems:"center",gap:16}}>
+          <div style=${{background:"var(--sp-glow)",borderRadius:"var(--r-sm)",padding:"10px 16px",textAlign:"center",minWidth:64,flexShrink:0}}>
+            <div style=${{fontSize:"0.6rem",fontWeight:700,color:"var(--accent)",textTransform:"uppercase",letterSpacing:"0.14em"}}>Level</div>
+            <div style=${{fontSize:"2rem",fontWeight:700,fontFamily:"var(--f-head)",color:"var(--accent)",lineHeight:1}}>${level}</div>
           </div>
-          <div class="sp2-prog"><div class="sp2-prog-f" style=${{width:xpPct+"%"}}></div></div>
-          ${(s.streakDays||0)>=3?h`<div style=${{marginTop:6,fontSize:12,color:"#ff6b35",fontWeight:600}}>🔥 ${s.streakDays}-day streak!</div>`:null}
+          <div style=${{flex:1}}>
+            <div style=${{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+              <span style=${{fontSize:13,fontWeight:600,color:"var(--ink)"}}>⭐ ${xp} XP total</span>
+              <span style=${{fontSize:11,color:"var(--muted)"}}>${xpPct}/100 to level ${level+1}</span>
+            </div>
+            <div class="sp2-prog"><div class="sp2-prog-f" style=${{width:xpPct+"%"}}></div></div>
+            ${(s.streakDays||0)>=3?h`<div style=${{marginTop:6,fontSize:12,color:"#ff6b35",fontWeight:600}}>🔥 ${s.streakDays}-day streak!</div>`:null}
+          </div>
         </div>
-      </div>
-      <div style=${{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:12}}>
-        ${[["📚","Lessons Done",lessonSummary.taken,"var(--accent)"],["📅","Attendance",att.rate+"%",att.rate>=80?"var(--good)":att.rate>=60?"var(--warn)":"var(--bad)"],["🔥","Streak",(s.streakDays||0)+" days","#ff6b35"],["📖","Topics",doneCount+"/"+assigned.length,"var(--accent)"]].map(([icon,label,val,color])=>h`<div class="sp2-card" style=${{textAlign:"center",padding:16,borderTop:"3px solid "+color}} key=${label}>
-          <div style=${{fontSize:22,marginBottom:6}}>${icon}</div>
-          <div style=${{fontSize:22,fontWeight:700,fontFamily:"var(--f-head)",color}}>${val}</div>
-          <div style=${{fontSize:"0.62rem",color:"var(--muted)",textTransform:"uppercase",letterSpacing:"0.08em",marginTop:3}}>${label}</div>
-        </div>`)}
-      </div>
-    </div>`;
+
+        <div style=${{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:12,marginBottom:16}}>
+          ${[["📚","Lessons Done",lessonSummary.taken,"var(--accent)"],["📅","Attendance",att.rate+"%",att.rate>=80?"var(--good)":att.rate>=60?"var(--warn)":"var(--bad)"],["🔥","Streak",(s.streakDays||0)+" days","#ff6b35"],["📖","Topics",doneCount+"/"+assigned.length,"var(--accent)"]].map(([icon,label,val,color])=>h`<div class="sp2-card" style=${{textAlign:"center",padding:16,borderTop:"3px solid "+color}} key=${label}>
+            <div style=${{fontSize:22,marginBottom:6}}>${icon}</div>
+            <div style=${{fontSize:22,fontWeight:700,fontFamily:"var(--f-head)",color}}>${val}</div>
+            <div style=${{fontSize:"0.62rem",color:"var(--muted)",textTransform:"uppercase",letterSpacing:"0.08em",marginTop:3}}>${label}</div>
+          </div>`)}
+        </div>
+
+        <div class="sp2-card">
+          <div style=${{fontSize:"0.6rem",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.14em",color:"var(--muted)",marginBottom:14}}>📈 Skill Ratings${latestSnap?h` · <span style=${{fontWeight:400,fontStyle:"italic"}}>last updated ${latestSnap.date}</span>`:" — Hadi will rate these after your lessons"}</div>
+          <div style=${{display:"flex",flexDirection:"column",gap:12}}>
+            ${skillDefs.map(([key,icon,label])=>{
+              const cur=latestSnap?.[key]??s[key]??null;
+              const prev=prevSnap?.[key]??null;
+              const change=cur!==null&&prev!==null?cur-prev:null;
+              if(cur===null) return h`<div key=${key} style=${{display:"flex",alignItems:"center",gap:10}}>
+                <div style=${{width:90,fontSize:"0.78rem",color:"var(--ink-2)",fontWeight:600,display:"flex",alignItems:"center",gap:4,flexShrink:0}}>${icon} ${label}</div>
+                <div style=${{flex:1,height:6,background:"var(--line)",borderRadius:99}}></div>
+                <div style=${{fontSize:"0.75rem",color:"var(--muted)",minWidth:30,textAlign:"right"}}>—</div>
+              </div>`;
+              return h`<div key=${key} style=${{display:"flex",alignItems:"center",gap:10}}>
+                <div style=${{width:90,fontSize:"0.78rem",color:"var(--ink-2)",fontWeight:600,display:"flex",alignItems:"center",gap:4,flexShrink:0}}>${icon} ${label}</div>
+                <div style=${{flex:1,height:6,background:"var(--line)",borderRadius:99,overflow:"hidden"}}>
+                  <div style=${{height:"100%",background:"var(--accent)",borderRadius:99,width:(cur/5*100)+"%",transition:"width .5s ease"}}></div>
+                </div>
+                <div style=${{fontSize:"0.82rem",fontWeight:700,color:"var(--accent)",minWidth:30,textAlign:"right"}}>${cur}/5</div>
+                ${change!==null&&change!==0?h`<div style=${{fontSize:"0.68rem",fontWeight:700,color:change>0?"var(--good)":"var(--bad)",flexShrink:0,minWidth:20}}>${change>0?"+":""+(change)}</div>`:null}
+              </div>`;
+            })}
+          </div>
+          ${snaps.length===0?h`<div style=${{fontSize:"0.78rem",color:"var(--muted)",marginTop:14,lineHeight:1.6}}>Your skill bars will fill in after Hadi rates you in your first lesson.</div>`:null}
+        </div>
+      </div>`;
+    }
 
     // ── SETTINGS ──
     if(spTab==='settings') return h`<${StudentSettingsTab} student=${s} data=${data} setData=${setData} auth=${auth}/>`;
