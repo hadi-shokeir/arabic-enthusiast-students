@@ -33,23 +33,23 @@ function AboutPage({ setPage }) {
               <h1 style={{ fontFamily: 'var(--f-head)', fontSize: 'clamp(2.4rem,4vw,3.6rem)', color: 'var(--ink)', fontWeight: 600, lineHeight: 1.1, marginBottom: 10, letterSpacing: '-0.01em' }}>
                 {profile.name || 'Hadi Shokeir'}
               </h1>
-              <div className="ar" style={{ fontFamily: 'var(--f-ar)', fontSize: '1.5rem', color: 'var(--accent)', marginBottom: 20, textAlign: 'right', lineHeight: 1.6 }}>
-                {profile.arabicTitle || 'مدرّس اللغة العربية'}
+              <div className="ar" style={{ fontFamily: 'var(--f-ar)', fontSize: '1.4rem', color: 'var(--accent)', marginBottom: 20, textAlign: 'right', lineHeight: 1.7 }}>
+                {profile.arabicTitle || 'لغويٌّ · مُعلِّم · مُترجم'}
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 28 }}>
-                {(profile.specialties || ['Classical Arabic', 'Levantine', 'Quranic Arabic', 'English']).map(s => (
+                {(profile.specialties || ['Classical Arabic', 'Levantine Dialect', 'Quranic Arabic', 'English']).map(s => (
                   <Badge key={s} tone="neutral">{s}</Badge>
                 ))}
               </div>
-              <div style={{ borderTop: '1px solid var(--line-2)', paddingTop: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <p style={{ color: 'var(--ink-2)', fontSize: '1rem', lineHeight: 1.8, margin: 0 }}>
-                  {profile.bio1 || 'Hadi Shokeir is a linguist, translator, and Arabic language instructor with teaching experience across Classical Arabic, Levantine dialect, and Quranic studies.'}
+              <div style={{ borderTop: '1px solid var(--line-2)', paddingTop: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <p style={{ color: 'var(--ink-2)', fontSize: '1rem', lineHeight: 1.85, margin: 0 }}>
+                  {profile.bio1 || 'Hadi Shokeir is a linguist, translator, and language mentor with deep roots in both Arabic and English. Born into the Arabic language and immersed in English from an early age, he has spent years teaching both — to students across different countries, backgrounds, and levels, from complete beginners to advanced readers working on precision.'}
                 </p>
-                <p style={{ color: 'var(--muted)', fontSize: '0.92rem', lineHeight: 1.8, margin: 0 }}>
-                  {profile.bio2 || "His lessons combine linguistic structure, patient correction, and a personal relationship with the language so students learn with clarity and confidence."}
+                <p style={{ color: 'var(--muted)', fontSize: '0.93rem', lineHeight: 1.85, margin: 0 }}>
+                  {profile.bio2 || 'Before building Arabic Enthusiast, Hadi worked professionally in digital advertising — managing Meta Ads campaigns across Facebook and Instagram, with a focus on performance, clear goals, and measurable results. He brings that same structured thinking to his teaching: every lesson has a purpose, every session moves you forward, and progress is always visible.'}
                 </p>
-                <div style={{ display: 'flex', gap: 32, marginTop: 8 }}>
-                  {(profile.stats || [{value:'7+',label:'Years teaching'},{value:'3',label:'Specialisations'},{value:'1:1',label:'Private lessons'}]).map(({value, label}) => (
+                <div style={{ display: 'flex', gap: 32, marginTop: 8, flexWrap: 'wrap' }}>
+                  {(profile.stats || [{value:'7+',label:'Years teaching'},{value:'4',label:'Specialisations'},{value:'1:1',label:'Private lessons'}]).map(({value, label}) => (
                     <div key={label}>
                       <div style={{ fontFamily: 'var(--f-head)', fontSize: '1.5rem', color: 'var(--ink)', fontWeight: 600, lineHeight: 1 }}>{value}</div>
                       <div style={{ fontSize: '0.65rem', color: 'var(--muted)', letterSpacing: '.1em', textTransform: 'uppercase', marginTop: 4 }}>{label}</div>
@@ -98,9 +98,9 @@ function AboutPage({ setPage }) {
           <Reveal><SectionHeading eyebrow="Approach" heading="Teaching philosophy" center={true} /></Reveal>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
             {(profile.philosophy || [
-              { title: 'Structure first', arabic: 'البنية أولاً', desc: 'Arabic has an elegant, logical grammar. Learning the system — not just memorising phrases — is what gives lasting ability.' },
-              { title: 'Authentic sounds', arabic: 'الأصوات الأصيلة', desc: 'From the first lesson you\'ll produce real Arabic sounds. No shortcuts that create bad habits to unlearn later.' },
-              { title: 'Your pace', arabic: 'بالسرعة التي تناسبك', desc: 'Every student\'s journey is different. Lessons adapt to your goals — Quran, dialect, conversation, or classical literature.' },
+              { title: 'The system, not shortcuts', arabic: 'النظام لا الاختصارات', desc: 'Survival phrases get you to the airport. Structure gets you the language. Every lesson builds a mental framework so new words and grammar slot in naturally — and stay.' },
+              { title: 'Both directions', arabic: 'الاتجاهان معاً', desc: 'Hadi teaches Arabic to English speakers and English to Arabic speakers. Understanding how each language interferes with the other — its rhythms, its gaps — is a real advantage in the classroom.' },
+              { title: 'Your goals, your pace', arabic: 'أهدافك أولاً', desc: 'Whether you\'re reading Quran, building dialect fluency, writing professional English, or starting from zero — the curriculum shapes itself around where you are and where you want to go.' },
             ]).map((p, i) => (
               <Reveal key={p.title} delay={i * 0.1}>
                 <div style={{
@@ -132,7 +132,7 @@ function AboutPage({ setPage }) {
                 <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}>{profile.contactHeadingAccent || 'talk'}</em>
               </h2>
               <p style={{ color: 'var(--muted)', fontSize: '0.95rem', lineHeight: 1.7, marginBottom: 32, maxWidth: 400 }}>
-                {profile.contactPrompt || 'Whether you have questions about courses, want a free intro lesson, or are ready to enrol — send a message and Hadi will reply within 24 hours.'}
+                {profile.contactPrompt || "Whether you're starting from scratch, looking to level up, or not sure where to begin — send a message and Hadi will get back to you personally within 24 hours."}
               </p>
               <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                 <button onClick={() => window.location.href = '/portal?signup=1'} style={{

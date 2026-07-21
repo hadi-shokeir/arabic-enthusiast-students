@@ -50,19 +50,19 @@ function HeroSection({ setPage }) {
       }}>
         {/* Copy column */}
         <div>
-          <Eyebrow>{home.eyebrow || 'Private 1:1 Arabic Tuition'}</Eyebrow>
+          <Eyebrow>{home.eyebrow || 'Private 1:1 Language Mentoring'}</Eyebrow>
           <h1 style={{
             fontFamily: 'var(--f-head)',
             fontSize: 'clamp(2.6rem, 5.4vw, 4.4rem)',
             fontWeight: 600, lineHeight: 1.08, color: 'var(--ink)',
             letterSpacing: '-0.01em', marginBottom: 24, textWrap: 'balance',
           }}>
-            {home.titleLine1 || 'Learn Arabic with'}{' '}
-            <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}>{home.titleAccent || 'passion'}</em>
-            {' & '}{home.titleLine3 || 'precision'}
+            {home.titleLine1 || 'A linguist who teaches'}{' '}
+            <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}>{home.titleAccent || 'Arabic & English'}</em>
+            {' '}{home.titleLine3 || 'the right way'}
           </h1>
           <p style={{ color: 'var(--muted)', fontSize: '1.05rem', lineHeight: 1.75, maxWidth: 480, marginBottom: 36 }}>
-            {home.description || 'From your first letter to reading the Quran and conversing in dialect — structured courses that honour the depth and beauty of the Arabic language.'}
+            {home.description || 'Hadi Shokeir is a linguist, translator, and language mentor who teaches Classical Arabic, Levantine dialect, Quranic recitation, and English — through focused private lessons built around your goals.'}
           </p>
 
           <div className="hero-actions" style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -71,20 +71,20 @@ function HeroSection({ setPage }) {
               onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
             >{home.primaryCta || 'Start learning'} →</button>
 
-            <button onClick={() => { setPage('courses'); window.scrollTo(0,0); }} style={btnOutline}
+            <button onClick={() => { setPage('about'); window.scrollTo(0,0); }} style={btnOutline}
               onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.color = 'var(--ink-2)'; }}
-            >{home.secondaryCta || 'Browse courses'}</button>
+            >Meet Hadi</button>
 
-            <button onClick={() => window.location.href = '/demo'} style={btnGhost}
+            <button onClick={() => { setPage('courses'); window.scrollTo(0,0); }} style={btnGhost}
               onMouseEnter={e => e.currentTarget.style.color = 'var(--ink)'}
               onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}
-            >Try free demo</button>
+            >Browse courses</button>
           </div>
 
           {/* Stat strip */}
           <div style={{ marginTop: 40, paddingTop: 28, borderTop: '1px solid var(--line-2)', display: 'flex', gap: 32, flexWrap: 'wrap' }}>
-            {[['4.9★','Rating'],['200+','Students'],['6+ yrs','Teaching']].map(([val, label]) => (
+            {[['4.9★','Rating'],['200+','Students'],['7+ yrs','Teaching']].map(([val, label]) => (
               <div key={label}>
                 <div style={{ fontFamily: 'var(--f-head)', fontSize: '1.5rem', fontWeight: 600, color: 'var(--ink)', lineHeight: 1 }}>{val}</div>
                 <div style={{ fontSize: '0.7rem', color: 'var(--muted)', letterSpacing: '.08em', textTransform: 'uppercase', marginTop: 3 }}>{label}</div>
@@ -93,7 +93,7 @@ function HeroSection({ setPage }) {
           </div>
         </div>
 
-        {/* Hero visual — animated Arabic letter in rings */}
+        {/* Hero visual — Hadi's photo centered in decorative rings */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
           <div style={{
             width: 'min(400px, 82vw)', height: 'min(400px, 82vw)',
@@ -108,26 +108,44 @@ function HeroSection({ setPage }) {
               border: '1px dashed color-mix(in oklab, var(--accent) 36%, transparent)',
               animation: 'spin 40s linear infinite',
             }} />
-            {/* The letter */}
-            <div key={tick} style={{
-              fontFamily: 'var(--f-ar)', fontSize: 'clamp(6rem, 18vw, 10rem)',
-              color: 'var(--accent)', lineHeight: 1, userSelect: 'none',
-              animation: 'letterFade 2.2s var(--ease)',
-            }}>{letters[tick % letters.length]}</div>
+            {/* Hadi's photo */}
+            <div style={{
+              width: 'min(248px, 60vw)', height: 'min(248px, 60vw)',
+              borderRadius: '50%', overflow: 'hidden',
+              border: '4px solid var(--surface)',
+              boxShadow: '0 8px 40px -12px rgba(47,74,122,0.38)',
+              position: 'relative', zIndex: 1,
+            }}>
+              <img src="/logo.jpeg" alt="Hadi Shokeir" style={{
+                width: '100%', height: '100%', objectFit: 'cover',
+                objectPosition: 'center top', display: 'block',
+              }} />
+            </div>
+            {/* Name card at bottom of ring */}
+            <div style={{
+              position: 'absolute', bottom: '11%', zIndex: 2,
+              background: 'color-mix(in oklab, var(--surface) 92%, transparent)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid var(--line)',
+              padding: '7px 16px', borderRadius: 'var(--r-sm)',
+              boxShadow: 'var(--shadow-sm)', textAlign: 'center', whiteSpace: 'nowrap',
+            }}>
+              <div style={{ fontFamily: 'var(--f-head)', fontSize: '0.82rem', fontWeight: 600, color: 'var(--ink)' }}>Hadi Shokeir</div>
+              <div style={{ fontSize: '0.58rem', color: 'var(--muted)', letterSpacing: '.1em', textTransform: 'uppercase', marginTop: 2 }}>Linguist · Arabic & English Mentor</div>
+            </div>
           </div>
 
           {/* Floating word chips */}
           {[
-            { word: 'كِتَاب', meaning: 'Book', style: { top: '10%', left: '-6%', animationDelay: '0s' } },
-            { word: 'نُور',  meaning: 'Light', style: { top: '14%', right: '-4%', animationDelay: '1.5s' } },
-            { word: 'قَلْب', meaning: 'Heart', style: { bottom: '12%', left: '-4%', animationDelay: '0.8s' } },
-          ].map(({ word, meaning, style: pos }) => (
+            { word: 'كِتَاب', meaning: 'Book', pos: { top: '8%', left: '-8%' } },
+            { word: 'نُور',  meaning: 'Light', pos: { top: '12%', right: '-6%' } },
+          ].map(({ word, meaning, pos }, i) => (
             <div key={word} style={{
               position: 'absolute', ...pos,
               background: 'var(--surface)', border: '1px solid var(--line)',
               padding: '8px 14px', borderRadius: 'var(--r-sm)',
               boxShadow: 'var(--shadow-sm)',
-              animation: `floaty ${4 + Math.random()}s ease-in-out infinite`,
+              animation: `floaty ${4.2 + i * 0.6}s ease-in-out infinite`,
               backdropFilter: 'blur(4px)',
             }}>
               <div className="ar" style={{ fontSize: '1.3rem', color: 'var(--ink)', lineHeight: 1.4 }}>{word}</div>
@@ -144,10 +162,10 @@ function FeaturesSection() {
   const site = window.getSiteContent ? window.getSiteContent() : (window.AE?.DATA?.siteContent || {});
   const home = site.homepage || {};
   const features = Array.isArray(home.features) && home.features.length ? home.features : [
-    { icon: '٢٨', label: 'Script', title: 'Master the script', desc: 'All 28 Arabic letters with four positional forms — isolated, initial, medial, and final. Interactive explorer included.' },
-    { icon: '◎', label: 'Sounds', title: 'Authentic sounds', desc: 'Audio for every letter, word, and phrase. The sounds that don\'t exist in English — ʿAyn, Ḥa, and Qāf — made clear.' },
-    { icon: '⟳', label: 'Vocabulary', title: 'Vocabulary that sticks', desc: 'Flashcard system using spaced repetition so you retain vocabulary long-term, not just for one lesson.' },
-    { icon: '📈', label: 'Progress', title: 'Track every step', desc: 'Visual dashboard with lesson completion, quiz scores, streaks, and skill levels across reading, writing, and speaking.' },
+    { icon: '🌐', label: 'Two Languages', title: 'Arabic & English — one teacher', desc: 'Whether you want Quran, dialect, or professional English, Hadi teaches both. One consistent voice, two complete systems.' },
+    { icon: '٢٨', label: 'Script', title: 'Master the Arabic script', desc: 'All 28 letters with four positional forms — isolated, initial, medial, and final. Interactive explorer built into every lesson.' },
+    { icon: '⟳', label: 'Retention', title: 'Vocabulary that actually sticks', desc: 'Spaced repetition flashcards so you retain what you learn long-term — not just for the lesson, but for life.' },
+    { icon: '📈', label: 'Progress', title: 'Track every step', desc: 'Visual dashboard with lesson logs, skill ratings, streak tracking, and clear next steps from your teacher after every session.' },
   ];
   return (
     <section style={{ padding: 'clamp(48px,8vw,96px) clamp(20px,5vw,80px)', background: 'var(--surface-2)', borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
@@ -245,9 +263,9 @@ function ApproachSection({ setPage }) {
   const site = window.getSiteContent ? window.getSiteContent() : (window.AE?.DATA?.siteContent || {});
   const home = site.homepage || {};
   const principles = [
-    { num: '01', title: 'Language before grammar', body: 'You learn by using Arabic, not by memorising rules in a vacuum. Structures are introduced in context.' },
-    { num: '02', title: 'Dialect and Modern Standard together', body: 'Classical roots, Levantine spoken fluency, and Quranic recitation are not competing paths — they reinforce each other.' },
-    { num: '03', title: 'Progress you can see', body: 'Every lesson is tracked. You always know what you\'ve covered, what\'s next, and how far you\'ve come.' },
+    { num: '01', title: 'Language before rules', body: 'Arabic and English both have elegant internal logic. You learn by using the language, not by memorising rules in isolation. Grammar arrives when it explains something you\'ve already felt.' },
+    { num: '02', title: 'Both languages, one system', body: 'Hadi teaches Arabic to English speakers and English to Arabic speakers. Knowing what each language feels like from the inside — its rhythms, its gaps — is what makes the teaching sharp.' },
+    { num: '03', title: 'Progress you can see', body: 'Every lesson is logged. You always know what you\'ve covered, what\'s coming next, and how far you\'ve come. No guessing, no plateaus you can\'t explain.' },
   ];
   return (
     <section style={{ padding: 'clamp(48px,8vw,96px) clamp(20px,5vw,80px)' }}>
@@ -258,17 +276,17 @@ function ApproachSection({ setPage }) {
             <div>
               <Eyebrow>The teaching approach</Eyebrow>
               <h2 style={{ fontFamily: 'var(--f-head)', fontSize: 'clamp(1.6rem,3vw,2.1rem)', fontWeight: 600, lineHeight: 1.15, color: 'var(--ink)', marginBottom: 20, letterSpacing: '-0.01em' }}>
-                Teaching that <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}>respects</em><br />the language
+                Teaching that <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}>builds</em><br />real ability
               </h2>
               <p style={{ color: 'var(--muted)', fontSize: '1rem', lineHeight: 1.7, marginBottom: 28 }}>
-                {home.approachSub || 'Arabic is not a utility language to "get through" — it is a living tradition. Every lesson honours its depth.'}
+                {home.approachSub || 'Arabic is not a utility language to "get through" — it is a living tradition. English is not just grammar drills — it is a tool for real life. Every lesson honours the language being taught.'}
               </p>
               <button onClick={() => { setPage('about'); window.scrollTo(0,0); }} style={{
                 fontFamily: 'var(--f-body)', fontSize: '0.85rem', fontWeight: 600,
                 padding: '12px 24px', background: 'var(--ink)', color: 'var(--paper)',
                 border: '1px solid var(--ink)', cursor: 'pointer', transition: 'all .2s var(--ease)',
                 borderRadius: 'var(--r)',
-              }}>Meet your teacher →</button>
+              }}>Meet Hadi →</button>
             </div>
             {/* Right — principles */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
@@ -363,89 +381,184 @@ function CtaSection({ setPage }) {
   );
 }
 
-function SubscriptionSection() {
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState('');
-
-  async function handleSubscribe() {
-    setLoading(true);
-    setError('');
-    try {
-      const r = await fetch('/api/stripe/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      const data = await r.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        setError(data.error || 'Something went wrong. Please try again.');
-        setLoading(false);
-      }
-    } catch {
-      setError('Could not connect. Please try again.');
-      setLoading(false);
-    }
-  }
-
+function AboutTeaser({ setPage }) {
   return (
     <section style={{ padding: 'clamp(48px,8vw,96px) clamp(20px,5vw,80px)', background: 'var(--surface)' }}>
       <div style={{ maxWidth: 1240, margin: '0 auto' }}>
-        <Reveal>
-          <div style={{ textAlign: 'center', marginBottom: 40 }}>
-            <Eyebrow center={true}>Monthly Access</Eyebrow>
-            <h2 style={{
-              fontFamily: 'var(--f-head)', fontSize: 'clamp(1.8rem,4vw,2.6rem)',
-              fontWeight: 600, lineHeight: 1.15, marginBottom: 12, color: 'var(--ink)',
-            }}>
-              The fastest path to{' '}
-              <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}>Arabic fluency</em>
+        <div style={{ display: 'grid', gridTemplateColumns: '0.9fr 1.1fr', gap: 'clamp(40px,7vw,96px)', alignItems: 'center' }} className="about-grid">
+          {/* Photo */}
+          <Reveal delay={0.05}>
+            <div style={{ position: 'relative' }}>
+              <div style={{
+                borderRadius: 'var(--r-lg)', overflow: 'hidden',
+                border: '1px solid var(--line)', boxShadow: 'var(--shadow)',
+                aspectRatio: '4/5', maxWidth: 420,
+              }}>
+                <img src="/logo.jpeg" alt="Hadi Shokeir" style={{
+                  width: '100%', height: '100%', objectFit: 'cover',
+                  objectPosition: 'center top', display: 'block',
+                }} />
+              </div>
+              {/* Floating credential badge */}
+              <div style={{
+                position: 'absolute', bottom: 20, right: -16,
+                background: 'var(--ink)', color: 'var(--paper)',
+                padding: '12px 18px', borderRadius: 'var(--r-sm)',
+                boxShadow: 'var(--shadow)', whiteSpace: 'nowrap',
+              }}>
+                <div style={{ fontSize: '0.6rem', color: 'var(--muted)', letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 3 }}>Your teacher</div>
+                <div style={{ fontFamily: 'var(--f-head)', fontSize: '0.95rem', fontWeight: 600 }}>Hadi Shokeir</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--faint)', marginTop: 2 }}>Linguist · Translator · Mentor</div>
+              </div>
+            </div>
+          </Reveal>
+
+          {/* Copy */}
+          <Reveal>
+            <Eyebrow>Who teaches you</Eyebrow>
+            <h2 style={{ fontFamily: 'var(--f-head)', fontSize: 'clamp(1.8rem,3.4vw,2.6rem)', fontWeight: 600, color: 'var(--ink)', lineHeight: 1.12, marginBottom: 20, letterSpacing: '-0.01em' }}>
+              A linguist who has lived{' '}
+              <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}>both languages</em>
             </h2>
-            <p style={{ color: 'var(--muted)', fontSize: '1rem', lineHeight: 1.7, maxWidth: 460, margin: '0 auto' }}>
-              Unlimited lessons, daily practice, and direct access to your teacher — one flat monthly price.
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 32 }}>
+              <p style={{ color: 'var(--ink-2)', fontSize: '1rem', lineHeight: 1.8, margin: 0 }}>
+                Hadi Shokeir is a linguist, translator, and language mentor with deep roots in both Arabic and English. Born into the Arabic language and immersed in English from an early age, he has spent years teaching both — to students across different countries, backgrounds, and goals.
+              </p>
+              <p style={{ color: 'var(--muted)', fontSize: '0.95rem', lineHeight: 1.8, margin: 0 }}>
+                Before building Arabic Enthusiast, Hadi worked professionally in digital advertising — managing Meta Ads campaigns across Facebook and Instagram, with a focus on performance, clarity, and measurable results. He brings that same structured thinking to teaching: every lesson is goal-oriented, every session moves you forward.
+              </p>
+            </div>
+            {/* Specialty chips */}
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 32 }}>
+              {['Classical Arabic', 'Levantine Dialect', 'Quranic Arabic', 'English'].map(s => (
+                <span key={s} style={{
+                  padding: '5px 12px', fontFamily: 'var(--f-body)', fontSize: '0.75rem',
+                  border: '1px solid var(--line)', borderRadius: 999,
+                  color: 'var(--ink-2)', background: 'var(--surface-2)',
+                }}>{s}</span>
+              ))}
+            </div>
+            <button onClick={() => { setPage('about'); window.scrollTo(0,0); }} style={{
+              fontFamily: 'var(--f-body)', fontSize: '0.85rem', fontWeight: 600,
+              padding: '13px 28px', background: 'var(--accent)', color: 'var(--on-accent)',
+              border: '1px solid var(--accent)', cursor: 'pointer', borderRadius: 'var(--r)',
+              transition: 'all .2s var(--ease)',
+            }}
+              onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
+              onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+            >Full story & contact →</button>
+          </Reveal>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function GroupWaitlistSection() {
+  const [form, setForm] = React.useState({ name: '', email: '', phone: '', interest: 'Arabic Group' });
+  const [sent, setSent] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+    } catch {}
+    setSent(true);
+    setLoading(false);
+  }
+
+  const inputStyle = {
+    width: '100%', background: 'var(--surface-2)', border: '1px solid var(--line)',
+    color: 'var(--ink)', padding: '11px 14px', fontFamily: 'var(--f-body)', fontSize: '15px',
+    outline: 'none', transition: 'border-color .2s', borderRadius: 'var(--r-sm)',
+  };
+
+  return (
+    <section style={{ padding: 'clamp(48px,8vw,96px) clamp(20px,5vw,80px)', background: 'var(--surface-2)', borderTop: '1px solid var(--line)' }}>
+      <div style={{ maxWidth: 1240, margin: '0 auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'clamp(32px,6vw,80px)', alignItems: 'start' }} className="about-grid">
+          {/* Left — context */}
+          <Reveal>
+            <Eyebrow>Coming Soon</Eyebrow>
+            <h2 style={{ fontFamily: 'var(--f-head)', fontSize: 'clamp(1.8rem,3.2vw,2.4rem)', fontWeight: 600, color: 'var(--ink)', lineHeight: 1.15, marginBottom: 16, letterSpacing: '-0.01em' }}>
+              Group lessons —{' '}
+              <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}>join the waitlist</em>
+            </h2>
+            <p style={{ color: 'var(--muted)', fontSize: '0.95rem', lineHeight: 1.75, marginBottom: 28, maxWidth: 420 }}>
+              Small-group lessons are coming for Arabic and English learners. Structured, live sessions with Hadi — at a lower price point than private 1:1. Drop your details and you'll be the first to know when spots open.
             </p>
-          </div>
-        </Reveal>
-        <Reveal delay={0.08}>
-          <div style={{
-            maxWidth: 440, margin: '0 auto',
-            background: 'var(--ink)', color: 'var(--paper)',
-            borderRadius: 'var(--r-lg)', padding: '36px 32px',
-            textAlign: 'center', boxShadow: 'var(--shadow)',
-          }}>
-            <div style={{ fontFamily: 'var(--f-head)', fontSize: '1.15rem', fontWeight: 600, marginBottom: 4 }}>
-              Monthly Immersion
-            </div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, justifyContent: 'center', marginBottom: 24 }}>
-              <span style={{ fontFamily: 'var(--f-head)', fontSize: '3rem', fontWeight: 700, lineHeight: 1 }}>$420</span>
-              <span style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>/month</span>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28, textAlign: 'left' }}>
-              {['Unlimited lessons (up to 4/week)', 'Daily vocab & tasks', 'Full portal access', 'Weekly progress call', 'Priority support'].map(function (f) {
-                return (
-                  <div key={f} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                    <span style={{ color: 'var(--accent)', fontWeight: 700, flexShrink: 0 }}>✓</span>
-                    <span style={{ fontSize: '0.88rem', opacity: 0.85, lineHeight: 1.4 }}>{f}</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {[
+                { icon: '👥', label: 'Small groups', desc: 'Maximum 6 students per session — everyone gets attention.' },
+                { icon: '🗓️', label: 'Structured curriculum', desc: 'Same rigour as private lessons, shared journey.' },
+                { icon: '💬', label: 'Live with Hadi', desc: 'Not pre-recorded. Real-time lessons, real feedback.' },
+              ].map(({ icon, label, desc }) => (
+                <div key={label} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                  <div style={{ fontSize: 20, width: 28, flexShrink: 0, marginTop: 2 }}>{icon}</div>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--ink)', marginBottom: 2 }}>{label}</div>
+                    <div style={{ fontSize: '0.83rem', color: 'var(--muted)', lineHeight: 1.6 }}>{desc}</div>
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
-            {error && <p style={{ color: 'var(--bad)', fontSize: '0.8rem', marginBottom: 10 }}>{error}</p>}
-            <button
-              onClick={handleSubscribe}
-              disabled={loading}
-              style={{
-                width: '100%', padding: '13px',
-                fontFamily: 'var(--f-body)', fontSize: '0.9rem', fontWeight: 600,
-                background: 'var(--accent)', color: 'var(--on-accent)',
-                border: '1px solid var(--accent)',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                borderRadius: 'var(--r)', transition: 'all .2s var(--ease)',
-                opacity: loading ? 0.7 : 1,
-              }}
-            >{loading ? 'Redirecting…' : 'Subscribe now →'}</button>
-          </div>
-        </Reveal>
+          </Reveal>
+
+          {/* Right — form */}
+          <Reveal delay={0.1}>
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 'var(--r-lg)', padding: '32px 28px' }}>
+              {sent ? (
+                <div style={{ textAlign: 'center', padding: '24px 0' }}>
+                  <div style={{ fontSize: 40, marginBottom: 12 }}>✅</div>
+                  <div style={{ fontFamily: 'var(--f-head)', fontSize: '1.3rem', fontWeight: 600, color: 'var(--ink)', marginBottom: 8 }}>You're on the list!</div>
+                  <div style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.6 }}>Hadi will reach out personally when group sessions are ready to launch.</div>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <div style={{ fontFamily: 'var(--f-head)', fontSize: '1.05rem', fontWeight: 600, color: 'var(--ink)', marginBottom: 4 }}>Reserve your spot</div>
+                  {[['text','Full Name','name'],['email','Email Address','email'],['tel','Phone / WhatsApp','phone']].map(([type, label, key]) => (
+                    <div key={key}>
+                      <label style={{ display: 'block', fontSize: '0.66rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 5, fontWeight: 600 }}>{label}</label>
+                      <input type={type} value={form[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))} required={key !== 'phone'} placeholder={key === 'phone' ? 'Optional — for WhatsApp updates' : ''} style={inputStyle}
+                        onFocus={e => e.target.style.borderColor = 'var(--accent)'}
+                        onBlur={e => e.target.style.borderColor = 'var(--line)'}
+                      />
+                    </div>
+                  ))}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.66rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 8, fontWeight: 600 }}>I want group lessons in</label>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {['Arabic Group', 'English Group', 'Both'].map(opt => (
+                        <button key={opt} type="button" onClick={() => setForm(f => ({ ...f, interest: opt }))} style={{
+                          flex: 1, padding: '9px 8px', fontFamily: 'var(--f-body)', fontSize: '0.78rem', cursor: 'pointer',
+                          background: form.interest === opt ? 'color-mix(in oklab, var(--accent) 12%, var(--surface))' : 'var(--surface-2)',
+                          border: `1px solid ${form.interest === opt ? 'color-mix(in oklab, var(--accent) 40%, transparent)' : 'var(--line)'}`,
+                          color: form.interest === opt ? 'var(--accent)' : 'var(--muted)',
+                          borderRadius: 'var(--r-sm)', transition: 'all .15s', fontWeight: form.interest === opt ? 600 : 400,
+                        }}>{opt}</button>
+                      ))}
+                    </div>
+                  </div>
+                  <button type="submit" disabled={loading} style={{
+                    width: '100%', padding: '13px',
+                    background: 'var(--accent)', color: 'var(--on-accent)',
+                    border: 'none', fontFamily: 'var(--f-body)', fontSize: '0.88rem',
+                    fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer',
+                    borderRadius: 'var(--r)', transition: 'all .2s var(--ease)',
+                    opacity: loading ? 0.7 : 1, marginTop: 4,
+                  }}>{loading ? 'Saving…' : 'Join the waitlist →'}</button>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--muted)', textAlign: 'center', lineHeight: 1.5 }}>No spam. Hadi will message you personally when it's ready.</div>
+                </form>
+              )}
+            </div>
+          </Reveal>
+        </div>
       </div>
     </section>
   );
@@ -459,8 +572,9 @@ function HomePage({ setPage }) {
       {show('features') && <FeaturesSection />}
       {show('courses') && <CoursesTeaser setPage={setPage} />}
       {show('approach') !== false && <ApproachSection setPage={setPage} />}
-      {show('subscription') !== false && <SubscriptionSection />}
+      <AboutTeaser setPage={setPage} />
       {show('quote') && <QuoteSection />}
+      <GroupWaitlistSection />
       {show('cta') && <CtaSection setPage={setPage} />}
     </div>
   );

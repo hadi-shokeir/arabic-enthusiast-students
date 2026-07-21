@@ -62,12 +62,11 @@ function Nav({ page, setPage }) {
           background: 'none', border: 'none', cursor: 'pointer',
           display: 'flex', alignItems: 'center', gap: 10,
         }}>
-          <div style={{
-            width: 34, height: 34, borderRadius: 8,
-            background: 'var(--accent)', color: 'var(--on-accent)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontFamily: 'var(--f-ar)', fontSize: '1.1rem', flexShrink: 0,
-          }}>ع</div>
+          <img src="/logo.jpeg" alt="Hadi Shokeir" style={{
+            width: 36, height: 36, borderRadius: 8,
+            objectFit: 'cover', objectPosition: 'center top',
+            flexShrink: 0, border: '1px solid var(--line)',
+          }} />
           <div>
             <div style={{
               fontFamily: 'var(--f-head)', fontSize: '0.95rem', fontWeight: 600,
@@ -77,7 +76,7 @@ function Nav({ page, setPage }) {
               fontFamily: 'var(--f-body)', fontSize: '0.58rem', fontWeight: 700,
               color: 'var(--muted)', letterSpacing: '0.14em', textTransform: 'uppercase',
               marginTop: 1,
-            }}>Classical · Levantine · Quranic</div>
+            }}>Arabic · English · Language Mentor</div>
           </div>
         </button>
 
@@ -199,18 +198,17 @@ function Footer({ setPage }) {
         {/* Brand column */}
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-            <div style={{
-              width: 32, height: 32, borderRadius: 7,
-              background: 'var(--accent)', color: 'var(--on-accent)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontFamily: 'var(--f-ar)', fontSize: '1rem', flexShrink: 0,
-            }}>ع</div>
+            <img src="/logo.jpeg" alt="Hadi Shokeir" style={{
+              width: 36, height: 36, borderRadius: 8,
+              objectFit: 'cover', objectPosition: 'center top',
+              flexShrink: 0, border: '1px solid var(--line)',
+            }} />
             <div style={{ fontFamily: 'var(--f-head)', fontSize: '0.95rem', fontWeight: 600, color: 'var(--ink)' }}>
               {site.brand || 'Arabic Enthusiast'}
             </div>
           </div>
           <p style={{ color: 'var(--muted)', fontSize: '0.85rem', lineHeight: 1.7, maxWidth: 280 }}>
-            {home.description || 'Professional Arabic instruction from first letters to fluent reading. Taught with passion and precision.'}
+            Arabic and English language mentoring — private lessons, structured curriculum, real results.
           </p>
           <div dir="rtl" style={{
             fontFamily: 'var(--f-ar)', fontSize: '1.6rem', color: 'var(--faint)',
@@ -246,7 +244,7 @@ function Footer({ setPage }) {
         display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12,
       }}>
         <span style={{ fontSize: '0.72rem', color: 'var(--faint)' }}>© 2026 {site.brand || 'Arabic Enthusiast'}. All rights reserved.</span>
-        <span style={{ fontSize: '0.72rem', color: 'var(--faint)' }}>Teaching the world's most beautiful language.</span>
+        <span style={{ fontSize: '0.72rem', color: 'var(--faint)' }}>Arabic · English · Teaching with passion & precision.</span>
       </div>
     </footer>
   );
