@@ -2,14 +2,8 @@
 const { useState, useEffect, useRef } = React;
 
 function HeroSection({ setPage }) {
-  const [tick, setTick] = useState(0);
   const site = window.getSiteContent ? window.getSiteContent() : (window.AE?.DATA?.siteContent || {});
   const home = site.homepage || {};
-  const letters = ['ع', 'ر', 'ب', 'ي'];
-  useEffect(() => {
-    const t = setInterval(() => setTick(x => x + 1), 2400);
-    return () => clearInterval(t);
-  }, []);
 
   const btnPrimary = {
     fontFamily: 'var(--f-body)', fontSize: '0.85rem', fontWeight: 600,
@@ -93,65 +87,26 @@ function HeroSection({ setPage }) {
           </div>
         </div>
 
-        {/* Hero visual — Hadi's photo centered in decorative rings */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+        {/* Hero visual — clean portrait */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{
-            width: 'min(400px, 82vw)', height: 'min(400px, 82vw)',
-            border: '1px solid var(--line)', borderRadius: '50%',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative',
+            width: 'min(360px, 80vw)', borderRadius: 'var(--r-lg)',
+            overflow: 'hidden', border: '1px solid var(--line)',
+            boxShadow: 'var(--shadow)', position: 'relative',
           }}>
-            {/* Inner ring */}
-            <div style={{ position: 'absolute', inset: 28, border: '1px solid var(--line-2)', borderRadius: '50%' }} />
-            {/* Rotating dashed ring */}
-            <div style={{
-              position: 'absolute', inset: -1, borderRadius: '50%',
-              border: '1px dashed color-mix(in oklab, var(--accent) 36%, transparent)',
-              animation: 'spin 40s linear infinite',
+            <img src="/logo.jpeg" alt="Hadi Shokeir" style={{
+              width: '100%', aspectRatio: '4/5',
+              objectFit: 'cover', objectPosition: 'center top', display: 'block',
             }} />
-            {/* Hadi's photo */}
             <div style={{
-              width: 'min(248px, 60vw)', height: 'min(248px, 60vw)',
-              borderRadius: '50%', overflow: 'hidden',
-              border: '4px solid var(--surface)',
-              boxShadow: '0 8px 40px -12px rgba(47,74,122,0.38)',
-              position: 'relative', zIndex: 1,
+              position: 'absolute', bottom: 0, left: 0, right: 0,
+              background: 'color-mix(in oklab, var(--ink) 82%, transparent)',
+              backdropFilter: 'blur(6px)', padding: '16px 20px',
             }}>
-              <img src="/logo.jpeg" alt="Hadi Shokeir" style={{
-                width: '100%', height: '100%', objectFit: 'cover',
-                objectPosition: 'center top', display: 'block',
-              }} />
-            </div>
-            {/* Name card at bottom of ring */}
-            <div style={{
-              position: 'absolute', bottom: '11%', zIndex: 2,
-              background: 'color-mix(in oklab, var(--surface) 92%, transparent)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid var(--line)',
-              padding: '7px 16px', borderRadius: 'var(--r-sm)',
-              boxShadow: 'var(--shadow-sm)', textAlign: 'center', whiteSpace: 'nowrap',
-            }}>
-              <div style={{ fontFamily: 'var(--f-head)', fontSize: '0.82rem', fontWeight: 600, color: 'var(--ink)' }}>Hadi Shokeir</div>
-              <div style={{ fontSize: '0.58rem', color: 'var(--muted)', letterSpacing: '.1em', textTransform: 'uppercase', marginTop: 2 }}>Linguist · Arabic & English Mentor</div>
+              <div style={{ fontFamily: 'var(--f-head)', fontSize: '1rem', fontWeight: 600, color: 'var(--paper)' }}>Hadi Shokeir</div>
+              <div className="ar" style={{ fontFamily: 'var(--f-ar)', fontSize: '1rem', color: 'var(--accent)', textAlign: 'right', marginTop: 3, lineHeight: 1.6 }}>لغويٌّ · مُعلِّم · مُترجم</div>
             </div>
           </div>
-
-          {/* Floating word chips */}
-          {[
-            { word: 'كِتَاب', meaning: 'Book', pos: { top: '8%', left: '-8%' } },
-            { word: 'نُور',  meaning: 'Light', pos: { top: '12%', right: '-6%' } },
-          ].map(({ word, meaning, pos }, i) => (
-            <div key={word} style={{
-              position: 'absolute', ...pos,
-              background: 'var(--surface)', border: '1px solid var(--line)',
-              padding: '8px 14px', borderRadius: 'var(--r-sm)',
-              boxShadow: 'var(--shadow-sm)',
-              animation: `floaty ${4.2 + i * 0.6}s ease-in-out infinite`,
-              backdropFilter: 'blur(4px)',
-            }}>
-              <div className="ar" style={{ fontSize: '1.3rem', color: 'var(--ink)', lineHeight: 1.4 }}>{word}</div>
-              <div style={{ fontSize: '0.62rem', color: 'var(--muted)', letterSpacing: '.06em', marginTop: 1 }}>{meaning}</div>
-            </div>
-          ))}
         </div>
       </div>
     </section>
@@ -569,10 +524,9 @@ function HomePage({ setPage }) {
   return (
     <div>
       {show('homeHero') && <HeroSection setPage={setPage} />}
-      {show('features') && <FeaturesSection />}
-      {show('courses') && <CoursesTeaser setPage={setPage} />}
-      {show('approach') !== false && <ApproachSection setPage={setPage} />}
       <AboutTeaser setPage={setPage} />
+      {show('features') && <FeaturesSection />}
+      {show('approach') !== false && <ApproachSection setPage={setPage} />}
       {show('quote') && <QuoteSection />}
       <GroupWaitlistSection />
       {show('cta') && <CtaSection setPage={setPage} />}
@@ -581,3 +535,4 @@ function HomePage({ setPage }) {
 }
 
 window.HomePage = HomePage;
+window.GroupWaitlistSection = GroupWaitlistSection;

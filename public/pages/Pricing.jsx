@@ -1,5 +1,11 @@
 // ─── Pricing Page ─────────────────────────────────────────────────────────────
 
+function PricingGroupSection() {
+  const GW = window.GroupWaitlistSection;
+  if (!GW) return null;
+  return <GW />;
+}
+
 function PricingPage({ setPage }) {
   const site = window.getSiteContent ? window.getSiteContent() : (window.AE?.DATA?.siteContent || {});
   const pricing = site.pricing || {};
@@ -103,6 +109,7 @@ function PricingPage({ setPage }) {
         </Reveal>
       </div>
     </div>
+    <PricingGroupSection />
   );
 }
 
