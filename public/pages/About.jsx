@@ -3,7 +3,7 @@ const { useState } = React;
 
 // 🔴 Set your WhatsApp number here — full international format, no + or spaces
 // e.g. if your number is +961 71 123 456, write '96171123456'
-const HADI_WA = '';
+const HADI_WA = '96176957495';
 
 function AboutPage({ setPage }) {
   const site = window.getSiteContent ? window.getSiteContent() : (window.AE?.DATA?.siteContent || {});
