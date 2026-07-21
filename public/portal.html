@@ -1453,7 +1453,7 @@ async function pushImages(settings) {
 
 // ─── Helpers ───
 const SK = "tutor-v5";
-const DATA_VERSION = 24;
+const DATA_VERSION = 25;
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 const fmt = d => d ? new Date(d).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}) : "—";
 const today = () => new Date().toISOString().split("T")[0];
@@ -1502,6 +1502,8 @@ function normalizeStudentLessonBalance(student) {
 function withStudentDefaults(student) {
   const out = withSkillDefaults(student);
   if (!out.goalProgress) out.goalProgress = [];
+  if (!out.activeLanguage) out.activeLanguage = 'arabic';
+  if (!out.enrollments) out.enrollments = [{language:'arabic',level:out.level||'Beginner',status:'active',enrolledAt:out.startDate||new Date().toISOString()}];
   return normalizeStudentLessonBalance(out);
 }
 
@@ -1784,6 +1786,20 @@ function migrateData(data) {
     d.students = (d.students||[]).map(s => ({...s, goalProgress: s.goalProgress || []}));
     d._version = DATA_VERSION;
   }
+  if (v < 25) {
+    d.students = (d.students||[]).map(s => ({
+      ...s,
+      activeLanguage: s.activeLanguage || 'arabic',
+      enrollments: s.enrollments || [{
+        language: 'arabic',
+        level: s.level || 'Beginner',
+        status: 'active',
+        enrolledAt: s.startDate || new Date().toISOString()
+      }]
+    }));
+    d.resources = (d.resources||[]).map(r => ({...r, language: r.language || 'arabic'}));
+    d._version = DATA_VERSION;
+  }
   if (!d.studioItems) d.studioItems = [];
   if (!d.howTo) d.howTo = [];
   if (!d.verbs) d.verbs = [];
@@ -1807,7 +1823,7 @@ async function loadData() {
 }
 function getStorageEstimate() { return (navigator.storage?.estimate) ? navigator.storage.estimate() : Promise.resolve({usage:0,quota:0}); }
 
-const mkStudent = S => ({id:uid(),studentNumber:0,quizHistory:[],name:"",email:"",phone:"",whatsapp:"",timezone:"",avatar:"",gender:"",nickname:"",nicknameEmoji:"",type:(S?.types||DEFS.types)[0],level:(S?.levels||DEFS.levels)[0],paymentPlan:(S?.payPlans||DEFS.payPlans)[0],lessonRate:0,bundleSize:10,lessonsTotal:0,lessonsTaken:0,remainingClasses:0,freeTotal:0,freeTaken:0,lessonsOverdue:0,totalPaid:0,startDate:today(),notes:[],assignedLessons:[],completedLessons:[],active:true,enrollmentStatus:"",studioAccess:true,studentNote:"",...SKILL_DEFAULTS,studyTypes:["classical","dialect","quran"],teacherSummary:"",teacherStrengths:"",teacherImprove:"",teacherPrivateNotes:"",goals:"",nextSteps:"",homeworkNotes:"",skillHistory:[],focusItems:[],weeklyTasks:[],xp:0,streakDays:0,streakLastDate:null});
+const mkStudent = S => {const d=today();return {id:uid(),studentNumber:0,quizHistory:[],name:"",email:"",phone:"",whatsapp:"",timezone:"",avatar:"",gender:"",nickname:"",nicknameEmoji:"",type:(S?.types||DEFS.types)[0],level:(S?.levels||DEFS.levels)[0],paymentPlan:(S?.payPlans||DEFS.payPlans)[0],lessonRate:0,bundleSize:10,lessonsTotal:0,lessonsTaken:0,remainingClasses:0,freeTotal:0,freeTaken:0,lessonsOverdue:0,totalPaid:0,startDate:d,notes:[],assignedLessons:[],completedLessons:[],active:true,enrollmentStatus:"",studioAccess:true,studentNote:"",...SKILL_DEFAULTS,studyTypes:["classical","dialect","quran"],teacherSummary:"",teacherStrengths:"",teacherImprove:"",teacherPrivateNotes:"",goals:"",nextSteps:"",homeworkNotes:"",skillHistory:[],focusItems:[],weeklyTasks:[],xp:0,streakDays:0,streakLastDate:null,activeLanguage:'arabic',enrollments:[{language:'arabic',level:(S?.levels||DEFS.levels)[0],status:'active',enrolledAt:d}]};};
 const nextStudentNumber = (students) => { const nums = (students||[]).map(s=>s.studentNumber||0); return (nums.length ? Math.max(...nums) : 0) + 1; };
 const mkLesson = S => ({id:uid(),studentId:"",groupId:"",date:today(),time:"10:00",duration:60,type:(S?.types||DEFS.types)[0],status:"Scheduled",notes:""});
 const mkPayment = () => ({id:uid(),studentId:"",amount:0,date:today(),method:"Cash",notes:"",lessonsAdded:0,status:"Pending"});
@@ -1828,7 +1844,7 @@ function earnXP(s, amount) {
   const newStreak = dayDiff === 0 ? cur : dayDiff === 1 ? cur + 1 : 1;
   return { xp: (s.xp||0) + amount, streakDays: newStreak, streakLastDate: td };
 }
-const mkResource = () => ({id:uid(),title:"",url:"",description:"",ogTitle:"",ogImage:"",ogDescription:"",type:"link",videoId:"",category:"General",track:"",level:"",fileName:"",fileData:"",addedAt:new Date().toISOString()});
+const mkResource = () => ({id:uid(),title:"",url:"",description:"",ogTitle:"",ogImage:"",ogDescription:"",type:"link",videoId:"",category:"General",track:"",level:"",language:"arabic",fileName:"",fileData:"",addedAt:new Date().toISOString()});
 
 // ── Reliable cross-device file download (Blob URL method) ──────────────────
 // Using <a href="data:..."> directly fails on iOS Safari and some Android browsers.
@@ -5157,10 +5173,11 @@ function StudentLibraryTab({student: s, data, setData, initialTopic, defaultTab,
   ];
   const resCategories = ["All", "PDF", "Video", "Link", ...new Set(allResources.map(r=>r.category).filter(Boolean))];
   const resFiltered = allResources.filter(r => {
+    const matchLang = !r.language || r.language === (s.activeLanguage||'arabic');
     const matchType = resType==="All" || r._label===resType || r.category===resType;
     const q = resSearch.toLowerCase();
     const matchQ = !q || (r.title||r.name||r.fileName||"").toLowerCase().includes(q) || (r.description||r.ogDescription||"").toLowerCase().includes(q) || (r.category||"").toLowerCase().includes(q);
-    return matchType && matchQ;
+    return matchLang && matchType && matchQ;
   });
   const safeDomain = url => { try { return new URL(url).hostname.replace(/^www\./,""); } catch { return url; } };
 
@@ -5839,6 +5856,30 @@ function StudentSettingsTab({student: s, data, setData, auth}) {
       <div style=${{width:40,height:40,borderRadius:10,background:"rgba(76,175,125,0.12)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>✅</div>
       <div style=${{fontWeight:700,fontSize:14,color:"var(--sp-txt)"}}>Profile is complete — everything's filled in!</div>
     </div>`}
+
+    <div class="sp2-card" style=${{marginBottom:14}}>
+      <div style=${{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1.5,color:"var(--sp-txt3)",marginBottom:12}}>🌐 My Languages</div>
+      ${(s.enrollments||[{language:'arabic',status:'active'}]).map(e=>{
+        const isArabic=e.language==='arabic';
+        const isActive=s.activeLanguage===e.language;
+        return h`<div key=${e.language} style=${{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid var(--sp-border)"}}>
+          <div style=${{display:"flex",alignItems:"center",gap:12}}>
+            <div style=${{width:36,height:36,borderRadius:10,background:isArabic?"rgba(47,74,122,0.12)":"rgba(76,175,125,0.12)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>${isArabic?"🇸🇦":"🇬🇧"}</div>
+            <div>
+              <div style=${{fontWeight:600,fontSize:13,color:"var(--sp-txt)"}}>${isArabic?"Arabic":"English"}</div>
+              <div style=${{fontSize:11,color:"var(--sp-txt3)"}}>${e.level||s.level||"Beginner"} · ${e.status||"active"}</div>
+            </div>
+          </div>
+          <div style=${{display:"flex",gap:8,alignItems:"center"}}>
+            ${isActive?h`<span class="sp2-badge sp2-badge-a">Active</span>`:h`<button class="sp2-btn-sm" onClick=${()=>upd("activeLanguage",e.language)}>Switch to</button>`}
+          </div>
+        </div>`;
+      })}
+      ${!(s.enrollments||[]).some(e=>e.language==='english')?h`<button style=${{marginTop:14,width:"100%",padding:"10px 0",border:"1.5px dashed var(--sp-border)",borderRadius:10,background:"transparent",color:"var(--accent)",fontFamily:"'Outfit',sans-serif",fontSize:13,fontWeight:600,cursor:"pointer"}} onClick=${()=>{
+        const newEnrollment={language:'english',level:'Beginner',status:'active',enrolledAt:new Date().toISOString()};
+        upd("enrollments",[...(s.enrollments||[{language:'arabic',level:s.level||'Beginner',status:'active',enrolledAt:s.startDate||new Date().toISOString()}]),newEnrollment]);
+      }}>+ Add English</button>`:null}
+    </div>
 
     <div class="sp2-card" style=${{marginBottom:14}}>
       <div style=${{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1.5,color:"var(--sp-txt3)",marginBottom:12}}>👤 Account</div>
@@ -6752,16 +6793,16 @@ const NAV = [
 const HUBS = {
   learn: [
     {id:'skills',     icon:'⚡', label:'Skills',      desc:'Reading, writing, listening, and speaking practice.'},
-    {id:'script',     icon:'ب',  label:'Script',      desc:'Explore all 28 Arabic letters and their forms.'},
-    {id:'trace',      icon:'✍️', label:'Tracing Lab', desc:'Practice writing Arabic letters with guided tracing.'},
-    {id:'culture',    icon:'🕌', label:'Culture',     desc:'Expressions, context, and cultural notes.'},
+    {id:'script',     icon:'ب',  label:'Script',      desc:'Explore all 28 Arabic letters and their forms.',      arabicOnly:true},
+    {id:'trace',      icon:'✍️', label:'Tracing Lab', desc:'Practice writing Arabic letters with guided tracing.', arabicOnly:true},
+    {id:'culture',    icon:'🕌', label:'Culture',     desc:'Expressions, context, and cultural notes.',           arabicOnly:true},
     {id:'flashcards', icon:'🃏', label:'Flashcards',  desc:'Vocabulary flashcards with spaced repetition.'},
     {id:'dictation',  icon:'🎧', label:'Dictation',   desc:'Listening and dictation practice exercises.'},
   ],
   lessons: [
     {id:'book',       icon:'📅',label:'Book a Lesson',   desc:'Schedule your next private lesson with Hadi.'},
     {id:'studio',     icon:'🎓',label:'Course Materials', desc:'Assigned lessons, curriculum, and extras.'},
-    {id:'verbs',      icon:'🔊',label:'Verbs',            desc:'Verb tables and conjugation practice.'},
+    {id:'verbs',      icon:'🔊',label:'Verbs',            desc:'Verb tables and conjugation practice.',    arabicOnly:true},
     {id:'resources',  icon:'📂',label:'Resources',        desc:'Files, recordings, and links shared by Hadi.'},
     {id:'messages',   icon:'💬',label:'Messages & Tasks', desc:'Notes from Hadi, weekly tasks, and how-to.'},
   ],
@@ -8011,6 +8052,18 @@ Your role:
 - For writing feedback: correct errors kindly, explain the rule, give the corrected version, then praise what was good
 - End every response with a short encouraging phrase in Arabic`;
 
+const SP_TUTOR_PROMPT_EN = `You are Hadi's English language AI tutor. Hadi is a professional language tutor (linguist, fluent in both Arabic and English) who has assigned you to support his English-learning students between lessons.
+
+Your role:
+- Teach conversational and written English to Arabic-speaking students
+- Tailor EVERY response to the student's level (beginner to advanced)
+- When introducing vocabulary, include: the word, pronunciation guide, example sentence, common collocations, and an Arabic equivalent where helpful
+- Grammar explanations should be clear and practical — contrast with Arabic structure where it helps understanding
+- Keep exercises conversational and real-world focused — students want to communicate naturally
+- Mark production tasks clearly as [TASK]
+- For writing feedback: correct errors kindly, explain the rule, give the corrected version, then praise what was done well
+- End every response with a short encouraging phrase in English`;
+
 function StudentPortal({data, setData, user, auth, onLogout}) {
   const [theme, setTheme] = useState(() => { try { return localStorage.getItem('ae_sp_theme')||'light'; } catch { return 'light'; } });
   const [spTab, setSpTab] = useState(() => {
@@ -8169,7 +8222,7 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
     const msgs = [...aiMsgs,{role:"user",content:msg}];
     setAiMsgs(msgs); setAiInput(""); setAiLoading(true);
     const prof = s ? {name:s.name,level:s.level,type:s.type,learnType:s.learnType,goals:s.goals} : {};
-    const r = await apiPost("/api/tutor",{token:auth.token,messages:msgs,studentProfile:prof,systemPrompt:SP_TUTOR_PROMPT});
+    const r = await apiPost("/api/tutor",{token:auth.token,messages:msgs,studentProfile:prof,systemPrompt:tutorPrompt});
     setAiMsgs([...msgs,{role:"assistant",content:r.error?"⚠️ "+r.error:r.reply}]);
     setAiLoading(false);
   };
@@ -8178,14 +8231,14 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
     setAiMsgs(msgs); setAiInput(""); setAiLoading(true);
     switchTab("ai"); // Switch immediately so student sees the loading indicator
     const prof = s ? {name:s.name,level:s.level,type:s.type,learnType:s.learnType,goals:s.goals} : {};
-    const r = await apiPost("/api/tutor",{token:auth.token,messages:msgs,studentProfile:prof,systemPrompt:SP_TUTOR_PROMPT});
+    const r = await apiPost("/api/tutor",{token:auth.token,messages:msgs,studentProfile:prof,systemPrompt:tutorPrompt});
     setAiMsgs([...msgs,{role:"assistant",content:r.error?"⚠️ "+r.error:r.reply}]);
     setAiLoading(false);
   };
   const submitWriting = async () => {
     if(!writeText.trim()||writeLd) return;
     setWriteLd(true);
-    const r = await apiPost("/api/tutor",{token:auth.token,messages:[{role:"user",content:"Please give me detailed feedback on my Arabic writing. Correct any errors, explain the grammar rules, then give me the corrected version. Here is what I wrote:\n\n"+writeText}],studentProfile:s?{name:s.name,level:s.level,type:s.type}:{},systemPrompt:SP_TUTOR_PROMPT});
+    const r = await apiPost("/api/tutor",{token:auth.token,messages:[{role:"user",content:"Please give me detailed feedback on my Arabic writing. Correct any errors, explain the grammar rules, then give me the corrected version. Here is what I wrote:\n\n"+writeText}],studentProfile:s?{name:s.name,level:s.level,type:s.type}:{},systemPrompt:tutorPrompt});
     setWriteFb(r.error?"⚠️ "+r.error:r.reply);
     setWriteLd(false);
   };
@@ -8231,6 +8284,8 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
   const isOverdue = hw => hw.status==="assigned" && hw.dueDate && new Date(hw.dueDate)<now2;
   const nextLesson = sLessons.find(l=>l.status==="Scheduled"&&new Date(l.date+"T"+(l.time||"10:00"))>=now2);
   const lv = s.level||"A2"; const lt = s.learnType||s.type||"Levantine";
+  const activeLang = s?.activeLanguage||'arabic';
+  const tutorPrompt = activeLang==='english' ? SP_TUTOR_PROMPT_EN : SP_TUTOR_PROMPT;
   const notifBadge = pushNeedsSetup() ? 1 : 0;
   const settingsBadge = [!s.timezone,!s.gender].filter(Boolean).length + notifBadge;
   const lp = s.learningProfile||{};
@@ -8261,7 +8316,8 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
 
   // Hub card renderer
   const renderHub = (hubId) => {
-    const items = HUBS[hubId] || [];
+    const isEnglish = (s.activeLanguage||'arabic') === 'english';
+    const items = (HUBS[hubId] || []).filter(item => !isEnglish || !item.arabicOnly);
     const hubNav = NAV.find(n=>n.id===hubId);
     const isLast = id => lastHubTab[hubId] === id;
     return h`<div>
@@ -8466,20 +8522,29 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
 
     // ── AI TUTOR ──
     if(spTab==='ai') {
+      const isEnglishMode = activeLang==='english';
+      const quickStarts = isEnglishMode ? [
+        ["📚","Vocabulary","Give me 5 useful English words for "+lv+" level. For each: pronunciation, a natural example sentence, common collocations, and a helpful Arabic comparison."],
+        ["📖","Reading","Give me a short reading passage at "+lv+" level English. Include a glossary of key words and 3 comprehension questions."],
+        ["✍️","Writing","Give me a writing prompt with guiding questions for me to write a short paragraph in English at "+lv+" level."],
+        ["🗣️","Conversation","Let's have a free conversation practice in English. Start with a simple, practical everyday topic for "+lv+" level."],
+        ["🔤","Grammar","Give me an English grammar lesson with clear examples and a practice exercise, appropriate for "+lv+" level. Contrast with Arabic grammar where useful."],
+        ["🎯","Common Phrases","Teach me 5 natural English expressions or idioms used in everyday conversation. Include when/how to use them and any Arabic equivalents."],
+      ] : [
+        ["📚","Vocabulary","Give me 5 new vocabulary words with their roots, pronunciation, Lebanese equivalent, and a short sentence each. My level is "+lv+", focus on "+lt+" Arabic."],
+        ["📖","Reading","Give me a reading comprehension passage at "+lv+" level in "+lt+" Arabic. Include a glossary of key words and 3 comprehension questions."],
+        ["✍️","Writing","Give me a writing prompt with guiding questions for me to write a short paragraph in "+lt+" Arabic at "+lv+" level."],
+        ["🗣️","Conversation","Let's have a free conversation practice in "+lt+" Arabic. Start with a simple, practical topic for "+lv+" level."],
+        ["🌿","Roots","Teach me 3 Arabic trilateral roots relevant to "+lt+" Arabic at "+lv+" level. Show the root, meaning, and 4 derived words each."],
+        ["📐","Grammar","Give me a grammar lesson with examples and a drill exercise, appropriate for "+lv+" level. Focus on "+lt+" Arabic patterns."],
+      ];
       if(aiMsgs.length===0) return h`<div style=${{maxWidth:700,margin:"0 auto"}}>
         <div style=${{fontFamily:"var(--f-head)",fontSize:24,fontWeight:700,marginBottom:6,color:"var(--sp-txt)"}}>AI Tutor 🤖</div>
-        <div style=${{fontSize:14,color:"var(--sp-txt2)",marginBottom:22,lineHeight:1.7}}>Your personal Arabic coach, available 24/7. Start a session below or ask anything.</div>
+        <div style=${{fontSize:14,color:"var(--sp-txt2)",marginBottom:22,lineHeight:1.7}}>Your personal ${isEnglishMode?"English":"Arabic"} coach, available 24/7. Start a session below or ask anything.</div>
         <div style=${{marginBottom:22}}>
           <div style=${{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:1.5,color:"var(--sp-txt3)",marginBottom:12}}>Quick Start a Session</div>
           <div style=${{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10}}>
-            ${[
-              ["📚","Vocabulary","Give me 5 new vocabulary words with their roots, pronunciation, Lebanese equivalent, and a short sentence each. My level is "+lv+", focus on "+lt+" Arabic."],
-              ["📖","Reading","Give me a reading comprehension passage at "+lv+" level in "+lt+" Arabic. Include a glossary of key words and 3 comprehension questions."],
-              ["✍️","Writing","Give me a writing prompt with guiding questions for me to write a short paragraph in "+lt+" Arabic at "+lv+" level."],
-              ["🗣️","Conversation","Let's have a free conversation practice in "+lt+" Arabic. Start with a simple, practical topic for "+lv+" level."],
-              ["🌿","Roots","Teach me 3 Arabic trilateral roots relevant to "+lt+" Arabic at "+lv+" level. Show the root, meaning, and 4 derived words each."],
-              ["📐","Grammar","Give me a grammar lesson with examples and a drill exercise, appropriate for "+lv+" level. Focus on "+lt+" Arabic patterns."],
-            ].map(([icon,label,prompt])=>h`<div key=${label} class="sp2-card sp2-card-h" style=${{padding:16,textAlign:"center"}} onClick=${()=>startAISession(prompt)}>
+            ${quickStarts.map(([icon,label,prompt])=>h`<div key=${label} class="sp2-card sp2-card-h" style=${{padding:16,textAlign:"center"}} onClick=${()=>startAISession(prompt)}>
               <div style=${{fontSize:26,marginBottom:6}}>${icon}</div>
               <div style=${{fontWeight:700,fontSize:13,color:"var(--sp-txt)"}}>${label}</div>
             </div>`)}
@@ -8488,7 +8553,7 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
         <div class="sp2-card">
           <div style=${{fontSize:12,fontWeight:700,color:"var(--sp-txt3)",marginBottom:10}}>Or ask anything:</div>
           <div style=${{display:"flex",gap:10}}>
-            <input value=${aiInput} onInput=${e=>setAiInput(e.target.value)} onKeyDown=${e=>{if(e.key==="Enter")sendAI();}} placeholder="e.g. What does يعطيك العافية mean?" style=${{flex:1,background:"var(--sp-surface)",border:"1px solid var(--sp-border)",borderRadius:10,padding:"11px 15px",color:"var(--sp-txt)",fontFamily:"inherit",fontSize:14,outline:"none"}}/>
+            <input value=${aiInput} onInput=${e=>setAiInput(e.target.value)} onKeyDown=${e=>{if(e.key==="Enter")sendAI();}} placeholder=${isEnglishMode?"e.g. What's the difference between 'say' and 'tell'?":"e.g. What does يعطيك العافية mean?"} style=${{flex:1,background:"var(--sp-surface)",border:"1px solid var(--sp-border)",borderRadius:10,padding:"11px 15px",color:"var(--sp-txt)",fontFamily:"inherit",fontSize:14,outline:"none"}}/>
             <button class="sp2-btn sp2-btn-p" onClick=${sendAI}>Ask</button>
           </div>
         </div>
@@ -9042,6 +9107,18 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
       <div class="sp2-hdr-actions">
         ${(s.streakDays||0)>=2?h`<span class="sp2-badge sp2-badge-a" style=${{fontSize:12}}>🔥 ${s.streakDays}</span>`:null}
         <span class="sp2-badge sp2-badge-t" style=${{fontSize:12}}>⭐ ${xp} XP</span>
+        ${(s.enrollments||[]).length>=2?h`<button
+          style=${{display:"flex",alignItems:"center",gap:4,padding:"4px 10px",borderRadius:20,border:"1.5px solid var(--accent)",background:"var(--surface-2)",cursor:"pointer",fontFamily:"'Public Sans',sans-serif",fontSize:12,fontWeight:700,color:"var(--accent)"}}
+          onClick=${()=>{
+            const next=(s.activeLanguage||'arabic')==='arabic'?'english':'arabic';
+            setData({...data,students:data.students.map(x=>x.id===s.id?{...x,activeLanguage:next}:x)});
+          }}
+          title="Switch language"
+        >
+          <span style=${{opacity:(s.activeLanguage||'arabic')==='arabic'?1:0.45}}>AR</span>
+          <span style=${{fontSize:10,color:"var(--muted)"}}>⇄</span>
+          <span style=${{opacity:(s.activeLanguage||'arabic')==='english'?1:0.45}}>EN</span>
+        </button>`:null}
         <div style=${{display:"flex",flexDirection:"column",alignItems:"center"}}>
           <button class="sp2-icon-btn" onClick=${doRefresh} disabled=${syncing} title="Sync latest data" style=${{background:"none",border:"1px solid var(--line)",borderRadius:8,cursor:"pointer",color:"var(--muted)",fontSize:13}}>${syncing?"⏳":"🔄"}</button>
           ${syncMsg?h`<span style=${{fontSize:9,color:syncMsg==="Synced!"?"var(--good)":"var(--bad)",fontWeight:700}}>${syncMsg}</span>`:null}

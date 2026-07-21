@@ -140,11 +140,14 @@ function CoursesPage({ setPage, setLesson }) {
   const courses = window.AE.DATA.courses.filter(c => c.visible !== false);
   const [filter, setFilter] = useState('All');
   const [typeFilter, setTypeFilter] = useState('All');
+  const [langFilter, setLangFilter] = useState('All');
   const levels = ['All', 'Beginner', 'Intermediate', 'Advanced'];
   const types = ['All', ...new Set(courses.map(c => c.type))];
+  const langs = ['All', ...new Set(courses.map(c => (c.language||'arabic')).map(l => l.charAt(0).toUpperCase()+l.slice(1)))];
   const filtered = courses.filter(c =>
     (filter === 'All' || c.level === filter) &&
-    (typeFilter === 'All' || c.type === typeFilter)
+    (typeFilter === 'All' || c.type === typeFilter) &&
+    (langFilter === 'All' || (c.language||'arabic').toLowerCase() === langFilter.toLowerCase())
   );
 
   const filterBtn = (active) => ({
@@ -174,6 +177,8 @@ function CoursesPage({ setPage, setLesson }) {
       {/* Filters */}
       <div style={{ padding: '16px clamp(20px,5vw,80px)', borderBottom: '1px solid var(--line-2)', background: 'var(--surface)', display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
         <div style={{ maxWidth: 1240, width: '100%', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {langs.length > 2 && langs.map(l => <button key={l} onClick={() => setLangFilter(l)} style={filterBtn(langFilter === l)}>{l}</button>)}
+          {langs.length > 2 && <div style={{ width: 1, height: 20, background: 'var(--line)', alignSelf: 'center', margin: '0 6px' }} />}
           {levels.map(l => <button key={l} onClick={() => setFilter(l)} style={filterBtn(filter === l)}>{l}</button>)}
           <div style={{ width: 1, height: 20, background: 'var(--line)', alignSelf: 'center', margin: '0 6px' }} />
           {types.map(t => <button key={t} onClick={() => setTypeFilter(t)} style={filterBtn(typeFilter === t)}>{t}</button>)}

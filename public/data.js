@@ -16,6 +16,7 @@ window.AE.DATA = {
   courses: [
     {
       id: "arabic-foundations",
+      language: "arabic",
       level: "Beginner",
       type: "Classical",
       title: "Arabic Foundations",
@@ -28,6 +29,7 @@ window.AE.DATA = {
     },
     {
       id: "levantine-dialect",
+      language: "arabic",
       level: "Beginner",
       type: "Levantine",
       title: "Levantine Arabic",
@@ -40,6 +42,7 @@ window.AE.DATA = {
     },
     {
       id: "quranic-arabic",
+      language: "arabic",
       level: "Beginner",
       type: "Quranic",
       title: "Quranic Arabic",

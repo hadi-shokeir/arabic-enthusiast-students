@@ -13,7 +13,7 @@ function AboutPage({ setPage }) {
     setSent(true);
   }
 
-  const interests = ['Classical', 'Levantine', 'Quranic', 'Quranic + Dialect', 'Private Lessons'];
+  const interests = ['Classical', 'Levantine', 'Quranic', 'Quranic + Dialect', 'English', 'Private Lessons'];
 
   const inputStyle = {
     width: '100%', background: 'var(--surface)', border: '1px solid var(--line)',
@@ -37,7 +37,7 @@ function AboutPage({ setPage }) {
                 {profile.arabicTitle || 'مدرّس اللغة العربية'}
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 28 }}>
-                {(profile.specialties || ['Classical Arabic', 'Levantine', 'Quranic Arabic']).map(s => (
+                {(profile.specialties || ['Classical Arabic', 'Levantine', 'Quranic Arabic', 'English']).map(s => (
                   <Badge key={s} tone="neutral">{s}</Badge>
                 ))}
               </div>
