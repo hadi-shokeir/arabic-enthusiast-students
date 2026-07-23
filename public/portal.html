@@ -9980,45 +9980,6 @@ function Dashboard({data, setData, auth}) {
 
   return h`<div>
 
-    <!-- ── Daily Reminder (top priority) ───────────────────────────────────── -->
-    <div style=${{
-      background:"linear-gradient(135deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%)",
-      borderRadius:16,padding:"20px 22px",marginBottom:20,
-      boxShadow:"0 4px 20px rgba(0,0,0,0.25)",
-      border:"1px solid rgba(255,255,255,0.08)",
-      position:"relative",overflow:"hidden"
-    }}>
-      <!-- subtle decorative crescent -->
-      <div style=${{position:"absolute",top:-18,right:-18,fontSize:80,opacity:0.06,lineHeight:1,userSelect:"none"}}>☪️</div>
-      <!-- label -->
-      <div style=${{fontSize:10,fontWeight:700,letterSpacing:2,textTransform:"uppercase",color:"#ffffff",marginBottom:12,display:"flex",alignItems:"center",gap:6}}>
-        <span>✦</span><span>Today's Reminder — تذكرة اليوم</span>
-      </div>
-      <!-- Arabic -->
-      <div style=${{
-        fontFamily:"'Amiri','Noto Naskh Arabic',serif",
-        fontSize:22,lineHeight:2,textAlign:"right",direction:"rtl",
-        color:"#f5e6c8",fontWeight:700,marginBottom:14,
-        borderBottom:"1px solid rgba(255,255,255,0.1)",paddingBottom:12
-      }}>${todayQuoteAdmin.ar}</div>
-      <!-- English -->
-      <div style=${{fontSize:14,lineHeight:1.75,color:"#e8dcc8",fontStyle:"italic",marginBottom:10,fontWeight:400}}>
-        "${todayQuoteAdmin.en}"
-      </div>
-      <!-- source -->
-      <div style=${{display:"flex",alignItems:"center",gap:8,marginBottom: todayQuoteAdmin.note ? 12 : 0}}>
-        <span style=${{fontSize:11,fontWeight:700,color:"#1a1a2e",background:"#ffffff",padding:"3px 12px",borderRadius:20}}>
-          ${todayQuoteAdmin.source}
-        </span>
-        <span style=${{fontFamily:"'Amiri','Noto Naskh Arabic',serif",fontSize:12,color:"#a09070",direction:"rtl"}}>
-          ${todayQuoteAdmin.sourceAr}
-        </span>
-      </div>
-      ${todayQuoteAdmin.note ? h`<div style=${{fontSize:12,lineHeight:1.7,color:"#9a8c78",borderTop:"1px solid rgba(255,255,255,0.07)",paddingTop:10}}>
-        📖 ${todayQuoteAdmin.note}
-      </div>` : null}
-    </div>
-
     <div class="stats">
       <div class="stat"><div class="lb">Active Students</div><div class="vl">${active.length}</div></div>
       <div class="stat"><div class="lb">This Month (Paid)</div><div class="vl">${fm(mRev, CUR)}</div><div class="su">${mPay.filter(p=>p.status==="Paid").length} payments</div></div>
