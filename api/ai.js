@@ -295,6 +295,29 @@ Additional notes: ${context.teacherNotes || 'None'}`;
         userMessage = context.message;
         break;
 
+      case 'tutor_command':
+        model = FAST_MODEL;
+        systemPrompt = `You are Hadi's AI assistant for his Arabic tutoring portal. Hadi types commands in plain English and you parse them into structured actions.
+
+Supported actions:
+- "log_lesson": Hadi held a lesson with a student. Fields: studentName, date (YYYY-MM-DD), time (HH:MM optional), duration (minutes, default 60), notes (optional)
+- "add_payment": A student paid. Fields: studentName, amount (number, extract from text), date (YYYY-MM-DD), method (Cash/Bank Transfer/PayPal/Other), notes (optional)
+- "assign_homework": Give a student homework. Fields: studentName, title (short task title), description (optional detail), dueDate (YYYY-MM-DD optional)
+- "update_lessons_count": Update how many paid lessons a student has purchased. Fields: studentName, lessonsTotal (number)
+
+Today is ${new Date().toISOString().split('T')[0]}.
+
+Always include a "summary" field — one clear sentence describing what action will be taken, e.g. "Log a completed lesson for Saher today (${new Date().toISOString().split('T')[0]})".
+
+Match the student name to the closest name in the provided student list.
+
+Respond with ONLY a valid JSON object. No markdown, no explanation outside the JSON.
+
+If the command doesn't match any supported action, return:
+{"action":"unknown","summary":"I couldn't understand that command. Try: 'Today Saher took a class', 'Ahmad paid $50', 'Give Saher homework: practice the letters', 'Saher has 10 lessons'"}`;
+        userMessage = `Students: ${(context.students||[]).map(s=>s.name).join(', ')}\n\nCommand: "${context.message}"`;
+        break;
+
       case 'student_quiz':
         model = COMPLEX_MODEL;
         systemPrompt = `You are an expert Arabic language teacher creating a unique, challenging quiz. Generate exactly 5 multiple-choice questions.

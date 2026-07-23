@@ -6783,8 +6783,8 @@ function ArabicAnagramGame({student:s}) {
 const NAV = [
   {id:'home',   icon:'🏠', label:'Home',      hub:false},
   {id:'learn',  icon:'🎓', label:'Learn',     hub:true},
+  {id:'trace',  icon:'✍️', label:'Tracing',   hub:false},
   {id:'ai',     icon:'🤖', label:'AI Tutor',  hub:false},
-  {id:'games',  icon:'🎮', label:'Games',     hub:false},
   {id:'lessons',icon:'📚', label:'Library',   hub:true},
   {id:'profile',icon:'👤', label:'Profile',   hub:true},
 ];
@@ -6794,10 +6794,10 @@ const HUBS = {
   learn: [
     {id:'skills',     icon:'⚡', label:'Skills',      desc:'Reading, writing, listening, and speaking practice.'},
     {id:'script',     icon:'ب',  label:'Script',      desc:'Explore all 28 Arabic letters and their forms.',      arabicOnly:true},
-    {id:'trace',      icon:'✍️', label:'Tracing Lab', desc:'Practice writing Arabic letters with guided tracing.', arabicOnly:true},
     {id:'culture',    icon:'🕌', label:'Culture',     desc:'Expressions, context, and cultural notes.',           arabicOnly:true},
     {id:'flashcards', icon:'🃏', label:'Flashcards',  desc:'Vocabulary flashcards with spaced repetition.'},
     {id:'dictation',  icon:'🎧', label:'Dictation',   desc:'Listening and dictation practice exercises.'},
+    {id:'games',      icon:'🎮', label:'Games',       desc:'Sharpen vocabulary and Arabic reading through play.'},
   ],
   lessons: [
     {id:'book',       icon:'📅',label:'Book a Lesson',   desc:'Schedule your next private lesson with Hadi.'},
@@ -7214,8 +7214,12 @@ function traceScoreLabel(score) {
   };
 }
 
-function traceDirectionScore(strokes, inkBox, letterCount) {
+function traceDirectionScore(strokes, inkBox, letterCount, text) {
   const raw = (strokes||[]).map(st => (st||[]).filter(Boolean)).filter(st => st.length > 1);
+  // Single straight/vertical letters don't require RTL direction scoring
+  const straightLetters = new Set('اأإآءوردذزةى');
+  const trimmed = (text||"").trim();
+  if (letterCount <= 1 && straightLetters.has(trimmed[0])) return {score:null,hint:"Stroke from top to bottom"};
   if (letterCount <= 1) return {score:null,hint:"Follow the start dot"};
   if (!raw.length) return {score:null,hint:"Direction not checked"};
   const pts = raw.flat();
@@ -7272,16 +7276,12 @@ function buildTraceSegmentScores(g, k, width, height, gb, ib, coverageScore, lin
   const bodyScore = scoreCoverage(bodyComps.length ? bodyComps : guideComps);
   const dotsScore = dotComps.length ? scoreCoverage(dotComps) : null;
   const segments = [
-    {id:"body",label:"Body",score:bodyScore,hint:bodyScore>=0.72?"Main shape covered":"Trace more of the main body"},
-    dotComps.length
-      ? {id:"dots",label:"Dots",score:dotsScore,hint:dotsScore>=0.72?"Dots are placed":"Add or center the dots"}
-      : {id:"dots",label:"Dots",score:null,hint:"No required dots"},
-    {id:"baseline",label:"Baseline",score:baselineScore,hint:baselineScore>=0.72?"Sits on the line":"Align the body to the line"},
-    {id:"direction",label:"Direction",score:directionInfo?.score ?? null,hint:directionInfo?.hint || "Follow the arrows"},
-    {id:"line",label:"Line Control",score:lineControl,hint:lineControl>=0.82?"Clean straight/curved strokes":"Smooth kinks and waves"}
+    {id:"body",label:"Coverage",score:bodyScore,hint:bodyScore>=0.72?"Shape covered well":"Trace more of the letter body"},
+    ...(dotComps.length ? [{id:"dots",label:"Dots",score:dotsScore,hint:dotsScore>=0.72?"Dots placed well":"Add or center the dots"}] : []),
+    {id:"direction",label:"Direction",score:directionInfo?.score ?? null,hint:directionInfo?.hint || "Follow the start dot"},
+    {id:"line",label:"Smoothness",score:lineControl,hint:lineControl>=0.82?"Clean, steady strokes":"Slow down — keep strokes smooth"},
   ];
-  if (shapeScore != null) segments.unshift({id:"shape",label:"Shape",score:shapeScore,hint:shapeScore>=0.72?"Shape matches well":"Match the letter silhouette"});
-  if (boxMetrics?.proportion != null) segments.push({id:"proportion",label:"Proportion",score:boxMetrics.proportion,hint:boxMetrics.proportion>=0.72?"Good proportions":"Adjust height and width"});
+  if (shapeScore != null) segments.unshift({id:"shape",label:"Shape",score:shapeScore,hint:shapeScore>=0.72?"Shape matches":"Follow the letter outline"});
   return segments;
 }
 
@@ -7502,6 +7502,7 @@ function ArabicTracingLab({student:s, data, setData, sourceText, title, compact}
   const inkRef = useRef(null);
   const drawingRef = useRef(false);
   const lastRef = useRef(null);
+  const prevRef = useRef(null);
   const strokesRef = useRef([]);
   const currentStrokeRef = useRef(null);
   const currentSet = sets.find(x=>x.id===setId) || sets[0];
@@ -7578,8 +7579,11 @@ function ArabicTracingLab({student:s, data, setData, sourceText, title, compact}
       const right = Math.min(w-30, x + measured/2);
       const left = Math.max(30, x - measured/2);
       const arrowY = Math.max(34, Math.min(h*0.18, y - fontSize*0.58));
-      const arrows = Math.min(4, Math.max(1, Math.ceil(baseLetterCount/2)));
       const span = Math.max(64, right-left);
+      // Detect straight/vertical letters that don't flow right-to-left strongly
+      const trimmed = text.trim();
+      const straightLetters = new Set('اأإآءوردذزةى');
+      const isSingleStraight = baseLetterCount === 1 && straightLetters.has(trimmed[0]);
       const drawArrow = (sx,sy,ex,ey) => {
         const ang = Math.atan2(ey-sy,ex-sx);
         ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(ex,ey); ctx.stroke();
@@ -7598,26 +7602,42 @@ function ArabicTracingLab({student:s, data, setData, sourceText, title, compact}
       ctx.lineWidth = 2.2;
       ctx.strokeStyle = "rgba(217,119,6,0.78)";
       ctx.fillStyle = "rgba(217,119,6,0.90)";
+      // Start dot
+      const startDotX = isSingleStraight ? x : right;
+      const startDotY = isSingleStraight ? (y - fontSize*0.46) : arrowY;
       ctx.beginPath();
-      ctx.arc(right, arrowY, 10, 0, Math.PI*2);
+      ctx.arc(startDotX, startDotY, 10, 0, Math.PI*2);
       ctx.fill();
       ctx.shadowBlur = 0;
       ctx.fillStyle = "#fff";
       ctx.font = "900 11px 'DM Sans',sans-serif";
-      ctx.fillText("1", right, arrowY+4);
+      ctx.fillText("1", startDotX, startDotY+4);
       ctx.fillStyle = "rgba(146,64,14,0.92)";
       ctx.font = "900 10px 'DM Sans',sans-serif";
-      ctx.textAlign = "right";
-      ctx.fillText("start", Math.min(w-18,right+4), Math.max(14,arrowY-15));
-      for (let i=0;i<arrows;i++) {
-        const sx = right - (span*(i+0.18)/arrows);
-        const ex = right - (span*(i+0.74)/arrows);
-        drawArrow(sx, arrowY + (i%2 ? 3 : -1), ex, arrowY + (i%2 ? -1 : 3));
+      if (isSingleStraight) {
+        // Show downward arrow for vertical letters
+        ctx.textAlign = "center";
+        ctx.fillText("start here", startDotX, Math.max(14, startDotY-15));
+        const endY = Math.min(h-30, y + fontSize*0.36);
+        drawArrow(startDotX, startDotY+12, startDotX, endY);
+        ctx.textAlign = "center";
+        ctx.fillStyle = "rgba(146,64,14,0.82)";
+        ctx.font = "800 10px 'DM Sans',sans-serif";
+        ctx.fillText("stroke downward", startDotX, Math.min(h-18, endY+18));
+      } else {
+        const arrows = Math.min(4, Math.max(1, Math.ceil(baseLetterCount/2)));
+        ctx.textAlign = "right";
+        ctx.fillText("start", Math.min(w-18,right+4), Math.max(14,arrowY-15));
+        for (let i=0;i<arrows;i++) {
+          const sx = right - (span*(i+0.18)/arrows);
+          const ex = right - (span*(i+0.74)/arrows);
+          drawArrow(sx, arrowY + (i%2 ? 3 : -1), ex, arrowY + (i%2 ? -1 : 3));
+        }
+        ctx.textAlign = "center";
+        ctx.fillStyle = "rgba(146,64,14,0.82)";
+        ctx.font = "800 10px 'DM Sans',sans-serif";
+        ctx.fillText("right → left", (left+right)/2, Math.min(h-18, arrowY+22));
       }
-      ctx.textAlign = "center";
-      ctx.fillStyle = "rgba(146,64,14,0.82)";
-      ctx.font = "800 10px 'DM Sans',sans-serif";
-      ctx.fillText("right to left", (left+right)/2, Math.min(h-18, arrowY+22));
       ctx.restore();
     }
     ctx.letterSpacing = "0px";
@@ -7725,24 +7745,37 @@ function ArabicTracingLab({student:s, data, setData, sourceText, title, compact}
     const dpr = window.devicePixelRatio || 1;
     const ctx = ink.getContext("2d");
     ctx.setTransform(dpr,0,0,dpr,0,0);
-    ctx.strokeStyle = "rgba(0,0,0,0.96)";
-    ctx.fillStyle = "rgba(0,0,0,0.96)";
+    ctx.strokeStyle = "rgba(20,14,8,0.97)";
+    ctx.fillStyle = "rgba(20,14,8,0.97)";
     const force = Math.max(0.25, Math.min(1, pressure || 0.55));
-    const width = Math.max(3.5, brush * (0.58 + force * 0.18));
+    const width = Math.max(3, brush * (0.56 + force * 0.16));
     ctx.lineWidth = width;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
+    ctx.shadowBlur = 0;
     const last = lastRef.current || p;
-    const dist = Math.hypot(p.x-last.x,p.y-last.y);
+    const prev = prevRef.current;
+    const dist = Math.hypot(p.x-last.x, p.y-last.y);
     ctx.beginPath();
-    if (dist < 0.7) {
-      ctx.arc(p.x,p.y,width/2,0,Math.PI*2);
+    if (dist < 0.8) {
+      ctx.arc(p.x, p.y, width/2, 0, Math.PI*2);
       ctx.fill();
+    } else if (prev && dist > 1.5) {
+      // Catmull-Rom smooth curve through prev → last → p
+      const cp1x = last.x + (p.x - prev.x) / 5;
+      const cp1y = last.y + (p.y - prev.y) / 5;
+      const cp2x = p.x - (p.x - last.x) / 5;
+      const cp2y = p.y - (p.y - last.y) / 5;
+      ctx.moveTo(last.x, last.y);
+      ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p.x, p.y);
+      ctx.stroke();
     } else {
-      ctx.moveTo(last.x,last.y);
-      ctx.lineTo(p.x,p.y);
+      const mid = {x:(last.x+p.x)/2, y:(last.y+p.y)/2};
+      ctx.moveTo(last.x, last.y);
+      ctx.quadraticCurveTo(last.x, last.y, mid.x, mid.y);
       ctx.stroke();
     }
+    prevRef.current = last;
     lastRef.current = p;
     if (!deferRedraw) redraw();
   };
@@ -7751,6 +7784,7 @@ function ArabicTracingLab({student:s, data, setData, sourceText, title, compact}
     e.currentTarget.setPointerCapture?.(e.pointerId);
     drawingRef.current = true;
     lastRef.current = null;
+    prevRef.current = null;
     const p = point(e);
     currentStrokeRef.current = [p];
     strokesRef.current = [...strokesRef.current, currentStrokeRef.current].slice(-30);
@@ -7857,7 +7891,7 @@ function ArabicTracingLab({student:s, data, setData, sourceText, title, compact}
       return Math.max(0,Math.min(1,recall*0.32 + shapePrecision*0.25 + dice*0.25 + profileScore*0.18));
     })();
     const coverageScore = Math.min(1, coverage*3.2);
-    const directionInfo = traceDirectionScore(strokesRef.current, ib, baseLetterCount);
+    const directionInfo = traceDirectionScore(strokesRef.current, ib, baseLetterCount, text);
     const segmentScores = buildTraceSegmentScores(g,k,guide.width,guide.height,gb,ib,coverageScore,steady.steadiness,shapeMimicScore,boxMetrics,directionInfo);
     const raw = traceLevel==="advanced"
       ? (shapeMimicScore*0.72 + boxMetrics.proportion*0.16 + steady.steadiness*0.12) * 100
@@ -8063,6 +8097,64 @@ Your role:
 - Mark production tasks clearly as [TASK]
 - For writing feedback: correct errors kindly, explain the rule, give the corrected version, then praise what was done well
 - End every response with a short encouraging phrase in English`;
+
+// ════════════════════════════════════════
+// DAILY CHECK-IN — student view
+// ════════════════════════════════════════
+function StudentDailyCheckIn({student:s, data, setData, auth}) {
+  const todayStr = new Date().toISOString().slice(0,10);
+  const alreadyAnswered = (s.checkInHistory||[]).some(e=>e.date===todayStr);
+  const [learned, setLearned] = useState("");
+  const [wantNext, setWantNext] = useState("");
+  const [done, setDone] = useState(alreadyAnswered);
+  const [saving, setSaving] = useState(false);
+
+  if (!s.checkInActive || done) return null;
+
+  const save = async (skipped) => {
+    setSaving(true);
+    const entry = {date:todayStr,learned:skipped?"":learned.trim(),wantNext:skipped?"":wantNext.trim(),skipped};
+    const updated = {...s, checkInHistory:[...(s.checkInHistory||[]),entry]};
+    // Optionally auto-disable after answering: uncomment to keep it showing daily until Hadi turns it off
+    // updated.checkInActive = false;
+    setData({...data, students:data.students.map(x=>x.id===s.id?updated:x)});
+    try { await apiPost("/api/data",{token:auth.token,action:"studentWrite",data:{...data,students:data.students.map(x=>x.id===s.id?updated:x)}}); } catch {}
+    setSaving(false);
+    setDone(true);
+  };
+
+  return h`<div class="sp2-card" style=${{
+    marginBottom:18,
+    border:"2px solid var(--accent)",
+    borderRadius:"var(--r-lg)",
+    background:"color-mix(in oklab, var(--accent) 6%, var(--surface))",
+    padding:"20px 22px",
+  }}>
+    <div style=${{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+      <div style=${{fontSize:24}}>💬</div>
+      <div>
+        <div style=${{fontFamily:"var(--f-head)",fontSize:"1.1rem",fontWeight:700,color:"var(--ink)"}}>Quick Check-In</div>
+        <div style=${{fontSize:"0.78rem",color:"var(--muted)"}}>Take 30 seconds to reflect on your learning</div>
+      </div>
+    </div>
+    <div style=${{marginBottom:12}}>
+      <label style=${{display:"block",fontSize:"0.72rem",fontWeight:700,textTransform:"uppercase",letterSpacing:".1em",color:"var(--muted)",marginBottom:6}}>What did you learn or practice today?</label>
+      <textarea value=${learned} onInput=${e=>setLearned(e.target.value)} placeholder="e.g. I practised writing ب and ت, learned 5 new words…" rows="2" style=${{width:"100%",boxSizing:"border-box",resize:"none",background:"var(--surface)",border:"1px solid var(--line)",borderRadius:"var(--r-sm)",padding:"10px 12px",fontFamily:"var(--f-body)",fontSize:14,color:"var(--ink)",outline:"none"}}></textarea>
+    </div>
+    <div style=${{marginBottom:16}}>
+      <label style=${{display:"block",fontSize:"0.72rem",fontWeight:700,textTransform:"uppercase",letterSpacing:".1em",color:"var(--muted)",marginBottom:6}}>What do you want to learn next?</label>
+      <textarea value=${wantNext} onInput=${e=>setWantNext(e.target.value)} placeholder="e.g. Connecting letters, more vocabulary, verb conjugation…" rows="2" style=${{width:"100%",boxSizing:"border-box",resize:"none",background:"var(--surface)",border:"1px solid var(--line)",borderRadius:"var(--r-sm)",padding:"10px 12px",fontFamily:"var(--f-body)",fontSize:14,color:"var(--ink)",outline:"none"}}></textarea>
+    </div>
+    <div style=${{display:"flex",gap:10}}>
+      <button class="sp2-btn sp2-btn-p" onClick=${()=>save(false)} disabled=${saving||(!learned.trim()&&!wantNext.trim())} style=${{flex:1,justifyContent:"center"}}>
+        ${saving?"Saving…":"Send to Hadi ✓"}
+      </button>
+      <button class="sp2-btn sp2-btn-g" onClick=${()=>save(true)} disabled=${saving} style=${{whiteSpace:"nowrap"}}>
+        Skip for now
+      </button>
+    </div>
+  </div>`;
+}
 
 function StudentPortal({data, setData, user, auth, onLogout}) {
   const [theme, setTheme] = useState(() => { try { return localStorage.getItem('ae_sp_theme')||'light'; } catch { return 'light'; } });
@@ -8480,6 +8572,7 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
         </div>`;})}
       </div>`:null}
 
+      <${StudentDailyCheckIn} student=${s} data=${data} setData=${setData} auth=${auth}/>
       <${StudentWeeklyTasks} student=${s} data=${data} setData=${setData} auth=${auth}/>
       <${StudentTeacherUpdates} student=${s}/>
       <${StudentNoteToTeacher} student=${s} data=${data} setData=${setData} auth=${auth}/>
@@ -8759,47 +8852,48 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
       </div>`:null}
     </div>`;
 
-    // ── SCRIPT + TRACE (merged) ──
-    if(spTab==='script'||spTab==='trace') {
-      // if navigated via 'trace' directly, switch active tab
-      const activeScriptTab = spTab==='trace' ? 'trace' : scriptTab;
+    // ── TRACING LAB (independent top-level) ──
+    if(spTab==='trace') return h`<div>
+      <div style=${{marginBottom:20}}>
+        <h2 style=${{fontFamily:"var(--f-head)",fontSize:"1.5rem",fontWeight:600,color:"var(--ink)",marginBottom:4}}>Tracing Lab ✍️</h2>
+        <p style=${{fontSize:"0.88rem",color:"var(--muted)"}}>Practice Arabic letter and word writing with guided tracing. Use your finger, stylus, or mouse.</p>
+      </div>
+      <${ArabicTracingLab} student=${s} data=${data} setData=${setData}/>
+    </div>`;
+
+    // ── SCRIPT ──
+    if(spTab==='script') {
       return h`<div>
         <div style=${{marginBottom:16}}>
           <h2 style=${{fontFamily:"var(--f-head)",fontSize:"1.5rem",fontWeight:600,color:"var(--ink)",marginBottom:4}}>Script</h2>
-          <p style=${{fontSize:"0.88rem",color:"var(--muted)",marginBottom:12}}>Explore the 28 Arabic letters and practise tracing them.</p>
-          <div class="sp2-tabs" style=${{marginBottom:20}}>
-            <button class=${"sp2-tab "+(activeScriptTab==="recognise"?"on":"")} onClick=${()=>setScriptTab("recognise")}>Recognise</button>
-            <button class=${"sp2-tab "+(activeScriptTab==="trace"?"on":"")} onClick=${()=>setScriptTab("trace")}>Trace</button>
-          </div>
+          <p style=${{fontSize:"0.88rem",color:"var(--muted)",marginBottom:12}}>Explore all 28 Arabic letters — their forms, pronunciation, and usage.</p>
         </div>
-
-        ${activeScriptTab==="recognise"?h`<div>
-          <div style=${{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(62px,1fr))",gap:8,marginBottom:20}}>
-            ${SP_SCRIPT.map((l,i)=>h`<div key=${i} class=${"sp2-letter-cell "+(scriptLetter===i?"on":"")} onClick=${()=>setScriptLetter(scriptLetter===i?null:i)} title=${l.n}>
-              ${l.l}
-            </div>`)}
-          </div>
-          ${scriptLetter!==null?h`<div class="sp2-card" style=${{borderLeft:"4px solid var(--accent)",marginBottom:14}}>
-            ${(()=>{const l=SP_SCRIPT[scriptLetter];return h`<div>
-              <div style=${{display:"flex",alignItems:"center",gap:20,marginBottom:16}}>
-                <div style=${{fontFamily:"var(--f-ar)",fontSize:64,color:"var(--accent)",lineHeight:1}}>${l.l}</div>
-                <div>
-                  <div style=${{fontFamily:"var(--f-head)",fontSize:20,fontWeight:600,color:"var(--ink)"}}>${l.n}</div>
-                  <div style=${{fontSize:14,color:"var(--ink-2)",marginTop:4}}>/${l.p}/</div>
-                </div>
+        <div style=${{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(62px,1fr))",gap:8,marginBottom:20}}>
+          ${SP_SCRIPT.map((l,i)=>h`<div key=${i} class=${"sp2-letter-cell "+(scriptLetter===i?"on":"")} onClick=${()=>setScriptLetter(scriptLetter===i?null:i)} title=${l.n}>
+            ${l.l}
+          </div>`)}
+        </div>
+        ${scriptLetter!==null?h`<div class="sp2-card" style=${{borderLeft:"4px solid var(--accent)",marginBottom:14}}>
+          ${(()=>{const l=SP_SCRIPT[scriptLetter];return h`<div>
+            <div style=${{display:"flex",alignItems:"center",gap:20,marginBottom:16}}>
+              <div style=${{fontFamily:"var(--f-ar)",fontSize:64,color:"var(--accent)",lineHeight:1}}>${l.l}</div>
+              <div>
+                <div style=${{fontFamily:"var(--f-head)",fontSize:20,fontWeight:600,color:"var(--ink)"}}>${l.n}</div>
+                <div style=${{fontSize:14,color:"var(--ink-2)",marginTop:4}}>/${l.p}/</div>
               </div>
-              <div style=${{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
-                ${["Isolated","Initial","Medial","Final"].map((pos,pi)=>h`<div key=${pi} style=${{textAlign:"center",padding:"12px 8px",borderRadius:"var(--r-sm)",background:"var(--surface-2)",border:"1px solid var(--line)"}}>
-                  <div style=${{fontFamily:"var(--f-ar)",fontSize:28,color:"var(--accent)",marginBottom:6}}>${l.f[pi]}</div>
-                  <div style=${{fontSize:11,color:"var(--muted)"}}>${pos}</div>
-                </div>`)}
-              </div>
-              <div style=${{marginTop:14,textAlign:"center"}}>
-                <button class="sp2-btn sp2-btn-g sp2-btn-sm" onClick=${()=>startAISession("Give me 5 common Arabic words that feature the letter "+l.l+" ("+l.n+"). Show each word in Arabic with full diacritics, transliteration, and English meaning.")}>🤖 Words with ${l.l}</button>
-              </div>
-            </div>`})()}
-          </div>`:null}
-        </div>`:h`<${ArabicTracingLab} student=${s} data=${data} setData=${setData}/>`}
+            </div>
+            <div style=${{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
+              ${["Isolated","Initial","Medial","Final"].map((pos,pi)=>h`<div key=${pi} style=${{textAlign:"center",padding:"12px 8px",borderRadius:"var(--r-sm)",background:"var(--surface-2)",border:"1px solid var(--line)"}}>
+                <div style=${{fontFamily:"var(--f-ar)",fontSize:28,color:"var(--accent)",marginBottom:6}}>${l.f[pi]}</div>
+                <div style=${{fontSize:11,color:"var(--muted)"}}>${pos}</div>
+              </div>`)}
+            </div>
+            <div style=${{marginTop:14,display:"flex",gap:8,flexWrap:"wrap"}}>
+              <button class="sp2-btn sp2-btn-g sp2-btn-sm" onClick=${()=>startAISession("Give me 5 common Arabic words that feature the letter "+l.l+" ("+l.n+"). Show each word in Arabic with full diacritics, transliteration, and English meaning.")}>🤖 Words with ${l.l}</button>
+              <button class="sp2-btn sp2-btn-g sp2-btn-sm" onClick=${()=>switchTab("trace")}>✍️ Trace this letter</button>
+            </div>
+          </div>`})()}
+        </div>`:null}
       </div>`;
     }
 
@@ -8825,9 +8919,6 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
 
     // "more" is no longer a top-level destination — redirect to lessons hub
     if(spTab==='more') { switchTab('lessons'); return null; }
-
-    // trace already handled by the script+trace merged block above
-    if(spTab==='trace') { setScriptTab('trace'); return h`<${ArabicTracingLab} student=${s} data=${data} setData=${setData}/>`; }
 
     // ── STUDIO + CURRICULUM (merged: Assigned / Course) ──
     if(spTab==='studio'||spTab==='curriculum') return h`<div>
@@ -9042,7 +9133,7 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
 
   return h`<div class="sp2-root" data-theme=${theme}>
     <header class="sp2-hdr">
-      <div style=${{width:32,height:32,borderRadius:8,background:"var(--accent)",color:"var(--on-accent)",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"var(--f-ar)",fontSize:"1.1rem",flexShrink:0}}>ع</div>
+      <img src="/logo.jpeg" style=${{width:36,height:36,borderRadius:8,objectFit:"cover",objectPosition:"center top",flexShrink:0,border:"1px solid var(--line)"}} alt=""/>
       <span class="sp2-logo">Arabic Enthusiast</span>
 
       <!-- Search field (desktop only) -->
@@ -9108,16 +9199,32 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
         ${(s.streakDays||0)>=2?h`<span class="sp2-badge sp2-badge-a" style=${{fontSize:12}}>🔥 ${s.streakDays}</span>`:null}
         <span class="sp2-badge sp2-badge-t" style=${{fontSize:12}}>⭐ ${xp} XP</span>
         ${(s.enrollments||[]).length>=2?h`<button
-          style=${{display:"flex",alignItems:"center",gap:4,padding:"4px 10px",borderRadius:20,border:"1.5px solid var(--accent)",background:"var(--surface-2)",cursor:"pointer",fontFamily:"'Public Sans',sans-serif",fontSize:12,fontWeight:700,color:"var(--accent)"}}
+          style=${{
+            display:"flex",alignItems:"center",gap:0,
+            borderRadius:20,border:"1.5px solid var(--line)",
+            background:"var(--surface-2)",cursor:"pointer",
+            overflow:"hidden",fontFamily:"var(--f-body)",fontSize:11,fontWeight:700,
+            padding:0,
+          }}
           onClick=${()=>{
             const next=(s.activeLanguage||'arabic')==='arabic'?'english':'arabic';
             setData({...data,students:data.students.map(x=>x.id===s.id?{...x,activeLanguage:next}:x)});
+            try{apiPost("/api/data",{token:auth.token,action:"studentWrite",data:{}});}catch{}
           }}
-          title="Switch language"
+          title=${"Switch to "+(((s.activeLanguage||'arabic')==='arabic')?'English':'Arabic')}
         >
-          <span style=${{opacity:(s.activeLanguage||'arabic')==='arabic'?1:0.45}}>AR</span>
-          <span style=${{fontSize:10,color:"var(--muted)"}}>⇄</span>
-          <span style=${{opacity:(s.activeLanguage||'arabic')==='english'?1:0.45}}>EN</span>
+          <span style=${{
+            padding:"5px 10px",
+            background:(s.activeLanguage||'arabic')==='arabic'?"var(--accent)":"transparent",
+            color:(s.activeLanguage||'arabic')==='arabic'?"var(--on-accent)":"var(--muted)",
+            transition:"all .2s",
+          }}>AR</span>
+          <span style=${{
+            padding:"5px 10px",
+            background:(s.activeLanguage||'arabic')==='english'?"var(--accent)":"transparent",
+            color:(s.activeLanguage||'arabic')==='english'?"var(--on-accent)":"var(--muted)",
+            transition:"all .2s",
+          }}>EN</span>
         </button>`:null}
         <div style=${{display:"flex",flexDirection:"column",alignItems:"center"}}>
           <button class="sp2-icon-btn" onClick=${doRefresh} disabled=${syncing} title="Sync latest data" style=${{background:"none",border:"1px solid var(--line)",borderRadius:8,cursor:"pointer",color:"var(--muted)",fontSize:13}}>${syncing?"⏳":"🔄"}</button>
@@ -9199,6 +9306,7 @@ function StudentProfile({data, setData, profileId, auth}) {
   const [logForm, setLogForm] = useState(null);
   const [logLoading, setLogLoading] = useState(false);
   const [logSaved, setLogSaved] = useState(false);
+  const [showStudentPreview, setShowStudentPreview] = useState(false);
   const S = data.settings;
 
   if (!s) return h`<div style=${{padding:40,textAlign:"center",color:"var(--g400)"}}>Student not found.</div>`;
@@ -9334,10 +9442,21 @@ function StudentProfile({data, setData, profileId, auth}) {
       </div>
       <div style=${{display:"flex",flexDirection:"column",gap:6,alignItems:"flex-end"}}>
         <button class="btn btn-p btn-sm" onClick=${()=>{setLogForm(mkLessonLog(s.id));setShowLogModal(true);setTab("logs");}}>📝 Log Lesson</button>
+        <button class="btn btn-sm" style=${{background:"var(--accent)",color:"var(--on-accent)"}} onClick=${()=>setShowStudentPreview(true)}>👁 Student View</button>
         <button class="btn btn-sm" onClick=${()=>exportProfilePDF(s,data,false)}>${ic('pdf')} PDF</button>
         ${s.whatsapp&&h`<button class="btn btn-sm btn-share" onClick=${()=>exportProfilePDF(s,data,true)}>${ic('wa')} Share</button>`}
       </div>
     </div>
+
+    ${showStudentPreview&&h`<div style=${{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:9999,display:"flex",flexDirection:"column"}}>
+      <div style=${{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 16px",background:"var(--ink)",color:"var(--paper)",flexShrink:0}}>
+        <span style=${{fontFamily:"var(--f-head)",fontWeight:600,fontSize:"0.95rem"}}>👁 Previewing as ${s.name} — this is exactly what they see</span>
+        <button onClick=${()=>setShowStudentPreview(false)} style=${{background:"rgba(255,255,255,0.15)",border:"none",color:"var(--paper)",padding:"6px 14px",borderRadius:6,cursor:"pointer",fontWeight:600}}>✕ Close Preview</button>
+      </div>
+      <div style=${{flex:1,overflowY:"auto",background:"var(--bg)"}}>
+        <${StudentPortal} user=${{email:s.email,phone:s.whatsapp||s.phone||""}} data=${data} setData=${setData} auth=${auth} onLogout=${()=>setShowStudentPreview(false)}/>
+      </div>
+    </div>`}
 
     <div class="stats" style=${{gridTemplateColumns:"repeat(4,1fr)",marginBottom:20}}>
       <div class="stat"><div class="lb">Lessons Done</div><div class="vl">${lessonSummary.taken}</div>${lessonSummary.overdue>0?h`<div style=${{fontSize:10,color:"var(--bd)",fontWeight:800}}>Overdue ${lessonSummary.overdue}</div>`:null}</div>
@@ -9400,6 +9519,9 @@ function StudentProfile({data, setData, profileId, auth}) {
         <div class="fr3">
           <div class="fg"><label>Timezone</label><input value=${s.timezone||""} onInput=${e=>upd("timezone",e.target.value)} placeholder="Asia/Beirut"/></div>
           <div class="fg"><label>Learning Studio Access</label><select value=${s.studioAccess===false?"off":"on"} onChange=${e=>upd("studioAccess",e.target.value==="on")}><option value="on">Active / Included</option><option value="off">Off / Subscription inactive</option></select></div>
+          <div class="fg"><label>Daily Check-In Prompt</label><select value=${s.checkInActive?"on":"off"} onChange=${e=>upd("checkInActive",e.target.value==="on")}><option value="off">Off — hidden from student</option><option value="on">On — student sees today's check-in</option></select></div>
+        </div>
+        <div class="fr3">
           <div class="fg"><label>Paid Lessons Purchased</label><input type="number" value=${s.lessonsTotal||0} onInput=${e=>{const next=setPaidLessonTotal(s, e.target.value); updMany({lessonsTotal:next.lessonsTotal, lessonsTaken:next.lessonsTaken, remainingClasses:next.remainingClasses, freeTaken:next.freeTaken, lessonsOverdue:next.lessonsOverdue})}}/></div>
         </div>
         <div class="fr3">
@@ -9704,6 +9826,75 @@ function StudentProfile({data, setData, profileId, auth}) {
 // ════════════════════════════════════════
 // DASHBOARD (fixed #2: only paid revenue)
 // ════════════════════════════════════════
+function TutorCommandBot({data, setData, auth}) {
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [err, setErr] = useState("");
+  const [done, setDone] = useState("");
+  const {students} = data;
+
+  const run = async () => {
+    if (!input.trim()) return;
+    setLoading(true); setErr(""); setResult(null); setDone("");
+    const d = await apiPost("/api/ai", {token:auth?.token, type:"tutor_command", context:{message:input, students:students.map(s=>({id:s.id,name:s.name}))}});
+    setLoading(false);
+    if (d.error) return setErr(d.error);
+    try {
+      const parsed = typeof d.result==="string" ? JSON.parse(d.result) : d.result;
+      setResult(parsed);
+    } catch { setErr("Couldn't parse the response. Try again."); }
+  };
+
+  const execute = () => {
+    if (!result) return;
+    const {action, studentName, summary, ...rest} = result;
+    if (action === "unknown") { setErr(summary||"Unknown command."); setResult(null); return; }
+    const st = students.find(s=>s.id===rest.studentId) || students.find(s=>s.name.toLowerCase().includes((studentName||"").toLowerCase().trim()));
+    if (!st) { setErr("Student not found: "+studentName+". Check their name and try again."); setResult(null); return; }
+    if (action==="log_lesson") {
+      const lesson = {id:uid(),studentId:st.id,groupId:"",date:rest.date||today(),time:rest.time||"10:00",duration:rest.duration||60,type:st.type,status:"Completed",notes:rest.notes||""};
+      setData({...data,lessons:[...data.lessons,lesson]});
+      setDone("✅ "+summary);
+    } else if (action==="add_payment") {
+      const payment = {id:uid(),studentId:st.id,studentName:st.name,amount:Number(rest.amount)||0,date:rest.date||today(),method:rest.method||"Cash",status:"Paid",notes:rest.notes||""};
+      setData({...data,payments:[...data.payments,payment]});
+      setDone("✅ "+summary);
+    } else if (action==="assign_homework") {
+      const hw = {id:uid(),studentId:st.id,title:rest.title||input,description:rest.description||"",assignedDate:today(),dueDate:rest.dueDate||"",status:"assigned"};
+      setData({...data,homework:[...(data.homework||[]),hw]});
+      setDone("✅ "+summary);
+    } else if (action==="update_lessons_count") {
+      const updated = data.students.map(x=>x.id===st.id?{...x,lessonsTotal:Number(rest.lessonsTotal)||x.lessonsTotal}:x);
+      setData({...data,students:updated});
+      setDone("✅ "+summary);
+    } else {
+      setErr("Unknown action: "+action);
+    }
+    setResult(null); setInput("");
+  };
+
+  return h`<div class="card" style=${{borderColor:"var(--accent)",borderWidth:2,marginBottom:14}}>
+    <h3 style=${{display:"flex",alignItems:"center",gap:6,marginBottom:6}}>🤖 AI COMMAND</h3>
+    <p style=${{fontSize:12,color:"var(--g500)",marginBottom:10,lineHeight:1.6}}>Type in plain English — <em>"Today Saher took a class"</em> · <em>"Ahmad paid $50"</em> · <em>"Give Saher homework: practice the letters"</em></p>
+    <div style=${{display:"flex",gap:6}}>
+      <input style=${{flex:1,padding:"8px 10px",border:"2px solid var(--accent)",borderRadius:6,fontFamily:"var(--fb)",fontSize:13}} placeholder='Today Saher took a class...' value=${input} onInput=${e=>setInput(e.target.value)} onKeyDown=${e=>e.key==="Enter"&&run()} disabled=${loading}/>
+      <button class="btn btn-p" onClick=${run} disabled=${loading||!input.trim()}>${loading?"...":"Send"}</button>
+    </div>
+    ${err&&h`<div style=${{fontSize:12,color:"var(--bd)",marginTop:6}}>⚠ ${err}</div>`}
+    ${done&&h`<div style=${{fontSize:12,color:"var(--ok)",marginTop:8,fontWeight:600}}>${done}</div>`}
+    ${result&&result.action!=="unknown"&&h`<div style=${{marginTop:10,padding:"10px 12px",background:"var(--g50)",border:"2px solid var(--ok)",borderRadius:8}}>
+      <div style=${{fontSize:12,fontWeight:700,marginBottom:6,color:"var(--ok)"}}>AI understood this as:</div>
+      <div style=${{fontSize:13,lineHeight:1.6}}>${result.summary||JSON.stringify(result)}</div>
+      <div style=${{display:"flex",gap:6,marginTop:8}}>
+        <button class="btn btn-p btn-sm" onClick=${execute}>✓ Yes, do it</button>
+        <button class="btn btn-sm" onClick=${()=>{setResult(null);setInput("");}}>✗ Cancel</button>
+      </div>
+    </div>`}
+    ${result&&result.action==="unknown"&&h`<div style=${{fontSize:12,color:"var(--wn)",marginTop:8}}>⚠ ${result.summary}</div>`}
+  </div>`;
+}
+
 function Dashboard({data, setData, auth}) {
   const {students, lessons, payments, settings: S} = data;
   const CUR = S.currency || "$";
@@ -9945,6 +10136,7 @@ function Dashboard({data, setData, auth}) {
 
     <div class="dash-two-col" style=${{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
       <div>
+        <${TutorCommandBot} data=${data} setData=${setData} auth=${auth}/>
         <div class="card" style=${{marginBottom:14}}>
           <h3>🗓 SCHEDULE A LESSON</h3>
           <p style=${{fontSize:12,color:"var(--g500)",marginBottom:10}}>Type naturally — e.g. "Schedule with Ahmed tomorrow at 3pm"</p>
@@ -12947,11 +13139,7 @@ function App() {
     ["payments","Payment Tracker","pay"],
     ["materials","Library & Resources","cur"],
     ["website","Website Control","set"],
-    ["studio","Learning Studio","ai"],
-    ["practice","Quizzes & Exercises","ai"],
-    ["goals","Learning Goals","cur"],
     ["homework","Homework & Tasks","hw"],
-    ["howto","How-To Guide","hw"],
     ["settings","Settings","set"]
   ];
   // Remap old view names for activeNav highlight
@@ -13013,7 +13201,6 @@ function App() {
         </div>
       </nav>
       <main class="sp2-content tutor-content" style=${pageInlineStyle}>
-        <${NotificationNudge} auth=${auth} audience="tutor"/>
         <div class="tutor-page-head">
           <div>
             <div class="sp2-nav-grp" style=${{padding:0,marginBottom:6}}>Arabic Enthusiast</div>
