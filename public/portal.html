@@ -2782,6 +2782,38 @@ function StudentHwSubmit({hw, data, setData, auth, studentName}) {
 }
 
 // ════════════════════════════════════════
+// STUDENT-AWARE AI PROFILE
+// Builds a rich context (ratings, weak skills, lesson notes, homework)
+// so every AI chat knows exactly where this student stands.
+// ════════════════════════════════════════
+function buildStudentAIProfile(s, data) {
+  if (!s) return {};
+  const axes = assessmentAxesForStudent(s);
+  const rated = axes.map(a => ({label:a.label, v:s[a.key]||3}));
+  const sorted = [...rated].sort((a,b)=>a.v-b.v);
+  const ratings = rated.map(r=>r.label+" "+r.v+"/5").join(", ");
+  const weakSkills = sorted.slice(0,2).map(r=>r.label).join(", ");
+  const strongSkills = sorted.slice(-2).reverse().map(r=>r.label).join(", ");
+  const lessonNotes = (data?.lessons||[])
+    .filter(l=>l.studentId===s.id && l.status==="Completed" && (l.notes||"").trim())
+    .sort((a,b)=>new Date(b.date)-new Date(a.date))
+    .slice(0,5)
+    .map(l=>l.date+": "+String(l.notes).slice(0,300))
+    .join("\n");
+  const homework = (data?.homework||[])
+    .filter(hw=>hw.studentId===s.id && hw.status==="assigned")
+    .slice(0,5)
+    .map(hw=>hw.title)
+    .join("; ");
+  const lp = s.learningProfile||{};
+  return {
+    name:s.name, level:s.level||"Beginner", type:s.type||"Arabic", learnType:s.learnType||"", goals:s.goals||"",
+    ratings, weakSkills, strongSkills, lessonNotes, homework,
+    learningWhy:lp.why||"", learningStyle:lp.style||"", interests:lp.topics||"", challenge:lp.challenge||""
+  };
+}
+
+// ════════════════════════════════════════
 // AI RIGHT PANEL (sticky sidebar for students)
 // ════════════════════════════════════════
 function StudentAIPanel({student, data, setData, auth}) {
@@ -2824,7 +2856,7 @@ function StudentAIPanel({student, data, setData, auth}) {
     setMsgs(m=>[...m, newUserMsg]);
     setChatLoading(true);
     try {
-      const lp = student.learningProfile || {};
+      const profile = buildStudentAIProfile(student, data);
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 25000);
       const currentMsgs = [...msgs, newUserMsg];
@@ -2834,13 +2866,7 @@ function StudentAIPanel({student, data, setData, auth}) {
         context:{
           message:msg,
           history: msgs.slice(-40),
-          level:student.level||"Beginner",
-          type:student.type||"Arabic",
-          goals:student.goals||"",
-          learningWhy:lp.why||"",
-          learningStyle:lp.style||"",
-          interests:lp.topics||"",
-          challenge:lp.challenge||""
+          ...profile
         }
       })});
       clearTimeout(timeout);
@@ -6781,12 +6807,11 @@ function ArabicAnagramGame({student:s}) {
 
 // Single source of truth for all navigation
 const NAV = [
-  {id:'home',   icon:'🏠', label:'Home',      hub:false},
-  {id:'learn',  icon:'🎓', label:'Learn',     hub:true},
-  {id:'trace',  icon:'✍️', label:'Tracing',   hub:false},
-  {id:'ai',     icon:'🤖', label:'AI Tutor',  hub:false},
-  {id:'lessons',icon:'📚', label:'Library',   hub:true},
-  {id:'profile',icon:'👤', label:'Profile',   hub:true},
+  {id:'home',   icon:'🏠', label:'Home',       hub:false},
+  {id:'learn',  icon:'🎓', label:'Learn',      hub:true},
+  {id:'ai',     icon:'🤖', label:'AI Tutor',   hub:false},
+  {id:'lessons',icon:'📅', label:'My Lessons', hub:true},
+  {id:'profile',icon:'👤', label:'Profile',    hub:true},
 ];
 
 // Hub definitions: which screens live under each hub
@@ -6794,6 +6819,8 @@ const HUBS = {
   learn: [
     {id:'skills',     icon:'⚡', label:'Skills',      desc:'Reading, writing, listening, and speaking practice.'},
     {id:'script',     icon:'ب',  label:'Script',      desc:'Explore all 28 Arabic letters and their forms.',      arabicOnly:true},
+    {id:'trace',      icon:'✍️', label:'Tracing',     desc:'Trace Arabic letters stroke by stroke.',              arabicOnly:true},
+    {id:'verbs',      icon:'🔊', label:'Verbs',       desc:'Verb tables and conjugation practice.',               arabicOnly:true},
     {id:'culture',    icon:'🕌', label:'Culture',     desc:'Expressions, context, and cultural notes.',           arabicOnly:true},
     {id:'flashcards', icon:'🃏', label:'Flashcards',  desc:'Vocabulary flashcards with spaced repetition.'},
     {id:'dictation',  icon:'🎧', label:'Dictation',   desc:'Listening and dictation practice exercises.'},
@@ -6802,7 +6829,6 @@ const HUBS = {
   lessons: [
     {id:'book',       icon:'📅',label:'Book a Lesson',   desc:'Schedule your next private lesson with Hadi.'},
     {id:'studio',     icon:'🎓',label:'Course Materials', desc:'Assigned lessons, curriculum, and extras.'},
-    {id:'verbs',      icon:'🔊',label:'Verbs',            desc:'Verb tables and conjugation practice.',    arabicOnly:true},
     {id:'resources',  icon:'📂',label:'Resources',        desc:'Files, recordings, and links shared by Hadi.'},
     {id:'messages',   icon:'💬',label:'Messages & Tasks', desc:'Notes from Hadi, weekly tasks, and how-to.'},
   ],
@@ -8313,7 +8339,7 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
     if(!msg||aiLoading) return;
     const msgs = [...aiMsgs,{role:"user",content:msg}];
     setAiMsgs(msgs); setAiInput(""); setAiLoading(true);
-    const prof = s ? {name:s.name,level:s.level,type:s.type,learnType:s.learnType,goals:s.goals} : {};
+    const prof = s ? buildStudentAIProfile(s, data) : {};
     const r = await apiPost("/api/tutor",{token:auth.token,messages:msgs,studentProfile:prof,systemPrompt:tutorPrompt});
     setAiMsgs([...msgs,{role:"assistant",content:r.error?"⚠️ "+r.error:r.reply}]);
     setAiLoading(false);
@@ -8322,7 +8348,7 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
     const msgs = [{role:"user",content:prompt}];
     setAiMsgs(msgs); setAiInput(""); setAiLoading(true);
     switchTab("ai"); // Switch immediately so student sees the loading indicator
-    const prof = s ? {name:s.name,level:s.level,type:s.type,learnType:s.learnType,goals:s.goals} : {};
+    const prof = s ? buildStudentAIProfile(s, data) : {};
     const r = await apiPost("/api/tutor",{token:auth.token,messages:msgs,studentProfile:prof,systemPrompt:tutorPrompt});
     setAiMsgs([...msgs,{role:"assistant",content:r.error?"⚠️ "+r.error:r.reply}]);
     setAiLoading(false);
@@ -8330,7 +8356,7 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
   const submitWriting = async () => {
     if(!writeText.trim()||writeLd) return;
     setWriteLd(true);
-    const r = await apiPost("/api/tutor",{token:auth.token,messages:[{role:"user",content:"Please give me detailed feedback on my Arabic writing. Correct any errors, explain the grammar rules, then give me the corrected version. Here is what I wrote:\n\n"+writeText}],studentProfile:s?{name:s.name,level:s.level,type:s.type}:{},systemPrompt:tutorPrompt});
+    const r = await apiPost("/api/tutor",{token:auth.token,messages:[{role:"user",content:"Please give me detailed feedback on my Arabic writing. Correct any errors, explain the grammar rules, then give me the corrected version. Here is what I wrote:\n\n"+writeText}],studentProfile:s?buildStudentAIProfile(s, data):{},systemPrompt:tutorPrompt});
     setWriteFb(r.error?"⚠️ "+r.error:r.reply);
     setWriteLd(false);
   };
@@ -8536,6 +8562,33 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
           <div style=${{fontSize:10,color:"var(--sp-txt3)",textTransform:"uppercase",letterSpacing:0.8,marginTop:3}}>${label}</div>
         </div>`)}
       </div>
+
+      ${(()=>{
+        // ── TODAY'S 5-MINUTE TASK + CONTINUE WHERE YOU LEFT OFF ──
+        const pool = [
+          {id:'flashcards', label:'Review your flashcards', icon:'🃏'},
+          {id:'dictation',  label:'Do one dictation exercise', icon:'🎧'},
+          {id:'games',      label:'Play a vocabulary game', icon:'🎮'},
+          {id:'skills',     label:'One quick reading practice', icon:'⚡'},
+          {id:'trace',      label:'Trace 3 Arabic letters', icon:'✍️', arabicOnly:true},
+          {id:'ai',         label:'Have a 2-minute chat with your AI Tutor', icon:'🤖'},
+        ].filter(t => !isEnglishMode || !t.arabicOnly);
+        const doy = (()=>{ const n=new Date(); return Math.floor((n - new Date(n.getFullYear(),0,0)) / 86400000); })();
+        const task = pool[doy % pool.length];
+        const lastScreen = lastHubTab.learn && HUBS.learn.find(x=>x.id===lastHubTab.learn && x.id!==task.id);
+        return h`<div class="sp2-card" style=${{marginBottom:18,borderLeft:"4px solid var(--sp-green,#4caf7d)",display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
+          <div style=${{fontSize:30,flexShrink:0}}>${task.icon}</div>
+          <div style=${{flex:1,minWidth:180}}>
+            <div style=${{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:1.2,color:"var(--sp-green,#4caf7d)",marginBottom:3}}>Today's 5-minute task</div>
+            <div style=${{fontWeight:700,fontSize:14,color:"var(--sp-txt)"}}>${task.label}</div>
+            ${(s.streakDays||0)>0?h`<div style=${{fontSize:11,color:"#ff6b35",marginTop:3,fontWeight:700}}>🔥 Keep your ${s.streakDays}-day streak alive</div>`:null}
+          </div>
+          <div style=${{display:"flex",gap:8,flexShrink:0,flexWrap:"wrap"}}>
+            <button class="sp2-btn sp2-btn-p sp2-btn-sm" onClick=${()=>switchTab(task.id)}>Start →</button>
+            ${lastScreen?h`<button class="sp2-btn sp2-btn-g sp2-btn-sm" onClick=${()=>switchTab(lastScreen.id)}>${lastScreen.icon} Continue ${lastScreen.label}</button>`:null}
+          </div>
+        </div>`;
+      })()}
 
       <div class="sp2-card" style=${{marginBottom:18,display:"flex",alignItems:"center",gap:14}}>
         <div style=${{background:"var(--sp-glow)",borderRadius:10,padding:"8px 14px",textAlign:"center",minWidth:56,flexShrink:0}}>
@@ -9989,6 +10042,51 @@ function Dashboard({data, setData, auth}) {
     </div>
 
     ${(()=>{
+      // ── AUTO-LOG: past scheduled lessons awaiting confirmation ──
+      const pastDue = lessons.filter(l => l.status==="Scheduled" && new Date(l.date+"T"+(l.time||"23:59")) < now)
+        .sort((a,b)=>new Date(a.date)-new Date(b.date)).slice(0,8);
+      if (!pastDue.length) return null;
+      const markLesson = (l, newStatus) => {
+        setData({...data,
+          lessons: data.lessons.map(x => x.id===l.id ? {...x,status:newStatus} : x),
+          students: newStatus==="Completed" ? data.students.map(s => s.id===l.studentId ? takeLessonCredit(s) : s) : data.students
+        });
+      };
+      return h`<div class="card" style=${{marginBottom:14,borderLeft:"4px solid var(--bl,#2f6fd6)"}}>
+        <h3 style=${{marginBottom:4}}>📋 DID THESE LESSONS HAPPEN?</h3>
+        <p style=${{fontSize:12,color:"var(--g500)",marginBottom:10}}>These were scheduled and the time has passed — one tap logs them and updates the student's balance.</p>
+        ${pastDue.map(l => {
+          const st = students.find(s=>s.id===l.studentId);
+          return h`<div key=${l.id} style=${{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:"1px solid var(--g100)",flexWrap:"wrap"}}>
+            <span style=${{fontWeight:700,flex:1,minWidth:120}}>${st?.name||"Unknown"}</span>
+            <span style=${{fontSize:12,color:"var(--g500)"}}>${fmt(l.date)} · ${l.time||""}</span>
+            <button class="btn btn-xs btn-done" onClick=${()=>markLesson(l,"Completed")}>${ic('chk')} Happened</button>
+            <button class="btn btn-xs" onClick=${()=>markLesson(l,"Missed")}>Missed</button>
+            <button class="btn btn-xs" onClick=${()=>markLesson(l,"Cancelled")}>Cancelled</button>
+          </div>`;
+        })}
+      </div>`;
+    })()}
+
+    ${(()=>{
+      // ── RENEWALS NEEDED: active students with 2 or fewer lessons left ──
+      const lowBal = active
+        .map(s => ({s, left: lessonStats(s).left}))
+        .filter(x => x.left <= 2)
+        .sort((a,b) => a.left - b.left);
+      if (!lowBal.length) return null;
+      return h`<div class="card" style=${{marginBottom:14,borderLeft:"4px solid var(--wn,#f57c00)"}}>
+        <h3 style=${{marginBottom:4}}>🔔 RENEWALS NEEDED</h3>
+        <p style=${{fontSize:12,color:"var(--g500)",marginBottom:10}}>These students are running out of lessons — one tap sends a renewal message.</p>
+        ${lowBal.map(({s,left}) => h`<div key=${s.id} style=${{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:"1px solid var(--g100)",flexWrap:"wrap"}}>
+          <span style=${{fontWeight:700,flex:1,minWidth:120}}>${s.name}</span>
+          <span class=${"ll "+(left<=0?"low":"ok")} style=${{fontSize:15}}>${left} left</span>
+          ${s.whatsapp && h`<button class="btn btn-xs btn-wa" onClick=${()=>waMsg(s.whatsapp,"Hi "+s.name.split(" ")[0]+"! You have "+(left<=0?"no":left)+" lesson"+(left===1?"":"s")+" left in your package. Shall we renew so we keep the momentum going? 🎓")}>${ic('wa')} Send renewal nudge</button>`}
+        </div>`)}
+      </div>`;
+    })()}
+
+    ${(()=>{
       if (!active.length) return null;
       const engRows = active.map(s => {
         // Last completed lesson
@@ -10307,7 +10405,13 @@ function Students({data, setData, onProfile, auth}) {
           <td class="nc" style=${{borderLeft:needsSetup?"4px solid #ff9800":"4px solid transparent",paddingLeft:needsSetup?6:8}}>${i+1}</td>
           <td style=${{fontWeight:600}}>${s.name}${needsSetup?h`<span style=${{marginLeft:6,fontSize:9,fontWeight:700,color:"#ff9800",background:"#fff3e0",padding:"2px 5px",borderRadius:4,verticalAlign:"middle"}}>⚠ SETUP</span>`:null}</td>
           <td><span class="tg">${s.type}</span></td>
-          <td>${ls.taken}${ls.overdue>0?h`<div style=${{fontSize:9,color:"var(--bd)",fontWeight:800}}>overdue ${ls.overdue}</div>`:null}</td>
+          <td onClick=${e=>e.stopPropagation()}>
+            <div class="stepper" style=${{display:"inline-flex"}}>
+              <button class="st-btn minus" onClick=${()=>adjTaken(s.id,-1)}>−</button>
+              <div class="st-val">${ls.taken}</div>
+              <button class="st-btn" onClick=${()=>adjTaken(s.id,1)}>+</button>
+            </div>
+            ${ls.overdue>0?h`<div style=${{fontSize:9,color:"var(--bd)",fontWeight:800}}>overdue ${ls.overdue}</div>`:null}</td>
           <td><span class=${"ll "+(left<=0?"low":left<=2?"ok":"good")}>${left}</span>${ls.freeTotal>0?h`<div style=${{fontSize:9,color:"var(--ok)",fontWeight:700}}>${ls.freeLeft} free</div>`:null}</td>
           <td><span class=${"ll "+(att.rate>=80?"good":att.rate>=60?"ok":"low")} style=${{fontSize:16}}>${att.rate}%</span></td>
           <td style=${{fontFamily:"var(--fh)",fontSize:16}}>${fm(totalPaid, CUR)}</td>

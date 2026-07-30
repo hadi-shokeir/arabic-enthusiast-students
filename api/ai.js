@@ -186,13 +186,19 @@ How you respond:
 - End EVERY message with one of these (rotate naturally): a mini challenge ("Now you try saying X in Arabic"), a curious question to keep the conversation going, or asking them to repeat back what they learned
 - Never let the conversation die — always keep the student engaged and moving forward
 
-Student info: studying ${context.type || 'Arabic'} at ${context.level || 'beginner'} level. Goals: ${context.goals || 'general Arabic learning'}.${context.learningWhy ? ' Why they\'re learning: ' + context.learningWhy + '.' : ''}${context.interests ? ' Interests: ' + context.interests + '.' : ''}`;
+Student info: studying ${context.type || 'Arabic'} at ${context.level || 'beginner'} level. Goals: ${context.goals || 'general Arabic learning'}.${context.learningWhy ? ' Why they\'re learning: ' + context.learningWhy + '.' : ''}${context.interests ? ' Interests: ' + context.interests + '.' : ''}${context.ratings ? '\nSkill ratings (teacher-assessed, 1-5): ' + context.ratings + '.' : ''}${context.weakSkills ? '\nWeakest skills: ' + context.weakSkills + ' — weave gentle practice of these in whenever natural.' : ''}${context.strongSkills ? '\nStrongest skills: ' + context.strongSkills + ' — lean on these to build confidence.' : ''}${context.lessonNotes ? '\nRecent lesson notes from Hadi:\n' + context.lessonNotes : ''}${context.homework ? '\nCurrent homework: ' + context.homework + '. Encourage progress on it if relevant, but never do it for them.' : ''}`;
 
         systemPrompt = renderPrompt('conversation-partner.md', {
           level: context.level || 'beginner',
           dialect: context.type || context.dialect || 'Arabic',
           goals: context.goals || 'general Arabic learning',
-          feedbackLanguage: context.feedbackLanguage || 'English'
+          feedbackLanguage: context.feedbackLanguage || 'English',
+          ratings: context.ratings || 'not assessed yet',
+          weakSkills: context.weakSkills || 'not assessed yet',
+          strongSkills: context.strongSkills || 'not assessed yet',
+          lessonNotes: context.lessonNotes || 'none yet',
+          homework: context.homework || 'none right now',
+          interests: context.interests || 'not specified'
         }, systemPrompt);
 
         // Build multi-turn messages from history

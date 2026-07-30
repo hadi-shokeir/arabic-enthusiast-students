@@ -56,6 +56,12 @@ export default async function handler(req, res) {
     const prof = studentProfile || {};
     const profileNote = prof.name
       ? `\n\nStudent profile: ${prof.name}, ${prof.level || 'beginner'} level, studying ${prof.type || 'Arabic'}${prof.goals ? ', goals: ' + prof.goals : ''}.`
+        + (prof.ratings ? `\nSkill ratings (teacher-assessed, 1-5): ${prof.ratings}.` : '')
+        + (prof.weakSkills ? `\nWeakest skills: ${prof.weakSkills} — weave gentle practice of these into the conversation whenever natural.` : '')
+        + (prof.strongSkills ? `\nStrongest skills: ${prof.strongSkills} — lean on these to build confidence.` : '')
+        + (prof.lessonNotes ? `\nRecent lesson notes from Hadi (use these to connect with what they studied):\n${prof.lessonNotes}` : '')
+        + (prof.homework ? `\nCurrent homework assigned: ${prof.homework}. If relevant, encourage progress on it, but never do it for them.` : '')
+        + (prof.interests ? `\nInterests: ${prof.interests} — use these as conversation topics.` : '')
       : '';
 
     const system = (systemPrompt || '') + profileNote;
