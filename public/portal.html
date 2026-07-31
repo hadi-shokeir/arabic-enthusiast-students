@@ -9948,7 +9948,7 @@ function TutorCommandBot({data, setData, auth}) {
   </div>`;
 }
 
-function Dashboard({data, setData, auth}) {
+function Dashboard({data, setData, auth, onProfile}) {
   const {students, lessons, payments, settings: S} = data;
   const CUR = S.currency || "$";
   const active = students.filter(s => s.active);
@@ -10033,6 +10033,63 @@ function Dashboard({data, setData, auth}) {
 
   return h`<div>
 
+    <${TutorCommandBot} data=${data} setData=${setData} auth=${auth}/>
+
+    ${(()=>{
+      // ── TODAY'S ACTION LIST — everything that needs Hadi, each with a WhatsApp shortcut ──
+      const firstName = s => (s.name||"").split(" ")[0];
+      const lowBal = active.map(s=>({s,left:lessonStats(s).left})).filter(x=>x.left<=2).sort((a,b)=>a.left-b.left);
+      const todayLessons = lessons.filter(l=>l.date===today() && l.status==="Scheduled")
+        .sort((a,b)=>(a.time||"").localeCompare(b.time||""));
+      const needsFeedback = (data.homework||[]).filter(hw=>hw.status==="submitted");
+      const total = lowBal.length + todayLessons.length + inactive10.length + needsFeedback.length;
+
+      const row = (key, label, sub, student, waText, color) => h`<div key=${key} style=${{display:"flex",alignItems:"center",gap:10,padding:"9px 0",borderBottom:"1px solid var(--g100)",flexWrap:"wrap"}}>
+        <span style=${{width:4,alignSelf:"stretch",background:color,borderRadius:2,flexShrink:0}}></span>
+        <div style=${{flex:1,minWidth:150}}>
+          <div style=${{fontWeight:700,fontSize:13}}>${label}</div>
+          <div style=${{fontSize:11,color:"var(--g500)",marginTop:1}}>${sub}</div>
+        </div>
+        ${student?.whatsapp
+          ? h`<button class="btn btn-xs btn-wa" onClick=${()=>waMsg(student.whatsapp, waText)}>${ic('wa')} WhatsApp</button>`
+          : h`<span style=${{fontSize:10,color:"var(--g400)"}}>no number</span>`}
+        ${student && h`<button class="btn btn-xs" onClick=${()=>onProfile&&onProfile(student.id)}>Profile →</button>`}
+      </div>`;
+
+      return h`<div class="card" style=${{marginBottom:14,borderLeft:"4px solid var(--accent,#c9a24a)"}}>
+        <h3 style=${{marginBottom:4}}>✅ WHAT NEEDS YOU TODAY ${total>0?h`<span style=${{background:"var(--bd)",color:"#fff",borderRadius:10,padding:"1px 8px",fontSize:11,marginLeft:6}}>${total}</span>`:null}</h3>
+        ${total===0
+          ? h`<p style=${{fontSize:13,color:"var(--ok)",margin:"8px 0 0"}}>Nothing pending — you're all caught up. 🎉</p>`
+          : h`<div>
+            ${todayLessons.length>0&&h`<div style=${{marginTop:10}}>
+              <div style=${{fontSize:10,fontWeight:800,letterSpacing:1,color:"var(--g500)",marginBottom:2}}>📅 CLASSES TODAY (${todayLessons.length})</div>
+              ${todayLessons.map(l=>{const st=students.find(x=>x.id===l.studentId); if(!st) return null;
+                return row("t"+l.id, st.name+" · "+(l.time||""), (l.duration||60)+" min · "+(l.type||""), st,
+                  fillMsg(S.msgDay,st,l)||("Hi "+firstName(st)+"! Reminder — our lesson is today at "+(l.time||"")+". See you soon! 🎓"), "#2f6fd6");})}
+            </div>`}
+            ${lowBal.length>0&&h`<div style=${{marginTop:12}}>
+              <div style=${{fontSize:10,fontWeight:800,letterSpacing:1,color:"var(--g500)",marginBottom:2}}>🔔 RUNNING OUT OF LESSONS (${lowBal.length})</div>
+              ${lowBal.map(({s,left})=>row("l"+s.id, s.name, left<=0?"No lessons left — needs a refill":left+" lesson"+(left===1?"":"s")+" left", s,
+                "Hi "+firstName(s)+"! You have "+(left<=0?"no":left)+" lesson"+(left===1?"":"s")+" left in your package. Shall we renew so we keep the momentum going? 🎓", left<=0?"#d32f2f":"#f57c00"))}
+            </div>`}
+            ${inactive10.length>0&&h`<div style=${{marginTop:12}}>
+              <div style=${{fontSize:10,fontWeight:800,letterSpacing:1,color:"var(--g500)",marginBottom:2}}>💤 FOLLOW UP — NO LESSON IN 10+ DAYS (${inactive10.length})</div>
+              ${inactive10.map(s=>{
+                const last=lessons.filter(l=>l.studentId===s.id&&l.status==="Completed").sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
+                const days=last?Math.floor((now-new Date(last.date))/86400000):null;
+                return row("i"+s.id, s.name, days!==null?days+" days since last lesson":"No lessons logged yet", s,
+                  "Hi "+firstName(s)+"! Hope you're doing well — it's been a while since your last Arabic lesson. Ready to get back on track? 😊", "#9c27b0");})}
+            </div>`}
+            ${needsFeedback.length>0&&h`<div style=${{marginTop:12}}>
+              <div style=${{fontSize:10,fontWeight:800,letterSpacing:1,color:"var(--g500)",marginBottom:2}}>📝 HOMEWORK AWAITING YOUR FEEDBACK (${needsFeedback.length})</div>
+              ${needsFeedback.map(hw=>{const st=students.find(x=>x.id===hw.studentId); if(!st) return null;
+                return row("h"+hw.id, st.name+" — "+hw.title, "Submitted "+(hw.submittedAt||""), st,
+                  "Hi "+firstName(st)+"! I've just looked at your homework — feedback is in your portal. Well done! 👏", "#2e9f5d");})}
+            </div>`}
+          </div>`}
+      </div>`;
+    })()}
+
     <div class="stats">
       <div class="stat"><div class="lb">Active Students</div><div class="vl">${active.length}</div></div>
       <div class="stat"><div class="lb">This Month (Paid)</div><div class="vl">${fm(mRev, CUR)}</div><div class="su">${mPay.filter(p=>p.status==="Paid").length} payments</div></div>
@@ -10068,23 +10125,6 @@ function Dashboard({data, setData, auth}) {
       </div>`;
     })()}
 
-    ${(()=>{
-      // ── RENEWALS NEEDED: active students with 2 or fewer lessons left ──
-      const lowBal = active
-        .map(s => ({s, left: lessonStats(s).left}))
-        .filter(x => x.left <= 2)
-        .sort((a,b) => a.left - b.left);
-      if (!lowBal.length) return null;
-      return h`<div class="card" style=${{marginBottom:14,borderLeft:"4px solid var(--wn,#f57c00)"}}>
-        <h3 style=${{marginBottom:4}}>🔔 RENEWALS NEEDED</h3>
-        <p style=${{fontSize:12,color:"var(--g500)",marginBottom:10}}>These students are running out of lessons — one tap sends a renewal message.</p>
-        ${lowBal.map(({s,left}) => h`<div key=${s.id} style=${{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:"1px solid var(--g100)",flexWrap:"wrap"}}>
-          <span style=${{fontWeight:700,flex:1,minWidth:120}}>${s.name}</span>
-          <span class=${"ll "+(left<=0?"low":"ok")} style=${{fontSize:15}}>${left} left</span>
-          ${s.whatsapp && h`<button class="btn btn-xs btn-wa" onClick=${()=>waMsg(s.whatsapp,"Hi "+s.name.split(" ")[0]+"! You have "+(left<=0?"no":left)+" lesson"+(left===1?"":"s")+" left in your package. Shall we renew so we keep the momentum going? 🎓")}>${ic('wa')} Send renewal nudge</button>`}
-        </div>`)}
-      </div>`;
-    })()}
 
     ${(()=>{
       if (!active.length) return null;
@@ -10185,17 +10225,8 @@ function Dashboard({data, setData, auth}) {
       </div>`;
     })()}
 
-    ${inactive10.length>0&&h`<div class="card" style=${{borderColor:"var(--wn)",marginBottom:14}}>
-      <h3 style=${{color:"var(--wn)"}}>⚠️ NO LESSON IN 10+ DAYS</h3>
-      ${inactive10.map(s=>h`<div key=${s.id} style=${{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:"1px solid var(--g100)"}}>
-        <span style=${{fontWeight:600}}>${s.name}</span>
-        ${s.whatsapp&&h`<button class="btn btn-xs btn-wa" onClick=${()=>waMsg(s.whatsapp,"Hi "+s.name+"! Hope you're doing well — it's been a while since your last Arabic lesson. Ready to get back on track? 😊")}>${ic('wa')} Check In</button>`}
-      </div>`)}
-    </div>`}
-
     <div class="dash-two-col" style=${{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
       <div>
-        <${TutorCommandBot} data=${data} setData=${setData} auth=${auth}/>
         <div class="card" style=${{marginBottom:14}}>
           <h3>🗓 SCHEDULE A LESSON</h3>
           <p style=${{fontSize:12,color:"var(--g500)",marginBottom:10}}>Type naturally — e.g. "Schedule with Ahmed tomorrow at 3pm"</p>
@@ -13337,7 +13368,7 @@ function App() {
   const pageTitle = view==="profile" ? "Student Profile" : (nav.find(([k])=>k===activeNav)?.[1]||"Dashboard");
   const pageSub = view==="profile" ? "Manage student details, progress, homework, and lesson notes." : "Tutor workspace";
   const renderTutorPage = () => h`
-    ${view==="dashboard" && h`<${Dashboard} data=${data} setData=${update} auth=${auth}/>`}
+    ${view==="dashboard" && h`<${Dashboard} data=${data} setData=${update} auth=${auth} onProfile=${openProfile}/>`}
     ${view==="students" && h`<${StudentsAndGroups} data=${data} setData=${update} onProfile=${openProfile} auth=${auth}/>`}
     ${view==="profile" && h`<${StudentProfile} data=${data} setData=${update} profileId=${profileId} auth=${auth}/>`}
     ${view==="lessons" && h`<${LessonsAdmin} data=${data} setData=${update} auth=${auth}/>`}
@@ -13438,7 +13469,7 @@ function App() {
         </div>
       </div>
       <div class="page" style=${pageInlineStyle}>
-        ${view==="dashboard" && h`<${Dashboard} data=${data} setData=${update} auth=${auth}/>`}
+        ${view==="dashboard" && h`<${Dashboard} data=${data} setData=${update} auth=${auth} onProfile=${openProfile}/>`}
         ${view==="students" && h`<${StudentsAndGroups} data=${data} setData=${update} onProfile=${openProfile} auth=${auth}/>`}
         ${view==="profile" && h`<${StudentProfile} data=${data} setData=${update} profileId=${profileId} auth=${auth}/>`}
         ${view==="lessons" && h`<${LessonsAdmin} data=${data} setData=${update} auth=${auth}/>`}
