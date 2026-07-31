@@ -10258,12 +10258,44 @@ function Students({data, setData, onProfile, auth}) {
 
   const sorted = [...data.students].sort((a,b) => { if(a.active!==b.active) return a.active?-1:1; return (a.studentNumber||0)-(b.studentNumber||0); });
   const list = sorted.filter(s => s.name.toLowerCase().includes(search.toLowerCase()));
-  // Table view ranks by most recently edited; never-edited students keep the default order below them
+  // Table order: active students always outrank inactive ones. Within each group,
+  // manually dragged students hold their position; the rest fall back to most recently edited.
   const tableList = [...list].sort((a,b) => {
+    if (!!a.active !== !!b.active) return a.active ? -1 : 1;
+    const oa = Number.isFinite(a.sortOrder) ? a.sortOrder : Infinity;
+    const ob = Number.isFinite(b.sortOrder) ? b.sortOrder : Infinity;
+    if (oa !== ob) return oa - ob;
     const ta = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
     const tb = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
     return tb - ta;
   });
+  const hasManualOrder = data.students.some(s => Number.isFinite(s.sortOrder));
+
+  // ── Drag to reorder (within the same active/inactive group only) ──
+  const [dragId, setDragId] = useState(null);
+  const [dragOverId, setDragOverId] = useState(null);
+  const canDrag = !search.trim(); // reordering a filtered list would be misleading
+
+  const dropOnRow = targetId => {
+    const src = data.students.find(x=>x.id===dragId);
+    const tgt = data.students.find(x=>x.id===targetId);
+    setDragId(null); setDragOverId(null);
+    if (!src || !tgt || src.id===tgt.id) return;
+    if (!!src.active !== !!tgt.active) return; // inactive students stay below active ones
+    const group = tableList.filter(x => !!x.active === !!src.active);
+    const from = group.findIndex(x=>x.id===src.id);
+    const to   = group.findIndex(x=>x.id===tgt.id);
+    if (from<0 || to<0) return;
+    const next = [...group];
+    next.splice(to, 0, next.splice(from,1)[0]);
+    const orderMap = new Map(next.map((x,i)=>[x.id,i]));
+    setData({...data, students: data.students.map(x => orderMap.has(x.id) ? {...x, sortOrder:orderMap.get(x.id)} : x)});
+  };
+
+  const clearManualOrder = () => {
+    if (!confirm("Clear your manual order? Students will go back to ranking by most recently edited.")) return;
+    setData({...data, students: data.students.map(x => { const {sortOrder, ...rest} = x; return rest; })});
+  };
 
   const [payStatus, setPayStatus] = useState("Pending");
   const doSave = async () => {
@@ -10401,7 +10433,12 @@ function Students({data, setData, onProfile, auth}) {
       })}
     </div>` :
 
-    h`<div class="card students-table-card" style=${{padding:0,overflow:"hidden"}}><div style=${{overflowX:"auto"}}><table class="students-table"><thead><tr><th>#</th><th>Name</th><th>Type</th><th>Taken</th><th>Left</th><th>Attend.</th><th>Paid</th><th>Edited</th><th>Status</th><th></th></tr></thead><tbody>
+    h`<div class="card students-table-card" style=${{padding:0,overflow:"hidden"}}>
+      <div style=${{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",borderBottom:"1px solid var(--g100)",flexWrap:"wrap"}}>
+        <span style=${{fontSize:11,color:"var(--g500)"}}>${canDrag?"Drag ⠿ to reorder. Active students always stay above inactive ones.":"Clear the search box to reorder students."}</span>
+        ${hasManualOrder && h`<button class="btn btn-sm" style=${{marginLeft:"auto"}} onClick=${clearManualOrder}>Clear manual order</button>`}
+      </div>
+      <div style=${{overflowX:"auto"}}><table class="students-table"><thead><tr><th></th><th>#</th><th>Name</th><th>Type</th><th>Taken</th><th>Left</th><th>Attend.</th><th>Paid</th><th>Edited</th><th>Status</th><th></th></tr></thead><tbody>
       ${tableList.map((s,i) => {
         const ls = lessonStats(s);
         const left = ls.left;
@@ -10409,7 +10446,19 @@ function Students({data, setData, onProfile, auth}) {
         const sPay = data.payments.filter(p=>p.studentId===s.id);
         const totalPaid = sPay.reduce((a,p)=>a+(p.amount||0),0);
         const needsSetup = s.enrollmentStatus === "pending";
-        return h`<tr key=${s.id} class=${"ck"+(s.active?"":" ri")} onClick=${()=>onProfile(s.id)}>
+        const isDragging = dragId===s.id;
+        const isDropTarget = dragOverId===s.id && dragId && dragId!==s.id;
+        const dragSrc = dragId ? data.students.find(x=>x.id===dragId) : null;
+        const sameGroup = dragSrc ? !!dragSrc.active === !!s.active : true;
+        return h`<tr key=${s.id} class=${"ck"+(s.active?"":" ri")} onClick=${()=>onProfile(s.id)}
+          draggable=${canDrag}
+          onDragStart=${e=>{ if(!canDrag){e.preventDefault();return;} setDragId(s.id); e.dataTransfer.effectAllowed="move"; }}
+          onDragEnd=${()=>{ setDragId(null); setDragOverId(null); }}
+          onDragOver=${e=>{ if(!dragId||!sameGroup) return; e.preventDefault(); e.dataTransfer.dropEffect="move"; if(dragOverId!==s.id) setDragOverId(s.id); }}
+          onDragLeave=${()=>{ if(dragOverId===s.id) setDragOverId(null); }}
+          onDrop=${e=>{ e.preventDefault(); dropOnRow(s.id); }}
+          style=${{opacity:isDragging?0.4:1, boxShadow:isDropTarget?"inset 0 3px 0 var(--accent,#c9a24a)":"none"}}>
+          <td onClick=${e=>e.stopPropagation()} style=${{cursor:canDrag?"grab":"not-allowed",color:"var(--g400)",fontSize:15,textAlign:"center",userSelect:"none"}} title=${canDrag?"Drag to reorder":"Clear the search box to reorder"}>⠿</td>
           <td class="nc" style=${{borderLeft:needsSetup?"4px solid #ff9800":"4px solid transparent",paddingLeft:needsSetup?6:8}}>${s.studentNumber||i+1}</td>
           <td style=${{fontWeight:600}}>${s.name}${needsSetup?h`<span style=${{marginLeft:6,fontSize:9,fontWeight:700,color:"#ff9800",background:"#fff3e0",padding:"2px 5px",borderRadius:4,verticalAlign:"middle"}}>⚠ SETUP</span>`:null}</td>
           <td><span class="tg">${s.type}</span></td>
@@ -13176,8 +13225,9 @@ function App() {
     if (!resolved || !prev || !Array.isArray(resolved.students)) return resolved;
     const stamp = new Date().toISOString();
     const prevById = new Map((prev.students||[]).map(s=>[s.id,s]));
-    // aiChatHistory is written by the student, not the tutor — ignore it here
-    const cmp = s => JSON.stringify({...s, updatedAt:null, aiChatHistory:null});
+    // aiChatHistory is written by the student; sortOrder is just table arrangement.
+    // Neither counts as "editing the student", so both are ignored here.
+    const cmp = s => JSON.stringify({...s, updatedAt:null, aiChatHistory:null, sortOrder:null});
     const students = resolved.students.map(s => {
       const old = prevById.get(s.id);
       if (!old) return s.updatedAt ? s : {...s, updatedAt:stamp};
