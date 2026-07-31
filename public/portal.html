@@ -1976,6 +1976,47 @@ function takeLessonCredit(s) {
     remainingClasses: 0
   };
 }
+// ─── Dated attendance records ───────────────────────────────────────────────
+// Every attended or missed lesson is a dated row in data.lessons, so the
+// student profile can show "Lesson attended on Jun 26" with an editable date.
+// Both attended and missed consume a lesson credit (a no-show is charged).
+function logAttendance(data, sid, status, date) {
+  const st = (data.students || []).find(s => s.id === sid);
+  const rec = {
+    id: uid(), studentId: sid, groupId: "", date: date || today(), time: "",
+    duration: 60, type: st?.type || "", status, notes: "", logged: true
+  };
+  return {
+    ...data,
+    lessons: [...(data.lessons || []), rec],
+    students: data.students.map(s => s.id === sid ? takeLessonCredit(s) : s)
+  };
+}
+// Removes the most recent record of that status and gives the credit back
+function unlogAttendance(data, sid, status) {
+  const match = (data.lessons || [])
+    .filter(l => l.studentId === sid && l.status === status)
+    .sort((a,b) => new Date(b.date) - new Date(a.date))[0];
+  if (!match) return data;
+  return {
+    ...data,
+    lessons: data.lessons.filter(l => l.id !== match.id),
+    students: data.students.map(s => s.id === sid ? restoreLessonCredit(s) : s)
+  };
+}
+function attendanceCounts(sid, lessons) {
+  const mine = (lessons || []).filter(l => l.studentId === sid);
+  return {
+    attended: mine.filter(l => l.status === "Completed").length,
+    missed:   mine.filter(l => l.status === "Missed").length
+  };
+}
+// Credits used before dated logging existed — shown so old totals still add up
+function undatedLessons(s, lessons) {
+  const c = attendanceCounts(s.id, lessons);
+  return Math.max(0, lessonStats(s).taken - (c.attended + c.missed));
+}
+
 function restoreLessonCredit(s) {
   if (wholeNumber(s.lessonsOverdue) > 0) return {...s, lessonsOverdue: Math.max(0, wholeNumber(s.lessonsOverdue) - 1)};
   if (wholeNumber(s.freeTaken) > 0) return {...s, freeTaken: Math.max(0, wholeNumber(s.freeTaken) - 1)};
@@ -2217,8 +2258,8 @@ function genEncouragement(s, data) {
   else if (avg >= 3) p += name + " is making excellent progress in Arabic and should be very proud of what has been achieved so far. ";
   else p += name + " has been putting in great effort and is building a strong foundation in Arabic. Every lesson brings growth, and the commitment is clear. ";
   if (taken > 0) p += "Over the past " + weeks + " week" + (weeks>1?"s":"") + ", " + name + " has completed " + taken + " lesson" + (taken>1?"s":"") + ". ";
-  if (att.rate >= 90 && att.total >= 3) p += "With an outstanding " + att.rate + "% attendance rate, " + name + " shows excellent commitment. ";
-  else if (att.rate >= 75 && att.total >= 3) p += name + " maintains a solid " + att.rate + "% attendance rate. ";
+  if (att.completed >= 3 && att.missed === 0) p += "With a perfect record — not a single lesson missed — " + name + " shows excellent commitment. ";
+  else if (att.missed > 0) p += name + " has missed " + att.missed + " lesson" + (att.missed>1?"s":"") + " so far. ";
   if (att.streak >= 5) p += "Impressively, " + name + " is on a " + att.streak + "-lesson streak! ";
   if (doneCount > 0 && assigned.length > 0) p += doneCount + " out of " + assigned.length + " curriculum topics have been covered — " + (doneCount >= assigned.length ? "an incredible achievement!" : "great momentum!") + " ";
   p += name + "'s strongest area is " + best.n + " (" + SKILL_LABELS[best.v] + "), which is a fantastic foundation to build on. ";
@@ -2497,12 +2538,11 @@ function exportProfilePDF(s, data, shareWA) {
 
   ${section("Attendance &amp; Consistency", `
     <div style="display:flex;gap:12px;margin-bottom:12px">
-      ${statBox("Attendance Rate", att.rate+"%", attColor(att.rate,90,75))}
+      ${statBox("Attended", att.completed, "#000")}
+      ${statBox("Missed", att.missed, att.missed>0?"#d32f2f":"#000")}
       ${statBox("Lessons / Week", att.perWeek.toFixed(1), attColor(att.perWeek,2,1))}
-      ${statBox("Current Streak", att.streak, attColor(att.streak,5,3))}
-      ${statBox("Total Completed", att.completed, "#000")}
     </div>
-    ${(att.missed>0||att.cancelled>0)?`<div style="font-size:11px;color:#999">Missed: ${att.missed} &nbsp;·&nbsp; Cancelled: ${att.cancelled} &nbsp;·&nbsp; Total scheduled: ${att.total}</div>`:""}`)}
+    ${att.cancelled>0?`<div style="font-size:11px;color:#999">Cancelled: ${att.cancelled}</div>`:""}`)}
 
   ${section("Skill Assessment", `
     ${skillSections}
@@ -2778,6 +2818,59 @@ function StudentHwSubmit({hw, data, setData, auth, studentName}) {
     <textarea style=${{width:"100%",padding:"8px 10px",border:"2px solid var(--g200)",fontFamily:"var(--fa),var(--fb)",fontSize:13,resize:"vertical",minHeight:80,boxSizing:"border-box"}} placeholder="Write your answer or response here..." value=${text} onInput=${e=>setText(e.target.value)}/>
     <input style=${{width:"100%",marginTop:6,padding:"8px 10px",border:"2px solid var(--g200)",fontFamily:"var(--fa),var(--fb)",fontSize:13,boxSizing:"border-box"}} placeholder="Paste a file/link URL (optional)" value=${url} onInput=${e=>setUrl(e.target.value)}/>
     <button class="btn btn-p btn-sm" style=${{marginTop:8}} onClick=${submit}>Submit Homework</button>
+  </div>`;
+}
+
+// ════════════════════════════════════════
+// ATTENDANCE LOG — dated record of every attended / missed lesson
+// ════════════════════════════════════════
+function AttendanceLog({s, data, setData}) {
+  const [addDate, setAddDate] = useState(today());
+  const rows = (data.lessons||[])
+    .filter(l => l.studentId===s.id && (l.status==="Completed" || l.status==="Missed"))
+    .sort((a,b) => new Date(b.date) - new Date(a.date));
+  const undated = undatedLessons(s, data.lessons);
+
+  const add = status => setData(logAttendance(data, s.id, status, addDate));
+  const setDate = (id, date) => setData({...data, lessons: data.lessons.map(l => l.id===id ? {...l, date} : l)});
+  const setStatus = (id, status) => setData({...data, lessons: data.lessons.map(l => l.id===id ? {...l, status} : l)});
+  const remove = row => {
+    if (!confirm("Delete this record? The lesson credit will be given back.")) return;
+    setData({
+      ...data,
+      lessons: data.lessons.filter(l => l.id !== row.id),
+      students: data.students.map(x => x.id===s.id ? restoreLessonCredit(x) : x)
+    });
+  };
+
+  return h`<div class="card" style=${{marginBottom:20}}>
+    <h3 style=${{marginBottom:4}}>📋 ATTENDANCE LOG</h3>
+    <p style=${{fontSize:12,color:"var(--g500)",marginBottom:12}}>Every attended or missed lesson, with its date. Both use up one lesson credit — change a date or status any time.</p>
+
+    <div style=${{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap",padding:"10px 12px",background:"var(--g50)",borderRadius:8,marginBottom:14}}>
+      <label style=${{fontSize:11,fontWeight:700,color:"var(--g600)"}}>Date</label>
+      <input type="date" value=${addDate} onInput=${e=>setAddDate(e.target.value)} style=${{padding:"6px 8px",border:"2px solid var(--g200)",borderRadius:6,fontFamily:"var(--fb)",fontSize:13}}/>
+      <button class="btn btn-sm btn-done" onClick=${()=>add("Completed")}>+ Attended</button>
+      <button class="btn btn-sm" style=${{color:"var(--bd)",borderColor:"var(--bd)"}} onClick=${()=>add("Missed")}>+ Missed</button>
+    </div>
+
+    ${undated>0 && h`<div style=${{fontSize:11,color:"var(--g500)",background:"var(--g50)",padding:"8px 10px",borderRadius:6,marginBottom:10}}>
+      ${undated} earlier lesson${undated===1?"":"s"} counted before dated logging started. Add them above with their real dates if you want the full history.
+    </div>`}
+
+    ${rows.length===0
+      ? h`<p style=${{fontSize:13,color:"var(--g400)"}}>No dated lessons yet — add the first one above.</p>`
+      : h`<div>${rows.map(l => h`<div key=${l.id} style=${{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:"1px solid var(--g100)",flexWrap:"wrap"}}>
+          <span style=${{width:4,alignSelf:"stretch",borderRadius:2,background:l.status==="Completed"?"var(--ok)":"var(--bd)",flexShrink:0}}></span>
+          <select value=${l.status} onChange=${e=>setStatus(l.id, e.target.value)} style=${{padding:"5px 8px",border:"1.5px solid var(--g200)",borderRadius:6,fontFamily:"var(--fb)",fontSize:12,fontWeight:700,color:l.status==="Completed"?"var(--ok)":"var(--bd)"}}>
+            <option value="Completed">Lesson attended</option>
+            <option value="Missed">Lesson missed</option>
+          </select>
+          <span style=${{fontSize:12,color:"var(--g500)"}}>on</span>
+          <input type="date" value=${l.date} onInput=${e=>setDate(l.id, e.target.value)} style=${{padding:"5px 8px",border:"1.5px solid var(--g200)",borderRadius:6,fontFamily:"var(--fb)",fontSize:12}}/>
+          <span style=${{fontSize:12,color:"var(--g600)",fontWeight:600}}>${fmt(l.date)}</span>
+          <button class="bi" style=${{marginLeft:"auto",color:"var(--bd)"}} title="Delete record" onClick=${()=>remove(l)}>${ic('del')}</button>
+        </div>`)}</div>`}
   </div>`;
 }
 
@@ -3105,7 +3198,7 @@ function LessonPlanAI({student, data, onSave}) {
     setLoading(true); setError(""); setPlan("");
     try {
       const d = await apiPost("/api/ai", {type:"lesson_plan", context:{
-        name:s.name, level:s.level, type:s.type, lessonsTaken:lessonStats(s).taken, attendance:att.rate,
+        name:s.name, level:s.level, type:s.type, lessonsTaken:lessonStats(s).taken, lessonsMissed:att.missed,
         studyTypes:activeTracks.join(", "), trackSummary,
         skillReading:s.skillReading||3, skillWriting:s.skillWriting||3, skillListening:s.skillListening||3, skillSpeaking:s.skillSpeaking||3,
         goals:s.goals||"", nextSteps:s.nextSteps||"", teacherNotes:s.teacherPrivateNotes||s.teacherSummary||"",
@@ -3130,7 +3223,7 @@ function LessonPlanAI({student, data, onSave}) {
     </div>
     <div style=${{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:8,marginBottom:12}}>
       <div class="ai-plan-metric"><div class="lb">Tracks</div><div class="vl">${activeTracks.length}/3</div></div>
-      <div class="ai-plan-metric"><div class="lb">Attendance</div><div class="vl">${att.rate}%</div></div>
+      <div class="ai-plan-metric"><div class="lb">Missed</div><div class="vl">${att.missed}</div></div>
       <div class="ai-plan-metric"><div class="lb">Open Tasks</div><div class="vl">${(s.weeklyTasks||[]).filter(t=>!t.doneAt).length}</div></div>
     </div>
     ${error&&h`<div style=${{padding:"10px 12px",background:"#fff5f5",border:"1px solid #ffd0d0",borderRadius:8,color:"var(--bd)",fontSize:13,marginBottom:12}}>${error}</div>`}
@@ -8556,7 +8649,7 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
       </div>
 
       <div style=${{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:18}}>
-        ${[["📚","Lessons Done",lessonSummary.taken,"var(--sp-amber)"],["📅","Attendance",att.rate+"%",att.rate>=80?"var(--sp-green)":att.rate>=60?"#f59e0b":"var(--sp-red)"],["🔥","Streak",(s.streakDays||0)+" days","#ff6b35"],["📖","Topics",doneCount+"/"+assigned.length,"var(--sp-teal)"]].map(([icon,label,val,color])=>h`<div class="sp2-card" style=${{textAlign:"center",padding:16,borderTop:"3px solid "+color}} key=${label}>
+        ${[["📚","Lessons Done",lessonSummary.taken,"var(--sp-amber)"],["📅","Missed",att.missed,att.missed===0?"var(--sp-green)":att.missed<=2?"#f59e0b":"var(--sp-red)"],["🔥","Streak",(s.streakDays||0)+" days","#ff6b35"],["📖","Topics",doneCount+"/"+assigned.length,"var(--sp-teal)"]].map(([icon,label,val,color])=>h`<div class="sp2-card" style=${{textAlign:"center",padding:16,borderTop:"3px solid "+color}} key=${label}>
           <div style=${{fontSize:22,marginBottom:6}}>${icon}</div>
           <div style=${{fontSize:20,fontWeight:700,fontFamily:"var(--f-head)",color}}>${val}</div>
           <div style=${{fontSize:10,color:"var(--sp-txt3)",textTransform:"uppercase",letterSpacing:0.8,marginTop:3}}>${label}</div>
@@ -9124,7 +9217,7 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
         </div>
 
         <div style=${{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:12,marginBottom:16}}>
-          ${[["📚","Lessons Done",lessonSummary.taken,"var(--accent)"],["📅","Attendance",att.rate+"%",att.rate>=80?"var(--good)":att.rate>=60?"var(--warn)":"var(--bad)"],["🔥","Streak",(s.streakDays||0)+" days","#ff6b35"],["📖","Topics",doneCount+"/"+assigned.length,"var(--accent)"]].map(([icon,label,val,color])=>h`<div class="sp2-card" style=${{textAlign:"center",padding:16,borderTop:"3px solid "+color}} key=${label}>
+          ${[["📚","Lessons Done",lessonSummary.taken,"var(--accent)"],["📅","Missed",att.missed,att.missed===0?"var(--good)":att.missed<=2?"var(--warn)":"var(--bad)"],["🔥","Streak",(s.streakDays||0)+" days","#ff6b35"],["📖","Topics",doneCount+"/"+assigned.length,"var(--accent)"]].map(([icon,label,val,color])=>h`<div class="sp2-card" style=${{textAlign:"center",padding:16,borderTop:"3px solid "+color}} key=${label}>
             <div style=${{fontSize:22,marginBottom:6}}>${icon}</div>
             <div style=${{fontSize:22,fontWeight:700,fontFamily:"var(--f-head)",color}}>${val}</div>
             <div style=${{fontSize:"0.62rem",color:"var(--muted)",textTransform:"uppercase",letterSpacing:"0.08em",marginTop:3}}>${label}</div>
@@ -9401,12 +9494,14 @@ function StudentProfile({data, setData, profileId, auth}) {
   const sHomework = (data.homework||[]).filter(hw=>hw.studentId===s.id).sort((a,b)=>new Date(b.assignedDate)-new Date(a.assignedDate));
   const sLessonLogs = (data.lessonLogs||[]).filter(l=>l.studentId===s.id).sort((a,b)=>new Date(b.date)-new Date(a.date));
   const att = attendanceStats(s.id, data.lessons);
+  const attCounts = attendanceCounts(s.id, data.lessons);
+  const attUndated = undatedLessons(s, data.lessons);
   const lessonSummary = lessonStats(s);
 
   const runAI = async () => {
     setAiLoading(true); setAiResult("");
     try {
-      const res = await fetch("/api/ai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:auth?.token,type:"student_analysis",context:{name:s.name,level:s.level,type:s.type,lessonsTaken:lessonSummary.taken,attendance:att.rate,skillReading:s.skillReading||3,skillWriting:s.skillWriting||3,skillListening:s.skillListening||3,skillSpeaking:s.skillSpeaking||3,goals:s.goals||"",nextSteps:s.nextSteps||"",teacherNotes:s.teacherPrivateNotes||"",homeworkNotes:s.homeworkNotes||""}})});
+      const res = await fetch("/api/ai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:auth?.token,type:"student_analysis",context:{name:s.name,level:s.level,type:s.type,lessonsTaken:lessonSummary.taken,lessonsMissed:att.missed,skillReading:s.skillReading||3,skillWriting:s.skillWriting||3,skillListening:s.skillListening||3,skillSpeaking:s.skillSpeaking||3,goals:s.goals||"",nextSteps:s.nextSteps||"",teacherNotes:s.teacherPrivateNotes||"",homeworkNotes:s.homeworkNotes||""}})});
       const d = await res.json();
       setAiResult(d.result||d.error||"No response from AI.");
     } catch(e) { setAiResult("Error: "+e.message); }
@@ -9512,11 +9607,13 @@ function StudentProfile({data, setData, profileId, auth}) {
     </div>`}
 
     <div class="stats" style=${{gridTemplateColumns:"repeat(4,1fr)",marginBottom:20}}>
-      <div class="stat"><div class="lb">Lessons Done</div><div class="vl">${lessonSummary.taken}</div>${lessonSummary.overdue>0?h`<div style=${{fontSize:10,color:"var(--bd)",fontWeight:800}}>Overdue ${lessonSummary.overdue}</div>`:null}</div>
+      <div class="stat"><div class="lb">Attended</div><div class="vl">${attCounts.attended}</div>${attUndated>0?h`<div style=${{fontSize:10,color:"var(--g400)"}}>+${attUndated} earlier (no date)</div>`:null}</div>
+      <div class="stat"><div class="lb">Missed</div><div class="vl" style=${{color:attCounts.missed>0?"var(--bd)":"var(--ok)"}}>${attCounts.missed}</div></div>
       <div class="stat"><div class="lb">Lessons Left</div><div class=${"vl ll "+(lessonSummary.left<=0?"low":lessonSummary.left<=2?"ok":"good")}>${lessonSummary.left}</div>${lessonSummary.freeTotal>0?h`<div style=${{fontSize:10,color:"var(--ok)",fontWeight:800}}>${lessonSummary.freeLeft} free left</div>`:null}</div>
-      <div class="stat"><div class="lb">Attendance</div><div class="vl" style=${{color:att.rate>=80?"var(--ok)":att.rate>=60?"var(--wn)":"var(--bd)"}}>${att.rate}%</div></div>
       <div class="stat"><div class="lb">HW Pending</div><div class="vl" style=${{color:sHomework.filter(x=>x.status==="assigned").length>0?"var(--wn)":"var(--ok)"}}>${sHomework.filter(x=>x.status==="assigned").length}</div></div>
     </div>
+
+    <${AttendanceLog} s=${s} data=${data} setData=${setData}/>
 
     <div class="auth-tabs" style=${{marginBottom:20}}>
       ${tabs.map(([k,l])=>h`<div key=${k} class=${"auth-tab "+(tab===k?"on":"")} onClick=${()=>setTab(k)}>${l}</div>`)}
@@ -10095,7 +10192,7 @@ function Dashboard({data, setData, auth, onProfile}) {
       <div class="stat"><div class="lb">This Month (Paid)</div><div class="vl">${fm(mRev, CUR)}</div><div class="su">${mPay.filter(p=>p.status==="Paid").length} payments</div></div>
       <div class="stat"><div class="lb">Lessons This Week</div><div class="vl">${wk.length}</div></div>
       <div class="stat"><div class="lb">No Lesson This Week</div><div class="vl" style=${{color:noL.length?"var(--bd)":"var(--ok)"}}>${noL.length}</div></div>
-      <div class="stat"><div class="lb">Avg Attendance</div><div class="vl" style=${{color:(() => { const rates=active.map(s=>attendanceStats(s.id,lessons).rate); const avg=rates.length?Math.round(rates.reduce((a,b)=>a+b,0)/rates.length):0; return avg>=80?"var(--ok)":avg>=60?"var(--wn)":"var(--bd)"; })()}}>${(() => { const rates=active.map(s=>attendanceStats(s.id,lessons).rate); return rates.length?Math.round(rates.reduce((a,b)=>a+b,0)/rates.length):0; })()}%</div><div class="su">across all students</div></div>
+      <div class="stat"><div class="lb">Missed This Month</div><div class="vl" style=${{color:(()=>{const n=lessons.filter(l=>l.status==="Missed"&&new Date(l.date).getMonth()===now.getMonth()&&new Date(l.date).getFullYear()===now.getFullYear()).length; return n>0?"var(--bd)":"var(--ok)";})()}}>${lessons.filter(l=>l.status==="Missed"&&new Date(l.date).getMonth()===now.getMonth()&&new Date(l.date).getFullYear()===now.getFullYear()).length}</div><div class="su">across all students</div></div>
     </div>
 
     ${(()=>{
@@ -10365,10 +10462,9 @@ function Students({data, setData, onProfile, auth}) {
 
   const toggleActive = sid => { setData({...data, students: data.students.map(s => s.id===sid ? {...s, active:!s.active} : s)}); };
 
-  const adjTaken = (sid, delta) => { setData({...data, students: data.students.map(s => {
-    if (s.id!==sid) return s;
-    return applyTotalLessonsTaken(s, lessonStats(s).taken + delta);
-  })}); };
+  // Each click writes (or removes) a dated record — see the profile for the full log
+  const adjAttended = (sid, delta) => setData(delta > 0 ? logAttendance(data, sid, "Completed") : unlogAttendance(data, sid, "Completed"));
+  const adjMissed   = (sid, delta) => setData(delta > 0 ? logAttendance(data, sid, "Missed")    : unlogAttendance(data, sid, "Missed"));
   const adjTotal = (sid, delta) => { setData({...data, students: data.students.map(s => {
     if (s.id!==sid) return s;
     return setPaidLessonTotal(s, Math.max(0, wholeNumber(s.lessonsTotal)+delta));
@@ -10415,7 +10511,8 @@ function Students({data, setData, onProfile, auth}) {
         const sPay = data.payments.filter(p=>p.studentId===s.id);
         const totalPaid = sPay.reduce((a,p)=>a+(p.amount||0),0);
         const hasToday = data.lessons.some(l => l.studentId===s.id && l.date===today() && l.status==="Scheduled");
-        const att = attendanceStats(s.id, data.lessons);
+        const cnt = attendanceCounts(s.id, data.lessons);
+        const undated = undatedLessons(s, data.lessons);
         const needsSetup = s.enrollmentStatus === "pending";
         return h`<div key=${s.id} class=${"stu-card"+(noL?" alert":"")+(s.active?"":" inactive")} style=${{boxShadow:needsSetup?"inset 5px 0 0 #ff9800, 0 1px 4px rgba(0,0,0,0.06)":""}}>
           <div class="sc-top">
@@ -10429,29 +10526,29 @@ function Students({data, setData, onProfile, auth}) {
           </div>
           <div class="sc-stats" style=${{gridTemplateColumns:"1fr 1fr 1fr"}}>
             <div class="sc-stat">
-              <div class="sc-sl">Lessons Taken</div>
-              <div style=${{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                <div class="stepper" onClick=${e=>e.stopPropagation()}>
-                  <button class="st-btn minus" onClick=${()=>adjTaken(s.id,-1)}>−</button>
-                  <div class="st-val">${ls.taken}</div>
-                  <button class="st-btn" onClick=${()=>adjTaken(s.id,1)}>+</button>
-                </div>
+              <div class="sc-sl">Attended</div>
+              <div class="stepper" onClick=${e=>e.stopPropagation()}>
+                <button class="st-btn minus" onClick=${()=>adjAttended(s.id,-1)}>−</button>
+                <div class="st-val">${cnt.attended}</div>
+                <button class="st-btn" onClick=${()=>adjAttended(s.id,1)}>+</button>
               </div>
-              ${ls.freeTotal>0&&h`<div style=${{fontSize:9,color:"var(--g400)",marginTop:6}}>paid ${ls.paidTaken} · free ${ls.freeTaken}</div>`}
-              ${ls.overdue>0&&h`<div style=${{fontSize:9,color:"var(--bd)",marginTop:4,fontWeight:800}}>Lessons overdue: ${ls.overdue}</div>`}
+              ${undated>0&&h`<div style=${{fontSize:9,color:"var(--g400)",marginTop:5}}>+${undated} earlier (no date)</div>`}
+            </div>
+            <div class="sc-stat">
+              <div class="sc-sl">Missed</div>
+              <div class="stepper" onClick=${e=>e.stopPropagation()}>
+                <button class="st-btn minus" onClick=${()=>adjMissed(s.id,-1)}>−</button>
+                <div class="st-val" style=${{color:cnt.missed>0?"var(--bd)":""}}>${cnt.missed}</div>
+                <button class="st-btn" onClick=${()=>adjMissed(s.id,1)}>+</button>
+              </div>
+              ${ls.overdue>0&&h`<div style=${{fontSize:9,color:"var(--bd)",marginTop:5,fontWeight:800}}>Overdue ${ls.overdue}</div>`}
             </div>
             <div class="sc-stat">
               <div class="sc-sl">Lessons Left</div>
               <span class=${"ll "+(left<=0?"low":left<=2?"ok":"good")} style=${{fontSize:26}}>${left}</span>
               <span style=${{fontSize:10,color:"var(--g400)"}}> / ${ls.total}</span>
               ${ls.freeTotal>0&&h`<div style=${{fontSize:9,color:"var(--ok)",fontWeight:700}}>${ls.freeLeft} free left</div>`}
-              ${ls.overdue>0&&h`<div style=${{fontSize:9,color:"var(--bd)",fontWeight:800}}>Overdue ${ls.overdue}</div>`}
               <div class="prog"><div class=${"prog-fill "+(pct>=80?"low":pct>=50?"ok":"good")} style=${{width:pct+"%"}}></div></div>
-            </div>
-            <div class="sc-stat">
-              <div class="sc-sl">Attendance</div>
-              <span class=${"ll "+(att.rate>=80?"good":att.rate>=60?"ok":"low")} style=${{fontSize:22}}>${att.rate}%</span>
-              ${att.streak>=3 && h`<span style=${{fontSize:9,color:"var(--ok)",fontWeight:600,marginLeft:4}}>${att.streak} streak</span>`}
             </div>
           </div>
           <div class="sc-actions" onClick=${e=>e.stopPropagation()}>
@@ -10469,11 +10566,12 @@ function Students({data, setData, onProfile, auth}) {
         <span style=${{fontSize:11,color:"var(--g500)"}}>${canDrag?"Drag ⠿ to reorder. Active students always stay above inactive ones.":"Clear the search box to reorder students."}</span>
         ${hasManualOrder && h`<button class="btn btn-sm" style=${{marginLeft:"auto"}} onClick=${clearManualOrder}>Clear manual order</button>`}
       </div>
-      <div style=${{overflowX:"auto"}}><table class="students-table"><thead><tr><th></th><th>#</th><th>Name</th><th>Type</th><th>Taken</th><th>Left</th><th>Attend.</th><th>Paid</th><th>Edited</th><th>Status</th><th></th></tr></thead><tbody>
+      <div style=${{overflowX:"auto"}}><table class="students-table"><thead><tr><th></th><th>#</th><th>Name</th><th>Type</th><th>Attended</th><th>Missed</th><th>Left</th><th>Paid</th><th>Edited</th><th>Status</th><th></th></tr></thead><tbody>
       ${tableList.map((s,i) => {
         const ls = lessonStats(s);
         const left = ls.left;
-        const att = attendanceStats(s.id, data.lessons);
+        const cnt = attendanceCounts(s.id, data.lessons);
+        const undated = undatedLessons(s, data.lessons);
         const sPay = data.payments.filter(p=>p.studentId===s.id);
         const totalPaid = sPay.reduce((a,p)=>a+(p.amount||0),0);
         const needsSetup = s.enrollmentStatus === "pending";
@@ -10495,13 +10593,19 @@ function Students({data, setData, onProfile, auth}) {
           <td><span class="tg">${s.type}</span></td>
           <td onClick=${e=>e.stopPropagation()}>
             <div class="stepper" style=${{display:"inline-flex"}}>
-              <button class="st-btn minus" onClick=${()=>adjTaken(s.id,-1)}>−</button>
-              <div class="st-val">${ls.taken}</div>
-              <button class="st-btn" onClick=${()=>adjTaken(s.id,1)}>+</button>
+              <button class="st-btn minus" onClick=${()=>adjAttended(s.id,-1)}>−</button>
+              <div class="st-val">${cnt.attended}</div>
+              <button class="st-btn" onClick=${()=>adjAttended(s.id,1)}>+</button>
+            </div>
+            ${undated>0?h`<div style=${{fontSize:9,color:"var(--g400)"}}>+${undated} no date</div>`:null}</td>
+          <td onClick=${e=>e.stopPropagation()}>
+            <div class="stepper" style=${{display:"inline-flex"}}>
+              <button class="st-btn minus" onClick=${()=>adjMissed(s.id,-1)}>−</button>
+              <div class="st-val" style=${{color:cnt.missed>0?"var(--bd)":""}}>${cnt.missed}</div>
+              <button class="st-btn" onClick=${()=>adjMissed(s.id,1)}>+</button>
             </div>
             ${ls.overdue>0?h`<div style=${{fontSize:9,color:"var(--bd)",fontWeight:800}}>overdue ${ls.overdue}</div>`:null}</td>
           <td><span class=${"ll "+(left<=0?"low":left<=2?"ok":"good")}>${left}</span>${ls.freeTotal>0?h`<div style=${{fontSize:9,color:"var(--ok)",fontWeight:700}}>${ls.freeLeft} free</div>`:null}</td>
-          <td><span class=${"ll "+(att.rate>=80?"good":att.rate>=60?"ok":"low")} style=${{fontSize:16}}>${att.rate}%</span></td>
           <td style=${{fontFamily:"var(--fh)",fontSize:16}}>${fm(totalPaid, CUR)}</td>
           <td style=${{fontSize:11,color:"var(--g500)",whiteSpace:"nowrap"}}>${(()=>{
             if (!s.updatedAt) return "—";
