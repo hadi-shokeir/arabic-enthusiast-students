@@ -186,7 +186,7 @@ How you respond:
 - End EVERY message with one of these (rotate naturally): a mini challenge ("Now you try saying X in Arabic"), a curious question to keep the conversation going, or asking them to repeat back what they learned
 - Never let the conversation die — always keep the student engaged and moving forward
 
-Student info: studying ${context.type || 'Arabic'} at ${context.level || 'beginner'} level. Goals: ${context.goals || 'general Arabic learning'}.${context.learningWhy ? ' Why they\'re learning: ' + context.learningWhy + '.' : ''}${context.interests ? ' Interests: ' + context.interests + '.' : ''}${context.ratings ? '\nSkill ratings (teacher-assessed, 1-5): ' + context.ratings + '.' : ''}${context.weakSkills ? '\nWeakest skills: ' + context.weakSkills + ' — weave gentle practice of these in whenever natural.' : ''}${context.strongSkills ? '\nStrongest skills: ' + context.strongSkills + ' — lean on these to build confidence.' : ''}${context.lessonNotes ? '\nRecent lesson notes from Hadi:\n' + context.lessonNotes : ''}${context.homework ? '\nCurrent homework: ' + context.homework + '. Encourage progress on it if relevant, but never do it for them.' : ''}`;
+Student info: studying ${context.type || 'Arabic'} at ${context.level || 'beginner'} level. Goals: ${context.goals || 'general Arabic learning'}.${context.learningWhy ? ' Why they\'re learning: ' + context.learningWhy + '.' : ''}${context.interests ? ' Interests: ' + context.interests + '.' : ''}${context.ratings ? '\nSkill ratings (teacher-assessed, 1-5): ' + context.ratings + '.' : ''}${context.weakSkills ? '\nWeakest skills: ' + context.weakSkills + ' — weave gentle practice of these in whenever natural.' : ''}${context.strongSkills ? '\nStrongest skills: ' + context.strongSkills + ' — lean on these to build confidence.' : ''}${context.lessonNotes ? '\nRecent lesson notes from Hadi:\n' + context.lessonNotes : ''}${context.homework ? '\nCurrent homework: ' + context.homework + '. Encourage progress on it if relevant, but never do it for them.' : ''}${context.weakConcepts ? '\nConcepts this student FAILED in their concept checks (weave micro-practice of these into conversation, one at a time): ' + context.weakConcepts : ''}${context.masteredConcepts ? '\nConcepts already mastered (safe to build on): ' + context.masteredConcepts : ''}`;
 
         systemPrompt = renderPrompt('conversation-partner.md', {
           level: context.level || 'beginner',
@@ -198,7 +198,9 @@ Student info: studying ${context.type || 'Arabic'} at ${context.level || 'beginn
           strongSkills: context.strongSkills || 'not assessed yet',
           lessonNotes: context.lessonNotes || 'none yet',
           homework: context.homework || 'none right now',
-          interests: context.interests || 'not specified'
+          interests: context.interests || 'not specified',
+          weakConcepts: context.weakConcepts || 'none identified yet',
+          masteredConcepts: context.masteredConcepts || 'none tested yet'
         }, systemPrompt);
 
         // Build multi-turn messages from history
@@ -209,6 +211,12 @@ Student info: studying ${context.type || 'Arabic'} at ${context.level || 'beginn
         ];
         // For multi-turn, don't use userMessage — use chatMessages directly below
         userMessage = null;
+        break;
+
+      case 'concept_questions':
+        model = FAST_MODEL;
+        systemPrompt = `You are an expert Arabic linguist writing assessment items for Hadi's tutoring platform. Given one language rule, write EXACTLY 3 multiple-choice questions that test whether a student truly understands that rule — not trivia, not memorisation of the rule's wording. Each question must have exactly 4 options with ONE correct answer, plus a one-line explanation. Vary difficulty: recognition, application, production. Match the given track and level. Use Arabic script where appropriate. Respond with ONLY a valid JSON array, no markdown: [{"q":"...","options":["...","...","...","..."],"correct":0,"explain":"..."}] (correct is the 0-based index).`;
+        userMessage = `Concept: ${context.title}\nTrack: ${context.track || 'Classical'} · Level: ${context.level || 'Beginner'}\nThe rule:\n${context.rule}`;
         break;
 
       case 'homework_hint':

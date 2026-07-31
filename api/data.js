@@ -30,7 +30,7 @@ function mergeStudentWriteRecord(currentStudent, incomingStudent) {
   if (!incomingStudent) return currentStudent;
   const editableFields = [
     'timezone','gender','nickname','nicknameEmoji','learningProfile','completedLessons',
-    'quizHistory','xp','streakDays','streakLastDate','questProgress','studentNote'
+    'quizHistory','xp','streakDays','streakLastDate','questProgress','studentNote','conceptMastery'
   ];
   const merged = { ...currentStudent };
   editableFields.forEach(key => {

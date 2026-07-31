@@ -1602,7 +1602,88 @@ const DEFAULT_GOALS = [
   {id:'goal-7',title:'Write Professional Arabic for Work',description:'Write clear emails and short formal messages and handle workplace introductions and requests in the right register.',cefr:'B1–B2',register:'msa',sortOrder:7},
   {id:'goal-8',title:'Converse & Follow Media with Confidence',description:'Express and defend opinions, narrate events, and follow the main ideas of podcasts, shows, and longer texts on familiar topics.',cefr:'B2',register:'msa',sortOrder:8},
 ];
-const DD = {students:[],lessons:[],payments:[],curriculum:[],groups:[],homework:[],lessonRequests:[],resources:[],lessonLogs:[],studioItems:[],howTo:[],verbs:[],goals:DEFAULT_GOALS,contentItems:[],goalPaths:[],siteContent:defaultSiteContent(),settings:{...DEFS},_version:DATA_VERSION};
+// ─── Concept Mastery Library ────────────────────────────────────────────────
+// Each concept = one linguistic rule + exactly 3 check questions.
+// All 3 correct → "mastered". Any wrong → "weak" (visible to Hadi, the student,
+// and the student-aware AI). Inspired by CEFR can-do descriptors and classical
+// Arabic pedagogy: grammar, phonology, morphology, fluency, and social usage.
+const CONCEPT_CATEGORIES = ["Grammar","Phonology & Script","Vocabulary & Morphology","Fluency & Conversation","Social & Cultural"];
+const SEED_CONCEPTS = [
+  {id:"cn_nominal", title:"Nominal & Verbal Sentences", ar:"الجملة الاسمية والفعلية", category:"Grammar", track:"Classical", level:"Beginner",
+   rule:"Arabic has two sentence types. A nominal sentence starts with a noun and needs NO verb 'to be': البيتُ كبيرٌ = 'The house (is) big'. A verbal sentence starts with a verb: كتبَ الولدُ = 'The boy wrote'.", resourceIds:[], goalId:"",
+   questions:[
+     {q:"Which of these is a nominal sentence?", options:["ذهب الولد إلى المدرسة","البيت كبير","يكتب الطالب الدرس","شربتُ القهوة"], correct:1, explain:"البيت كبير starts with a noun and has no verb — the classic nominal pattern."},
+     {q:"How do you say 'The teacher is tall' in Arabic?", options:["المعلم يكون طويل","كان المعلم طويل","المعلم طويل","يطول المعلم"], correct:2, explain:"No verb needed — Arabic drops 'is' in present-tense nominal sentences."},
+     {q:"A verbal sentence in Arabic always begins with…", options:["a noun","a verb","an adjective","a preposition"], correct:1, explain:"By definition الجملة الفعلية opens with its verb."}]},
+  {id:"cn_idafa", title:"The Idafa Construct", ar:"الإضافة", category:"Grammar", track:"Classical", level:"Beginner",
+   rule:"Possession links two nouns directly with no word for 'of': كتابُ الطالبِ = 'the student's book'. The FIRST noun never takes ال; only the second may.", resourceIds:[], goalId:"",
+   questions:[
+     {q:"How do you say 'the door of the house'?", options:["الباب البيت","باب البيت","باب بيت الـ","الباب من البيت"], correct:1, explain:"First noun bare, second noun with ال — باب البيت."},
+     {q:"In an idafa, the first noun…", options:["always takes ال","never takes ال","takes tanwin","must be plural"], correct:1, explain:"The first term of idafa is definite through the construct itself, so it never carries ال."},
+     {q:"مفتاح السيارة means…", options:["the key and the car","a car with a key","the car's key","the key is a car"], correct:2, explain:"Noun + noun = possession: 'the key of the car'."}]},
+  {id:"cn_sunmoon", title:"Sun & Moon Letters", ar:"اللام الشمسية والقمرية", category:"Phonology & Script", track:"Classical", level:"Beginner",
+   rule:"With the 14 sun letters (ت ث د ذ ر ز س ش ص ض ط ظ ل ن), the ل of ال assimilates into the next letter: الشمس is read ash-shams. Moon letters keep the ل: القمر = al-qamar.", resourceIds:[], goalId:"",
+   questions:[
+     {q:"How is الشمس actually pronounced?", options:["al-shams","ash-shams","a-shams","al-shamsu"], correct:1, explain:"ش is a sun letter, so the lam assimilates: ash-shams."},
+     {q:"Which of these is a MOON letter?", options:["ش","ن","ق","ر"], correct:2, explain:"ق keeps the lam: القمر = al-qamar. The others swallow it."},
+     {q:"How is النور pronounced?", options:["al-nur","an-nur","a-nur","al-nuru"], correct:1, explain:"ن is a sun letter — the lam becomes n: an-nur."}]},
+  {id:"cn_roots", title:"The Root & Pattern System", ar:"الجذر والوزن", category:"Vocabulary & Morphology", track:"Classical", level:"Intermediate",
+   rule:"Most Arabic words grow from a 3-consonant root poured into patterns. From ك-ت-ب (writing): كَتَبَ wrote, كاتِب writer, مَكْتَب desk/office, مَكْتَبة library. Recognising roots unlocks thousands of words.", resourceIds:[], goalId:"",
+   questions:[
+     {q:"What is the root of مدرسة (school)?", options:["م-د-ر","د-ر-س","م-ر-س","د-س-ة"], correct:1, explain:"Strip the pattern: د-ر-س (studying) — as in دَرَسَ and مُدَرِّس."},
+     {q:"Which word shares a root with كتاب?", options:["مكتب","مدرسة","طالب","قلم"], correct:0, explain:"مكتب comes from the same ك-ت-ب root."},
+     {q:"The pattern مَفْعَل (as in مكتب، مطبخ، ملعب) usually indicates…", options:["a person","a place","a tool","an adjective"], correct:1, explain:"مَفْعَل is the noun-of-place pattern: office, kitchen, playground."}]},
+  {id:"cn_past", title:"Past Tense Conjugation", ar:"تصريف الفعل الماضي", category:"Grammar", track:"Classical", level:"Beginner",
+   rule:"The past tense adds suffixes to the stem: كتبتُ I wrote, كتبتَ you (m.) wrote, كتبتِ you (f.) wrote, كتبَ he wrote, كتبتْ she wrote, كتبنا we wrote.", resourceIds:[], goalId:"",
+   questions:[
+     {q:"How do you say 'I wrote'?", options:["كتبَ","كتبتُ","أكتب","كتبنا"], correct:1, explain:"The ـتُ suffix marks 'I' in the past: katabtu."},
+     {q:"كتبنا means…", options:["they wrote","she wrote","we wrote","you all wrote"], correct:2, explain:"ـنا is the 'we' suffix: katabnā."},
+     {q:"How do you say 'she drank'?", options:["شربَ","شربتِ","شربتُ","شربتْ"], correct:3, explain:"Silent ـتْ marks 'she': sharibat."}]},
+  {id:"cn_present", title:"Present Tense Prefixes", ar:"الفعل المضارع", category:"Grammar", track:"Classical", level:"Beginner",
+   rule:"The present tense adds prefixes: أكتب I write, تكتب you write / she writes, يكتب he writes, نكتب we write.", resourceIds:[], goalId:"",
+   questions:[
+     {q:"How do you say 'we study'?", options:["أدرس","يدرس","ندرس","تدرس"], correct:2, explain:"نـ is the 'we' prefix: nadrus."},
+     {q:"يشرب means…", options:["I drink","he drinks","we drink","she drank"], correct:1, explain:"يـ marks 'he' in the present: yashrab."},
+     {q:"Which prefix marks 'I' in the present tense?", options:["يـ","تـ","نـ","أ"], correct:3, explain:"أ as in أكتب، أدرس، أشرب."}]},
+  {id:"cn_pronouns", title:"Attached Pronouns", ar:"الضمائر المتصلة", category:"Grammar", track:"Classical", level:"Beginner",
+   rule:"Possession and objects attach to the word: كتابي my book, كتابكَ your book, كتابه his book, كتابها her book, كتابهم their book.", resourceIds:[], goalId:"",
+   questions:[
+     {q:"How do you say 'my house'?", options:["بيتك","بيتي","بيته","بيتنا"], correct:1, explain:"ـي = my: bayti."},
+     {q:"سيارتها means…", options:["his car","your car","her car","their car"], correct:2, explain:"ـها = her: sayyāratuhā."},
+     {q:"كتابهم means…", options:["their book","your (pl.) book","our book","his books"], correct:0, explain:"ـهم = their (m.): kitābuhum."}]},
+  {id:"cn_gender", title:"Gender & Agreement", ar:"التذكير والتأنيث", category:"Grammar", track:"Classical", level:"Beginner",
+   rule:"Most feminine nouns end in ة, and adjectives must agree with their noun in gender: طالبٌ مجتهد / طالبةٌ مجتهدة. Cars, cities, and body-part pairs are typically feminine.", resourceIds:[], goalId:"",
+   questions:[
+     {q:"What is the feminine of معلم (teacher)?", options:["معلمين","معلمة","معلمات","معلمى"], correct:1, explain:"Add ة: muʿallima."},
+     {q:"Which phrase is correct?", options:["سيارة جديد","سيارة جديدة","سيار جديدة","سيارة جديدون"], correct:1, explain:"سيارة is feminine, so the adjective takes ة too."},
+     {q:"Most feminine nouns end with…", options:["ن","ي","ة","و"], correct:2, explain:"The tāʾ marbūṭa (ة) is the standard feminine marker."}]},
+  {id:"cn_emphatics", title:"Emphatic Consonants", ar:"الحروف المفخمة", category:"Phonology & Script", track:"Classical", level:"Intermediate",
+   rule:"ص ض ط ظ are 'heavy' counterparts of س د ت ذ, made with a retracted tongue root. They change meaning: سار 'he walked' vs صار 'he became'; تين 'figs' vs طين 'mud' — and they darken neighbouring vowels.", resourceIds:[], goalId:"",
+   questions:[
+     {q:"Which letter is the emphatic counterpart of س?", options:["ش","ص","ز","ث"], correct:1, explain:"س → ص. Same place, heavier articulation."},
+     {q:"Which pair differs ONLY by emphasis?", options:["تين / طين","بيت / بنت","قلب / كلب","سار / سأل"], correct:0, explain:"tīn (figs) vs ṭīn (mud) — a minimal pair on emphasis alone."},
+     {q:"Emphatic letters make the surrounding vowels sound…", options:["higher and lighter","deeper and darker","nasal","silent"], correct:1, explain:"Emphasis spreads: the 'a' in صار is darker than in سار."}]},
+  {id:"cn_politeness", title:"Levantine Politeness Formulas", ar:"عبارات المجاملة الشامية", category:"Social & Cultural", track:"Levantine", level:"Beginner",
+   rule:"Daily Levantine runs on fixed courtesy exchanges, each with an expected reply: يعطيك العافية → الله يعافيك; يسلمو (إيديك) for thanks; تفضّل to offer or invite. Using them correctly signals real social fluency.", resourceIds:[], goalId:"",
+   questions:[
+     {q:"Someone tells you يعطيك العافية. You reply…", options:["شكراً كتير","الله يعافيك","تفضل","مبروك"], correct:1, explain:"It's a fixed pair: 'May God give you health' → 'May God grant you health too'."},
+     {q:"يسلمو is used to say…", options:["goodbye","excuse me","thank you","congratulations"], correct:2, explain:"Short for يسلمو إيديك — 'may your hands be blessed' — everyday thanks."},
+     {q:"تفضّل is what you say when…", options:["you are angry","offering or inviting someone","asking the time","saying sorry"], correct:1, explain:"'Please, go ahead / here you are' — the all-purpose word of hospitality."}]},
+  {id:"cn_diglossia", title:"MSA vs Dialect Awareness", ar:"الفصحى والعامية", category:"Fluency & Conversation", track:"Levantine", level:"Intermediate",
+   rule:"Arabic lives in two registers: MSA (فصحى) for news, books, and formal speech; dialect for daily life. Key Levantine swaps: ماذا→شو, لماذا→ليش, أريد→بدي, جيد→منيح.", resourceIds:[], goalId:"",
+   questions:[
+     {q:"How would a Levantine speaker say ماذا تريد؟ in daily speech?", options:["شو بدك؟","ماذا بدك؟","أين تريد؟","شو تريدين؟"], correct:0, explain:"شو replaces ماذا and بدك replaces تريد."},
+     {q:"Where would you most expect to hear pure MSA?", options:["a Beirut street market","a news broadcast","a family dinner","a taxi ride"], correct:1, explain:"News, formal speeches, and print run on فصحى."},
+     {q:"Levantine ليش corresponds to MSA…", options:["أين","متى","لماذا","كيف"], correct:2, explain:"ليش = why = لماذا."}]},
+  {id:"cn_questions", title:"Question Words", ar:"أدوات الاستفهام", category:"Fluency & Conversation", track:"Classical", level:"Beginner",
+   rule:"The core set: من who, ما/ماذا what, أين where, متى when, كيف how, لماذا why, كم how many. Master these and you can drive any conversation.", resourceIds:[], goalId:"",
+   questions:[
+     {q:"أين تسكن؟ asks about…", options:["time","place","reason","quantity"], correct:1, explain:"أين = where."},
+     {q:"How do you ask 'How many books?'", options:["كيف كتاب؟","كم كتاباً؟","ماذا كتاب؟","متى كتاب؟"], correct:1, explain:"كم + singular noun: kam kitāban."},
+     {q:"متى asks about…", options:["manner","place","time","people"], correct:2, explain:"متى = when."}]}
+];
+
+const DD = {students:[],lessons:[],payments:[],curriculum:[],groups:[],homework:[],lessonRequests:[],resources:[],lessonLogs:[],studioItems:[],howTo:[],verbs:[],goals:DEFAULT_GOALS,contentItems:[],goalPaths:[],concepts:SEED_CONCEPTS,siteContent:defaultSiteContent(),settings:{...DEFS},_version:DATA_VERSION};
 
 // ─── IndexedDB Storage ───
 const DB_NAME = "TutorDB", DB_STORE = "appdata", DB_KEY = "main";
@@ -1806,6 +1887,7 @@ function migrateData(data) {
   if (!d.goals) d.goals = DEFAULT_GOALS;
   if (!d.contentItems) d.contentItems = [];
   if (!d.goalPaths) d.goalPaths = [];
+  if (!d.concepts || !d.concepts.length) d.concepts = SEED_CONCEPTS;
   d.siteContent = normalizeSiteContent(d.siteContent);
   d.students = (d.students||[]).map(withStudentDefaults);
   d._version = DATA_VERSION;
@@ -1976,6 +2058,19 @@ function takeLessonCredit(s) {
     remainingClasses: 0
   };
 }
+// ─── Concept mastery helpers ────────────────────────────────────────────────
+// Status comes from the LATEST attempt: 3/3 = mastered, anything else = weak.
+function conceptStatus(s, conceptId) {
+  const m = (s?.conceptMastery || {})[conceptId];
+  if (!m || !m.attempts || !m.attempts.length) return "untested";
+  return m.attempts[m.attempts.length - 1].score === 3 ? "mastered" : "weak";
+}
+function conceptSummary(s, concepts) {
+  const out = {mastered: [], weak: [], untested: []};
+  (concepts || []).forEach(c => out[conceptStatus(s, c.id)].push(c));
+  return out;
+}
+
 // ─── Dated attendance records ───────────────────────────────────────────────
 // Every attended or missed lesson is a dated row in data.lessons, so the
 // student profile can show "Lesson attended on Jun 26" with an editable date.
@@ -2899,9 +2994,13 @@ function buildStudentAIProfile(s, data) {
     .map(hw=>hw.title)
     .join("; ");
   const lp = s.learningProfile||{};
+  const cSum = conceptSummary(s, data?.concepts||[]);
+  const weakConcepts = cSum.weak.map(c=>c.title+(c.ar?" ("+c.ar+")":"")).join("; ");
+  const masteredConcepts = cSum.mastered.map(c=>c.title).join("; ");
   return {
     name:s.name, level:s.level||"Beginner", type:s.type||"Arabic", learnType:s.learnType||"", goals:s.goals||"",
     ratings, weakSkills, strongSkills, lessonNotes, homework,
+    weakConcepts, masteredConcepts,
     learningWhy:lp.why||"", learningStyle:lp.style||"", interests:lp.topics||"", challenge:lp.challenge||""
   };
 }
@@ -6910,6 +7009,7 @@ const NAV = [
 // Hub definitions: which screens live under each hub
 const HUBS = {
   learn: [
+    {id:'concepts',   icon:'🎯', label:'Concept Checks', desc:'Test yourself: one language rule, three questions.'},
     {id:'skills',     icon:'⚡', label:'Skills',      desc:'Reading, writing, listening, and speaking practice.'},
     {id:'script',     icon:'ب',  label:'Script',      desc:'Explore all 28 Arabic letters and their forms.',      arabicOnly:true},
     {id:'trace',      icon:'✍️', label:'Tracing',     desc:'Trace Arabic letters stroke by stroke.',              arabicOnly:true},
@@ -8323,6 +8423,11 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
     if (aiMsgsRef.current) aiMsgsRef.current.scrollTop = aiMsgsRef.current.scrollHeight;
   }, [aiMsgs, aiLoading]);
 
+  // Concept checks
+  const [conceptTakeId, setConceptTakeId] = useState(null);
+  const [conceptAnswers, setConceptAnswers] = useState({});
+  const [conceptSubmitted, setConceptSubmitted] = useState(false);
+
   // Skills
   const [skillTab, setSkillTab] = useState("read");
   const [readIdx, setReadIdx] = useState(null);
@@ -8821,6 +8926,81 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
     }
 
     // ── SKILLS ──
+    if(spTab==='concepts') {
+      const concepts = (data.concepts||[]);
+      const sum = conceptSummary(s, concepts);
+      const activeC = concepts.find(c=>c.id===conceptTakeId);
+      const linkedResources = ids => (data.resources||[]).concat(data.curriculum||[]).filter(r=>(ids||[]).includes(r.id));
+
+      if (activeC) {
+        const done = conceptSubmitted;
+        const score = activeC.questions.reduce((a,q,i)=>a+((conceptAnswers[i]===q.correct)?1:0),0);
+        return h`<div style=${{maxWidth:720,margin:"0 auto"}}>
+          <button class="sp2-btn sp2-btn-g sp2-btn-sm" style=${{marginBottom:14}} onClick=${()=>{setConceptTakeId(null);setConceptAnswers({});setConceptSubmitted(false);}}>← All Concepts</button>
+          <div class="sp2-card" style=${{marginBottom:14,borderLeft:"4px solid var(--accent)"}}>
+            <div style=${{fontSize:10,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase",color:"var(--sp-txt3)",marginBottom:4}}>${activeC.category} · ${activeC.level}</div>
+            <div style=${{fontFamily:"var(--f-head)",fontSize:20,fontWeight:700,color:"var(--sp-txt)"}}>${activeC.title} ${activeC.ar?h`<span style=${{fontFamily:"'Amiri',serif",fontSize:18,color:"var(--sp-txt2)"}}> · ${activeC.ar}</span>`:null}</div>
+            <p style=${{fontSize:14,lineHeight:1.8,color:"var(--sp-txt2)",marginTop:10,background:"var(--sp-surface)",padding:"12px 14px",borderRadius:10}}>${activeC.rule}</p>
+          </div>
+          ${activeC.questions.map((q,qi)=>h`<div key=${qi} class="sp2-card" style=${{marginBottom:12,borderLeft:done?("4px solid "+((conceptAnswers[qi]===q.correct)?"var(--good,#2e9f5d)":"var(--bad,#d32f2f)")):"4px solid var(--sp-border)"}}>
+            <div style=${{fontWeight:700,fontSize:14,color:"var(--sp-txt)",marginBottom:10}}>${qi+1}. ${q.q}</div>
+            ${q.options.map((op,oi)=>h`<div key=${oi} onClick=${()=>{if(!done)setConceptAnswers({...conceptAnswers,[qi]:oi});}}
+              style=${{padding:"9px 12px",marginBottom:6,borderRadius:8,cursor:done?"default":"pointer",fontSize:14,border:"1.5px solid",
+                borderColor: done ? (oi===q.correct?"var(--good,#2e9f5d)":(conceptAnswers[qi]===oi?"var(--bad,#d32f2f)":"var(--sp-border)")) : (conceptAnswers[qi]===oi?"var(--accent)":"var(--sp-border)"),
+                background: done ? (oi===q.correct?"color-mix(in oklab,var(--good,#2e9f5d) 12%,transparent)":(conceptAnswers[qi]===oi?"color-mix(in oklab,var(--bad,#d32f2f) 10%,transparent)":"transparent")) : (conceptAnswers[qi]===oi?"color-mix(in oklab,var(--accent) 12%,transparent)":"transparent"),
+                color:"var(--sp-txt)"}}>${op}${done&&oi===q.correct?" ✓":""}</div>`)}
+            ${done&&h`<div style=${{fontSize:12,color:"var(--sp-txt2)",marginTop:6,fontStyle:"italic"}}>${q.explain}</div>`}
+          </div>`)}
+          ${!done
+            ? h`<button class="sp2-btn sp2-btn-p" disabled=${Object.keys(conceptAnswers).length<activeC.questions.length} onClick=${()=>{
+                setConceptSubmitted(true);
+                const sc = activeC.questions.reduce((a,q,i)=>a+((conceptAnswers[i]===q.correct)?1:0),0);
+                setData(d=>({...d, students:d.students.map(x=>{
+                  if(x.id!==s.id) return x;
+                  const cm = {...(x.conceptMastery||{})};
+                  const prev = cm[activeC.id]?.attempts||[];
+                  cm[activeC.id] = {attempts:[...prev.slice(-9),{date:today(),score:sc}], lastTested:today()};
+                  return {...x, conceptMastery:cm, ...earnXP(x, sc===3?15:5)};
+                })}));
+              }}>Check my answers</button>`
+            : h`<div class="sp2-card" style=${{textAlign:"center",borderLeft:"4px solid "+(score===3?"var(--good,#2e9f5d)":"#f59e0b")}}>
+                <div style=${{fontSize:30,marginBottom:6}}>${score===3?"🏆":"💪"}</div>
+                <div style=${{fontFamily:"var(--f-head)",fontSize:18,fontWeight:700,color:"var(--sp-txt)"}}>${score} / 3 — ${score===3?"Concept mastered! +15 XP":"Not there yet — +5 XP for trying"}</div>
+                ${score<3&&h`<p style=${{fontSize:13,color:"var(--sp-txt2)",marginTop:6}}>Review the rule above and retake any time. Hadi and your AI Tutor can see this needs work — ask either of them about it.</p>`}
+                ${score<3&&linkedResources(activeC.resourceIds).length>0&&h`<div style=${{marginTop:10,fontSize:13}}>
+                  <b>Review these first:</b> ${linkedResources(activeC.resourceIds).map(r=>r.title).join(" · ")}
+                  <div><button class="sp2-btn sp2-btn-g sp2-btn-sm" style=${{marginTop:8}} onClick=${()=>switchTab("resources")}>Open Library →</button></div>
+                </div>`}
+                <div style=${{display:"flex",gap:8,justifyContent:"center",marginTop:12}}>
+                  <button class="sp2-btn sp2-btn-g sp2-btn-sm" onClick=${()=>{setConceptAnswers({});setConceptSubmitted(false);}}>Retake</button>
+                  <button class="sp2-btn sp2-btn-p sp2-btn-sm" onClick=${()=>{setConceptTakeId(null);setConceptAnswers({});setConceptSubmitted(false);}}>Done</button>
+                </div>
+              </div>`}
+        </div>`;
+      }
+
+      return h`<div style=${{maxWidth:820,margin:"0 auto"}}>
+        <div style=${{display:"flex",gap:10,marginBottom:16,flexWrap:"wrap"}}>
+          ${[["🏆 Mastered",sum.mastered.length,"var(--good,#2e9f5d)"],["💪 Needs work",sum.weak.length,"#f59e0b"],["○ Not tested",sum.untested.length,"var(--sp-txt3)"]].map(([l,n,c])=>h`<div key=${l} class="sp2-card" style=${{padding:"10px 16px",display:"flex",gap:8,alignItems:"center"}}>
+            <span style=${{fontSize:18,fontWeight:800,fontFamily:"var(--f-head)",color:c}}>${n}</span><span style=${{fontSize:12,color:"var(--sp-txt2)"}}>${l}</span>
+          </div>`)}
+        </div>
+        ${CONCEPT_CATEGORIES.filter(cat=>concepts.some(c=>c.category===cat)).map(cat=>h`<div key=${cat} style=${{marginBottom:18}}>
+          <div style=${{fontSize:11,fontWeight:800,letterSpacing:1.2,textTransform:"uppercase",color:"var(--sp-txt3)",marginBottom:8}}>${cat}</div>
+          ${concepts.filter(c=>c.category===cat).map(c=>{
+            const st = conceptStatus(s, c.id);
+            const chip = st==="mastered"?["🏆 Mastered","var(--good,#2e9f5d)"]:st==="weak"?["💪 Needs work","#f59e0b"]:["Test me","var(--sp-txt3)"];
+            return h`<div key=${c.id} class="sp2-card sp2-card-h" style=${{marginBottom:8,display:"flex",alignItems:"center",gap:12,padding:"12px 16px"}} onClick=${()=>{setConceptTakeId(c.id);setConceptAnswers({});setConceptSubmitted(false);}}>
+              <div style=${{flex:1,minWidth:160}}>
+                <div style=${{fontWeight:700,fontSize:14,color:"var(--sp-txt)"}}>${c.title} ${c.ar?h`<span style=${{fontFamily:"'Amiri',serif",color:"var(--sp-txt2)"}}> ${c.ar}</span>`:null}</div>
+                <div style=${{fontSize:11,color:"var(--sp-txt3)",marginTop:2}}>${c.track} · ${c.level} · 3 questions</div>
+              </div>
+              <span style=${{fontSize:11,fontWeight:800,color:chip[1],whiteSpace:"nowrap"}}>${chip[0]}</span>
+            </div>`;})}
+        </div>`)}
+      </div>`;
+    }
+
     if(spTab==='skills') return h`<div>
       <div style=${{fontFamily:"var(--f-head)",fontSize:24,fontWeight:700,marginBottom:14,color:"var(--sp-txt)"}}>Skills</div>
       <div class="sp2-tabs" style=${{marginBottom:20}}>
@@ -9615,6 +9795,26 @@ function StudentProfile({data, setData, profileId, auth}) {
 
     <${AttendanceLog} s=${s} data=${data} setData=${setData}/>
 
+    ${(()=>{
+      const cSum = conceptSummary(s, data.concepts||[]);
+      if (!(data.concepts||[]).length) return null;
+      return h`<div class="card" style=${{marginBottom:20}}>
+        <h3 style=${{marginBottom:4}}>🎯 CONCEPT MASTERY</h3>
+        <p style=${{fontSize:12,color:"var(--g500)",marginBottom:10}}>From the 3-question concept checks. Weak concepts also steer this student's AI Tutor.</p>
+        <div style=${{display:"flex",gap:14,flexWrap:"wrap",fontSize:13}}>
+          <span style=${{color:"var(--ok)",fontWeight:800}}>🏆 Mastered: ${cSum.mastered.length}</span>
+          <span style=${{color:"#f59e0b",fontWeight:800}}>💪 Needs work: ${cSum.weak.length}</span>
+          <span style=${{color:"var(--g400)"}}>○ Not tested: ${cSum.untested.length}</span>
+        </div>
+        ${cSum.weak.length>0&&h`<div style=${{marginTop:10,display:"flex",gap:6,flexWrap:"wrap"}}>
+          ${cSum.weak.map(c=>h`<span key=${c.id} class="tg" style=${{background:"#fff3e0",color:"#b26a00",border:"1px solid #f59e0b"}}>${c.title}</span>`)}
+        </div>`}
+        ${cSum.mastered.length>0&&h`<div style=${{marginTop:8,display:"flex",gap:6,flexWrap:"wrap"}}>
+          ${cSum.mastered.map(c=>h`<span key=${c.id} class="tg" style=${{background:"#f0fff4",color:"var(--ok)",border:"1px solid var(--ok)"}}>${c.title}</span>`)}
+        </div>`}
+      </div>`;
+    })()}
+
     <div class="auth-tabs" style=${{marginBottom:20}}>
       ${tabs.map(([k,l])=>h`<div key=${k} class=${"auth-tab "+(tab===k?"on":"")} onClick=${()=>setTab(k)}>${l}</div>`)}
     </div>
@@ -10042,6 +10242,120 @@ function TutorCommandBot({data, setData, auth}) {
       </div>
     </div>`}
     ${result&&result.action==="unknown"&&h`<div style=${{fontSize:12,color:"var(--wn)",marginTop:8}}>⚠ ${result.summary}</div>`}
+  </div>`;
+}
+
+// ════════════════════════════════════════
+// CONCEPTS & MASTERY ADMIN (tutor)
+// One rule → 3 questions → mastery signal for teacher, student, and AI.
+// ════════════════════════════════════════
+const mkConcept = () => ({id:uid(), title:"", ar:"", category:CONCEPT_CATEGORIES[0], track:"Classical", level:"Beginner", rule:"", resourceIds:[], goalId:"", questions:[0,1,2].map(()=>({q:"",options:["","","",""],correct:0,explain:""}))});
+
+function ConceptsAdmin({data, setData, auth}) {
+  const [filter, setFilter] = useState("All");
+  const [show, setShow] = useState(false);
+  const [form, setForm] = useState(mkConcept());
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiErr, setAiErr] = useState("");
+  const concepts = data.concepts || [];
+  const active = data.students.filter(s=>s.active);
+  const allResources = (data.resources||[]).concat(data.curriculum||[]).filter(r=>r.title);
+  const cats = ["All", ...CONCEPT_CATEGORIES];
+  const list = filter==="All" ? concepts : concepts.filter(c=>c.category===filter);
+
+  const save = () => {
+    if (!form.title.trim() || !form.rule.trim()) { alert("A concept needs a title and its rule."); return; }
+    const bad = form.questions.findIndex(q=>!q.q.trim()||q.options.some(o=>!o.trim()));
+    if (bad>=0) { alert("Question "+(bad+1)+" is incomplete — every question needs text and 4 options."); return; }
+    const exists = concepts.some(c=>c.id===form.id);
+    setData({...data, concepts: exists ? concepts.map(c=>c.id===form.id?form:c) : [...concepts, form]});
+    setShow(false); setForm(mkConcept());
+  };
+  const del = c => { if(confirm("Delete \""+c.title+"\"? Student results for it will no longer be shown.")) setData({...data, concepts: concepts.filter(x=>x.id!==c.id)}); };
+  const setQ = (qi, patch) => setForm(f=>({...f, questions:f.questions.map((q,i)=>i===qi?{...q,...patch}:q)}));
+
+  const draftQuestions = async () => {
+    if (!form.title.trim() || !form.rule.trim()) { setAiErr("Fill in the title and rule first — the AI drafts questions FROM the rule."); return; }
+    setAiBusy(true); setAiErr("");
+    const r = await apiPost("/api/ai",{token:auth?.token,type:"concept_questions",context:{title:form.title,rule:form.rule,track:form.track,level:form.level}});
+    setAiBusy(false);
+    if (r.error) { setAiErr(r.error); return; }
+    try {
+      const qs = JSON.parse(r.result);
+      if (!Array.isArray(qs) || qs.length!==3) throw new Error("bad shape");
+      setForm(f=>({...f, questions: qs.map(q=>({q:q.q||"", options:(q.options||[]).slice(0,4), correct:Math.min(3,Math.max(0,q.correct|0)), explain:q.explain||""}))}));
+    } catch { setAiErr("The AI reply couldn't be read — try once more."); }
+  };
+
+  return h`<div>
+    <div style=${{display:"flex",gap:10,marginBottom:6,flexWrap:"wrap",alignItems:"center"}}>
+      <div style=${{display:"flex",gap:4,flexWrap:"wrap"}}>
+        ${cats.map(c=>h`<button key=${c} class=${"btn btn-sm "+(filter===c?"btn-p":"")} onClick=${()=>setFilter(c)}>${c}</button>`)}
+      </div>
+      <button class="btn btn-p" style=${{marginLeft:"auto"}} onClick=${()=>{setForm(mkConcept());setAiErr("");setShow(true);}}>${ic('plus')} Add Concept</button>
+    </div>
+    <p style=${{fontSize:12,color:"var(--g500)",marginBottom:14}}>One rule, three questions. 3/3 = mastered; anything less marks the concept "needs work" for you, the student, and their AI Tutor.</p>
+
+    ${list.map(c=>{
+      const m = active.filter(s=>conceptStatus(s,c.id)==="mastered").length;
+      const w = active.filter(s=>conceptStatus(s,c.id)==="weak").length;
+      const linked = allResources.filter(r=>(c.resourceIds||[]).includes(r.id));
+      return h`<div key=${c.id} class="card" style=${{marginBottom:10,display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
+        <div style=${{flex:1,minWidth:200}}>
+          <div style=${{fontWeight:700}}>${c.title} ${c.ar?h`<span style=${{fontFamily:"'Amiri',serif",color:"var(--g500)"}}> ${c.ar}</span>`:null}</div>
+          <div style=${{fontSize:11,color:"var(--g500)",marginTop:2}}>${c.category} · ${c.track} · ${c.level}${linked.length?" · 📚 "+linked.length+" resource"+(linked.length>1?"s":""):""}</div>
+        </div>
+        <div style=${{fontSize:11,whiteSpace:"nowrap"}}>
+          <span style=${{color:"var(--ok)",fontWeight:800}}>🏆 ${m}</span>
+          <span style=${{color:"#f59e0b",fontWeight:800,marginLeft:8}}>💪 ${w}</span>
+          <span style=${{color:"var(--g400)",marginLeft:8}}>○ ${active.length-m-w}</span>
+        </div>
+        <div style=${{display:"flex",gap:2}}>
+          <button class="bi" onClick=${()=>{setForm(JSON.parse(JSON.stringify(c)));setAiErr("");setShow(true);}}>${ic('edt')}</button>
+          <button class="bi" style=${{color:"var(--bd)"}} onClick=${()=>del(c)}>${ic('del')}</button>
+        </div>
+      </div>`;})}
+
+    ${show && h`<${Modal} title=${concepts.some(c=>c.id===form.id)?"EDIT CONCEPT":"ADD CONCEPT"} onClose=${()=>setShow(false)} footer=${h`<button class="btn" onClick=${()=>setShow(false)}>Cancel</button><button class="btn btn-p" onClick=${save}>Save Concept</button>`}>
+      <div class="fr">
+        <div class="fg"><label>Title (English)</label><input value=${form.title} onInput=${e=>setForm({...form,title:e.target.value})} placeholder="e.g. The Idafa Construct"/></div>
+        <div class="fg"><label>Title (Arabic, optional)</label><input dir="rtl" value=${form.ar} onInput=${e=>setForm({...form,ar:e.target.value})} placeholder="الإضافة"/></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label>Category</label><select value=${form.category} onChange=${e=>setForm({...form,category:e.target.value})}>${CONCEPT_CATEGORIES.map(c=>h`<option key=${c} value=${c}>${c}</option>`)}</select></div>
+        <div class="fg"><label>Track</label><select value=${form.track} onChange=${e=>setForm({...form,track:e.target.value})}>${["Classical","Levantine","Quranic","English","General"].map(t=>h`<option key=${t} value=${t}>${t}</option>`)}</select></div>
+        <div class="fg"><label>Level</label><select value=${form.level} onChange=${e=>setForm({...form,level:e.target.value})}>${["Beginner","Intermediate","Advanced"].map(l=>h`<option key=${l} value=${l}>${l}</option>`)}</select></div>
+      </div>
+      <div class="fg"><label>The Rule — what the student must understand</label><textarea rows="3" value=${form.rule} onInput=${e=>setForm({...form,rule:e.target.value})} placeholder="State the rule clearly, with an example. The student sees this before the questions."/></div>
+      ${(data.goals||[]).length>0&&h`<div class="fg"><label>Linked Goal (optional)</label><select value=${form.goalId||""} onChange=${e=>setForm({...form,goalId:e.target.value})}>
+        <option value="">— None —</option>
+        ${(data.goals||[]).map(g=>h`<option key=${g.id} value=${g.id}>${g.title||g.name||g.id}</option>`)}
+      </select></div>`}
+      ${allResources.length>0&&h`<div class="fg"><label>Linked Library Resources — shown to students who fail the check</label>
+        <div style=${{maxHeight:120,overflowY:"auto",border:"2px solid var(--g200)",borderRadius:6,padding:"6px 10px"}}>
+          ${allResources.map(r=>h`<label key=${r.id} style=${{display:"flex",gap:8,alignItems:"center",fontSize:13,padding:"3px 0",cursor:"pointer"}}>
+            <input type="checkbox" checked=${(form.resourceIds||[]).includes(r.id)} onChange=${e=>{
+              const ids = new Set(form.resourceIds||[]);
+              e.target.checked ? ids.add(r.id) : ids.delete(r.id);
+              setForm({...form, resourceIds:[...ids]});
+            }}/> ${r.title}
+          </label>`)}
+        </div>
+      </div>`}
+      <div style=${{display:"flex",alignItems:"center",gap:10,margin:"14px 0 8px"}}>
+        <h4 style=${{margin:0}}>The 3 Questions</h4>
+        <button class="btn btn-sm" disabled=${aiBusy} onClick=${draftQuestions}>${aiBusy?"Drafting…":"✨ Draft with AI"}</button>
+      </div>
+      ${aiErr&&h`<div style=${{fontSize:12,color:"var(--bd)",marginBottom:8}}>${aiErr}</div>`}
+      ${form.questions.map((q,qi)=>h`<div key=${qi} style=${{border:"2px solid var(--g200)",borderRadius:8,padding:"10px 12px",marginBottom:10}}>
+        <div class="fg"><label>Question ${qi+1}</label><input value=${q.q} onInput=${e=>setQ(qi,{q:e.target.value})}/></div>
+        ${q.options.map((op,oi)=>h`<div key=${oi} style=${{display:"flex",gap:8,alignItems:"center",marginBottom:5}}>
+          <input type="radio" name=${"correct"+qi} checked=${q.correct===oi} onChange=${()=>setQ(qi,{correct:oi})} title="Mark as the correct answer"/>
+          <input style=${{flex:1,padding:"6px 9px",border:"2px solid var(--g200)",borderRadius:6,fontFamily:"var(--fb)",fontSize:13,background:q.correct===oi?"color-mix(in oklab,var(--ok) 10%,transparent)":""}} value=${op} placeholder=${"Option "+(oi+1)} onInput=${e=>setQ(qi,{options:q.options.map((o,i)=>i===oi?e.target.value:o)})}/>
+        </div>`)}
+        <div class="fg" style=${{marginBottom:0}}><label>Why (shown after answering)</label><input value=${q.explain} onInput=${e=>setQ(qi,{explain:e.target.value})} placeholder="One-line explanation of the correct answer"/></div>
+      </div>`)}
+    <//>`}
   </div>`;
 }
 
@@ -13455,6 +13769,7 @@ function App() {
     ["lessons","Scheduling & Calendar","cal"],
     ["payments","Payment Tracker","pay"],
     ["materials","Library & Resources","cur"],
+    ["concepts","Concepts & Mastery","cur"],
     ["website","Website Control","set"],
     ["homework","Homework & Tasks","hw"],
     ["settings","Settings","set"]
@@ -13478,6 +13793,7 @@ function App() {
     ${view==="lessons" && h`<${LessonsAdmin} data=${data} setData=${update} auth=${auth}/>`}
     ${view==="payments" && h`<${Payments} data=${data} setData=${update}/>`}
     ${view==="materials" && h`<${MaterialsAdmin} data=${data} setData=${update} auth=${auth}/>`}
+    ${view==="concepts" && h`<${ConceptsAdmin} data=${data} setData=${update} auth=${auth}/>`}
     ${view==="website" && h`<${WebsiteControl} data=${data} setData=${update} auth=${auth}/>`}
     ${view==="studio" && h`<${StudioAdmin} data=${data} setData=${update}/>`}
     ${view==="practice" && h`<${PracticeAdmin} data=${data} onProfile=${openProfile}/>`}
@@ -13579,6 +13895,7 @@ function App() {
         ${view==="lessons" && h`<${LessonsAdmin} data=${data} setData=${update} auth=${auth}/>`}
         ${view==="payments" && h`<${Payments} data=${data} setData=${update}/>`}
         ${view==="materials" && h`<${MaterialsAdmin} data=${data} setData=${update} auth=${auth}/>`}
+    ${view==="concepts" && h`<${ConceptsAdmin} data=${data} setData=${update} auth=${auth}/>`}
         ${view==="website" && h`<${WebsiteControl} data=${data} setData=${update} auth=${auth}/>`}
         ${view==="practice" && h`<${PracticeAdmin} data=${data} onProfile=${openProfile}/>`}
         ${view==="homework" && h`<${HomeworkView} data=${data} onProfile=${openProfile}/>`}

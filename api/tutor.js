@@ -62,6 +62,8 @@ export default async function handler(req, res) {
         + (prof.lessonNotes ? `\nRecent lesson notes from Hadi (use these to connect with what they studied):\n${prof.lessonNotes}` : '')
         + (prof.homework ? `\nCurrent homework assigned: ${prof.homework}. If relevant, encourage progress on it, but never do it for them.` : '')
         + (prof.interests ? `\nInterests: ${prof.interests} — use these as conversation topics.` : '')
+        + (prof.weakConcepts ? `\nConcepts this student FAILED in their concept checks (weave micro-practice of these in, one at a time): ${prof.weakConcepts}` : '')
+        + (prof.masteredConcepts ? `\nConcepts already mastered (safe to build on): ${prof.masteredConcepts}` : '')
       : '';
 
     const system = (systemPrompt || '') + profileNote;
