@@ -50,6 +50,56 @@ export default async function handler(req, res) {
   try {
     const { token, action, data } = req.body;
 
+    // ── Agent bridge (no session): Hadi's AI business agent reads a compact
+    // snapshot and queues changes. The tutor portal adopts queued items into
+    // its own local data, so agent writes can never be overwritten by a backup.
+    const AGENT_SECRET = process.env.AGENT_SECRET;
+    const agentAuthed = !!AGENT_SECRET && req.body.agentSecret === AGENT_SECRET;
+
+    if (action === 'agentSnapshot') {
+      if (!agentAuthed) return res.status(403).json({ error: 'Unauthorized' });
+      const raw = await kv(['GET', 'student_data']);
+      if (!raw) return res.json({ data: null });
+      const d = JSON.parse(raw);
+      return res.json({
+        students: (d.students || []).map(s => ({
+          id: s.id, studentNumber: s.studentNumber, name: s.name, active: s.active,
+          type: s.type, level: s.level, email: s.email, whatsapp: s.whatsapp,
+          timezone: s.timezone, goals: s.goals, lessonsTotal: s.lessonsTotal,
+          lessonsTaken: s.lessonsTaken, freeTotal: s.freeTotal, freeTaken: s.freeTaken,
+          enrollmentStatus: s.enrollmentStatus, updatedAt: s.updatedAt
+        })),
+        lessons: (d.lessons || []).slice(-200).map(l => ({
+          id: l.id, studentId: l.studentId, date: l.date, time: l.time,
+          duration: l.duration, type: l.type, status: l.status
+        })),
+        payments: (d.payments || []).slice(-100).map(p => ({
+          studentId: p.studentId, amount: p.amount, date: p.date, status: p.status, notes: p.notes
+        })),
+        homework: (d.homework || []).map(hw => ({
+          studentId: hw.studentId, title: hw.title, status: hw.status, dueDate: hw.dueDate
+        }))
+      });
+    }
+
+    if (action === 'agentQueue') {
+      if (!agentAuthed) return res.status(403).json({ error: 'Unauthorized' });
+      const { item } = req.body;
+      if (!item || typeof item !== 'object' || !item.type) {
+        return res.status(400).json({ error: 'item with a type is required' });
+      }
+      const raw = await kv(['GET', 'agent_inbox']);
+      const inbox = raw ? JSON.parse(raw) : [];
+      const entry = {
+        ...item,
+        id: 'ag_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+        queuedAt: new Date().toISOString()
+      };
+      inbox.push(entry);
+      await kv(['SET', 'agent_inbox', JSON.stringify(inbox.slice(-50))]);
+      return res.json({ ok: true, id: entry.id, pending: inbox.length });
+    }
+
     const sessions = await getSessions();
     const session = sessions[token];
     if (!session) return res.status(403).json({ error: 'Unauthorized' });
@@ -142,6 +192,21 @@ export default async function handler(req, res) {
     }
 
     if (session.role !== 'tutor') return res.status(403).json({ error: 'Unauthorized' });
+
+    // Tutor portal pulls queued agent changes and adopts them into local data
+    if (action === 'agentInboxRead') {
+      const raw = await kv(['GET', 'agent_inbox']);
+      return res.json({ inbox: raw ? JSON.parse(raw) : [] });
+    }
+
+    if (action === 'agentInboxConsume') {
+      const ids = new Set(req.body.ids || []);
+      const raw = await kv(['GET', 'agent_inbox']);
+      const inbox = raw ? JSON.parse(raw) : [];
+      const keep = inbox.filter(x => !ids.has(x.id));
+      await kv(['SET', 'agent_inbox', JSON.stringify(keep)]);
+      return res.json({ ok: true, remaining: keep.length });
+    }
 
     if (action === 'backup') {
       // Strip large blobs (images, files) to stay within KV payload limits

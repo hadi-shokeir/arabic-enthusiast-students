@@ -13200,12 +13200,43 @@ function App() {
     } catch {}
   }, [auth?.token, auth?.role]);
 
+  // Adopt changes queued by Hadi's AI business agent (Claude) into local data.
+  // Items are consumed after adoption; duplicates are skipped, so re-delivery is harmless.
+  const applyAgentInbox = useCallback(async () => {
+    if (!auth?.token || auth.role !== "tutor") return;
+    try {
+      const r = await apiPost("/api/data", {token: auth.token, action:"agentInboxRead"});
+      const inbox = r?.inbox || [];
+      if (!inbox.length) return;
+      setData(prev => {
+        if (!prev) return prev;
+        let next = prev;
+        inbox.forEach(item => {
+          if (item.type === "addStudent" && item.student?.name) {
+            const clean = v => String(v||"").replace(/\s/g,"");
+            const exists = (next.students||[]).some(s =>
+              (item.student.whatsapp && s.whatsapp && clean(s.whatsapp)===clean(item.student.whatsapp)) ||
+              (item.student.email && s.email && s.email.toLowerCase()===item.student.email.toLowerCase()) ||
+              s.name.trim().toLowerCase()===item.student.name.trim().toLowerCase());
+            if (!exists) {
+              const st = {...mkStudent(next.settings), ...item.student, id:uid(), studentNumber:nextStudentNumber(next.students), updatedAt:new Date().toISOString()};
+              next = {...next, students:[...next.students, st]};
+            }
+          }
+        });
+        return next;
+      });
+      await apiPost("/api/data", {token: auth.token, action:"agentInboxConsume", ids: inbox.map(x=>x.id)});
+    } catch {}
+  }, [auth?.token, auth?.role]);
+
   useEffect(() => {
     if (!auth?.token || auth.role !== "tutor") return;
     refreshIncomingFromCloud();
-    const id = setInterval(refreshIncomingFromCloud, 30000);
+    applyAgentInbox();
+    const id = setInterval(() => { refreshIncomingFromCloud(); applyAgentInbox(); }, 30000);
     return () => clearInterval(id);
-  }, [auth?.token, auth?.role, refreshIncomingFromCloud]);
+  }, [auth?.token, auth?.role, refreshIncomingFromCloud, applyAgentInbox]);
 
   const [syncStatus, setSyncStatus] = useState(""); // "", "syncing", "ok", "err"
   const manualSync = async () => {
