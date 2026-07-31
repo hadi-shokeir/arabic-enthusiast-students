@@ -10258,6 +10258,12 @@ function Students({data, setData, onProfile, auth}) {
 
   const sorted = [...data.students].sort((a,b) => { if(a.active!==b.active) return a.active?-1:1; return (a.studentNumber||0)-(b.studentNumber||0); });
   const list = sorted.filter(s => s.name.toLowerCase().includes(search.toLowerCase()));
+  // Table view ranks by most recently edited; never-edited students keep the default order below them
+  const tableList = [...list].sort((a,b) => {
+    const ta = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+    const tb = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+    return tb - ta;
+  });
 
   const [payStatus, setPayStatus] = useState("Pending");
   const doSave = async () => {
@@ -10293,6 +10299,8 @@ function Students({data, setData, onProfile, auth}) {
     setShow(false); setForm(mkStudent(S)); setPayStatus("Pending"); setLoginPw(""); setLoginMsg("");
   };
   const doDelete = id => { if(confirm("Delete student and all their records?")) setData({...data,students:data.students.filter(s=>s.id!==id),lessons:data.lessons.filter(l=>l.studentId!==id),payments:data.payments.filter(p=>p.studentId!==id)}); };
+
+  const toggleActive = sid => { setData({...data, students: data.students.map(s => s.id===sid ? {...s, active:!s.active} : s)}); };
 
   const adjTaken = (sid, delta) => { setData({...data, students: data.students.map(s => {
     if (s.id!==sid) return s;
@@ -10393,8 +10401,8 @@ function Students({data, setData, onProfile, auth}) {
       })}
     </div>` :
 
-    h`<div class="card students-table-card" style=${{padding:0,overflow:"hidden"}}><div style=${{overflowX:"auto"}}><table class="students-table"><thead><tr><th>#</th><th>Name</th><th>Type</th><th>Taken</th><th>Left</th><th>Attend.</th><th>Paid</th><th>Status</th><th></th></tr></thead><tbody>
-      ${list.map((s,i) => {
+    h`<div class="card students-table-card" style=${{padding:0,overflow:"hidden"}}><div style=${{overflowX:"auto"}}><table class="students-table"><thead><tr><th>#</th><th>Name</th><th>Type</th><th>Taken</th><th>Left</th><th>Attend.</th><th>Paid</th><th>Edited</th><th>Status</th><th></th></tr></thead><tbody>
+      ${tableList.map((s,i) => {
         const ls = lessonStats(s);
         const left = ls.left;
         const att = attendanceStats(s.id, data.lessons);
@@ -10402,7 +10410,7 @@ function Students({data, setData, onProfile, auth}) {
         const totalPaid = sPay.reduce((a,p)=>a+(p.amount||0),0);
         const needsSetup = s.enrollmentStatus === "pending";
         return h`<tr key=${s.id} class=${"ck"+(s.active?"":" ri")} onClick=${()=>onProfile(s.id)}>
-          <td class="nc" style=${{borderLeft:needsSetup?"4px solid #ff9800":"4px solid transparent",paddingLeft:needsSetup?6:8}}>${i+1}</td>
+          <td class="nc" style=${{borderLeft:needsSetup?"4px solid #ff9800":"4px solid transparent",paddingLeft:needsSetup?6:8}}>${s.studentNumber||i+1}</td>
           <td style=${{fontWeight:600}}>${s.name}${needsSetup?h`<span style=${{marginLeft:6,fontSize:9,fontWeight:700,color:"#ff9800",background:"#fff3e0",padding:"2px 5px",borderRadius:4,verticalAlign:"middle"}}>⚠ SETUP</span>`:null}</td>
           <td><span class="tg">${s.type}</span></td>
           <td onClick=${e=>e.stopPropagation()}>
@@ -10415,7 +10423,20 @@ function Students({data, setData, onProfile, auth}) {
           <td><span class=${"ll "+(left<=0?"low":left<=2?"ok":"good")}>${left}</span>${ls.freeTotal>0?h`<div style=${{fontSize:9,color:"var(--ok)",fontWeight:700}}>${ls.freeLeft} free</div>`:null}</td>
           <td><span class=${"ll "+(att.rate>=80?"good":att.rate>=60?"ok":"low")} style=${{fontSize:16}}>${att.rate}%</span></td>
           <td style=${{fontFamily:"var(--fh)",fontSize:16}}>${fm(totalPaid, CUR)}</td>
-          <td><span class=${"bg "+(s.active?"bg-ok":"bg-n")}>${s.active?"Active":"Off"}</span></td>
+          <td style=${{fontSize:11,color:"var(--g500)",whiteSpace:"nowrap"}}>${(()=>{
+            if (!s.updatedAt) return "—";
+            const diff = Date.now() - new Date(s.updatedAt).getTime();
+            const mins = Math.floor(diff/60000);
+            if (mins < 1) return "just now";
+            if (mins < 60) return mins+"m ago";
+            const hrs = Math.floor(mins/60);
+            if (hrs < 24) return hrs+"h ago";
+            const days = Math.floor(hrs/24);
+            return days < 30 ? days+"d ago" : fmt(s.updatedAt.slice(0,10));
+          })()}</td>
+          <td onClick=${e=>e.stopPropagation()}>
+            <button class=${"bg "+(s.active?"bg-ok":"bg-n")} style=${{cursor:"pointer",border:"none",font:"inherit"}} title=${s.active?"Click to set inactive":"Click to set active"} onClick=${()=>toggleActive(s.id)}>${s.active?"Active":"Off"}</button>
+          </td>
           <td onClick=${e=>e.stopPropagation()} style=${{whiteSpace:"nowrap"}}>
             <button class="bi" onClick=${()=>{setForm({...s});setShow(true);}}>${ic('edt')}</button>
             <button class="bi" style=${{color:"var(--bd)"}} onClick=${()=>doDelete(s.id)}>${ic('del')}</button>
@@ -13148,7 +13169,22 @@ function App() {
     } catch { setSyncStatus("err"); setTimeout(() => setSyncStatus(""), 3000); }
   };
 
-  const update = useCallback(d => setData(d), []);
+  // Every tutor edit stamps updatedAt on the students that actually changed,
+  // so the Students table can rank by "most recently edited by me".
+  const update = useCallback(next => setData(prev => {
+    const resolved = typeof next === "function" ? next(prev) : next;
+    if (!resolved || !prev || !Array.isArray(resolved.students)) return resolved;
+    const stamp = new Date().toISOString();
+    const prevById = new Map((prev.students||[]).map(s=>[s.id,s]));
+    // aiChatHistory is written by the student, not the tutor — ignore it here
+    const cmp = s => JSON.stringify({...s, updatedAt:null, aiChatHistory:null});
+    const students = resolved.students.map(s => {
+      const old = prevById.get(s.id);
+      if (!old) return s.updatedAt ? s : {...s, updatedAt:stamp};
+      return cmp(old) === cmp(s) ? s : {...s, updatedAt:stamp};
+    });
+    return {...resolved, students};
+  }), []);
   const openProfile = id => { setProfileId(id); setView("profile"); };
   const toggleTutorTheme = () => {
     const next = tutorTheme === "dark" ? "light" : "dark";
