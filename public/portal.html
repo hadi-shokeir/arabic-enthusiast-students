@@ -219,6 +219,10 @@ tr.ck{cursor:pointer}tr.ck:hover td{background:var(--g100)}
 .sb-x{display:flex;align-items:center;gap:8px;border:2px solid var(--g200);padding:7px 12px;background:var(--wh)}
 .sb-x input{border:none;outline:none;font-size:13px;font-family:var(--fb);width:180px}
 /* +/- stepper */
+/* Row reordering: drag grip on desktop, tap arrows on touch (HTML5 drag has no touch support) */
+.row-move{display:none;flex-direction:column;gap:2px}
+.row-move button{width:34px;height:26px;display:flex;align-items:center;justify-content:center;border:1px solid var(--g300);background:var(--wh);color:var(--g600);border-radius:5px;cursor:pointer;font-size:11px;line-height:1;padding:0}
+.row-move button:disabled{opacity:.3;cursor:default}
 .stepper{display:inline-flex;align-items:center;gap:0;border:2px solid var(--bk)}
 .stepper .st-btn{width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:var(--bk);color:var(--wh);font-size:16px;font-weight:700;border:none;font-family:var(--fb);transition:background .1s}
 .stepper .st-btn:hover{background:var(--g700)}
@@ -1225,7 +1229,16 @@ tr.ck:hover td,.tutor-root tr.ck:hover td{
   .prof-info,.prof-info h2{width:100%}
   .prof-meta{justify-content:flex-start}
   .students-table-card{border-radius:14px!important}
-  .students-table-card table,.sp2-content table,.tutor-content table{min-width:640px}
+  .students-table-card table{min-width:820px}
+  .sp2-content table,.tutor-content table{min-width:640px}
+  /* Touch targets: 30px steppers and 6px icon buttons are too small for a thumb */
+  .stepper .st-btn{width:40px;height:40px;font-size:20px}
+  .stepper .st-val{min-width:44px;font-size:19px}
+  .bi{padding:10px}
+  .btn-xs{padding:7px 12px;font-size:11px}
+  .btn-sm{padding:9px 14px;font-size:11px}
+  .row-move{display:inline-flex!important}
+  .drag-grip{display:none!important}
   .fg input,.fg select,.fg textarea,input,select,textarea{font-size:16px!important;box-sizing:border-box}
   .mo{border-radius:16px!important;max-height:88dvh!important}
   .mo-bd{padding:14px!important}
@@ -8770,7 +8783,7 @@ function StudentPortal({data, setData, user, auth, onLogout}) {
           {id:'skills',     label:'One quick reading practice', icon:'⚡'},
           {id:'trace',      label:'Trace 3 Arabic letters', icon:'✍️', arabicOnly:true},
           {id:'ai',         label:'Have a 2-minute chat with your AI Tutor', icon:'🤖'},
-        ].filter(t => !isEnglishMode || !t.arabicOnly);
+        ].filter(t => activeLang !== 'english' || !t.arabicOnly);
         const doy = (()=>{ const n=new Date(); return Math.floor((n - new Date(n.getFullYear(),0,0)) / 86400000); })();
         const task = pool[doy % pool.length];
         const lastScreen = lastHubTab.learn && HUBS.learn.find(x=>x.id===lastHubTab.learn && x.id!==task.id);
@@ -10734,6 +10747,27 @@ function Students({data, setData, onProfile, auth}) {
     setData({...data, students: data.students.map(x => orderMap.has(x.id) ? {...x, sortOrder:orderMap.get(x.id)} : x)});
   };
 
+  // Position within the student's own active/inactive group — disables the end arrows
+  const groupPos = st => {
+    const group = tableList.filter(x => !!x.active === !!st.active);
+    const i = group.findIndex(x=>x.id===st.id);
+    return {first: i <= 0, last: i === group.length - 1};
+  };
+
+  // Touch-friendly equivalent of dragging: swap with the neighbour in the same group
+  const moveRow = (sid, dir) => {
+    const src = data.students.find(x=>x.id===sid);
+    if (!src) return;
+    const group = tableList.filter(x => !!x.active === !!src.active);
+    const from = group.findIndex(x=>x.id===sid);
+    const to = from + dir;
+    if (from < 0 || to < 0 || to >= group.length) return;
+    const next = [...group];
+    next.splice(to, 0, next.splice(from,1)[0]);
+    const orderMap = new Map(next.map((x,i)=>[x.id,i]));
+    setData({...data, students: data.students.map(x => orderMap.has(x.id) ? {...x, sortOrder:orderMap.get(x.id)} : x)});
+  };
+
   const clearManualOrder = () => {
     if (!confirm("Clear your manual order? Students will go back to ranking by most recently edited.")) return;
     setData({...data, students: data.students.map(x => { const {sortOrder, ...rest} = x; return rest; })});
@@ -10877,7 +10911,7 @@ function Students({data, setData, onProfile, auth}) {
 
     h`<div class="card students-table-card" style=${{padding:0,overflow:"hidden"}}>
       <div style=${{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",borderBottom:"1px solid var(--g100)",flexWrap:"wrap"}}>
-        <span style=${{fontSize:11,color:"var(--g500)"}}>${canDrag?"Drag ⠿ to reorder. Active students always stay above inactive ones.":"Clear the search box to reorder students."}</span>
+        <span style=${{fontSize:11,color:"var(--g500)"}}>${canDrag?"Drag ⠿ (or tap ▲▼ on phone) to reorder. Active students always stay above inactive ones.":"Clear the search box to reorder students."}</span>
         ${hasManualOrder && h`<button class="btn btn-sm" style=${{marginLeft:"auto"}} onClick=${clearManualOrder}>Clear manual order</button>`}
       </div>
       <div style=${{overflowX:"auto"}}><table class="students-table"><thead><tr><th></th><th>#</th><th>Name</th><th>Type</th><th>Attended</th><th>Missed</th><th>Left</th><th>Paid</th><th>Edited</th><th>Status</th><th></th></tr></thead><tbody>
@@ -10901,7 +10935,13 @@ function Students({data, setData, onProfile, auth}) {
           onDragLeave=${()=>{ if(dragOverId===s.id) setDragOverId(null); }}
           onDrop=${e=>{ e.preventDefault(); dropOnRow(s.id); }}
           style=${{opacity:isDragging?0.4:1, boxShadow:isDropTarget?"inset 0 3px 0 var(--accent,#c9a24a)":"none"}}>
-          <td onClick=${e=>e.stopPropagation()} style=${{cursor:canDrag?"grab":"not-allowed",color:"var(--g400)",fontSize:15,textAlign:"center",userSelect:"none"}} title=${canDrag?"Drag to reorder":"Clear the search box to reorder"}>⠿</td>
+          <td onClick=${e=>e.stopPropagation()} style=${{textAlign:"center",userSelect:"none",padding:"4px 6px"}}>
+            <span class="drag-grip" style=${{cursor:canDrag?"grab":"not-allowed",color:"var(--g400)",fontSize:15}} title=${canDrag?"Drag to reorder":"Clear the search box to reorder"}>⠿</span>
+            <span class="row-move">
+              <button disabled=${!canDrag||groupPos(s).first} title="Move up" onClick=${()=>moveRow(s.id,-1)}>▲</button>
+              <button disabled=${!canDrag||groupPos(s).last} title="Move down" onClick=${()=>moveRow(s.id,1)}>▼</button>
+            </span>
+          </td>
           <td class="nc" style=${{borderLeft:needsSetup?"4px solid #ff9800":"4px solid transparent",paddingLeft:needsSetup?6:8}}>${s.studentNumber||i+1}</td>
           <td style=${{fontWeight:600}}>${s.name}${needsSetup?h`<span style=${{marginLeft:6,fontSize:9,fontWeight:700,color:"#ff9800",background:"#fff3e0",padding:"2px 5px",borderRadius:4,verticalAlign:"middle"}}>⚠ SETUP</span>`:null}</td>
           <td><span class="tg">${s.type}</span></td>
