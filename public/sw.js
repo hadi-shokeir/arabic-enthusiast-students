@@ -1,4 +1,4 @@
-const CACHE = 'arabic-enthusiast-v18';
+const CACHE = 'arabic-enthusiast-v19';
 
 // The app shell. Cached individually so ONE bad URL can no longer abort the
 // whole install (the old addAll() did exactly that).
@@ -7,6 +7,7 @@ const STATIC_ASSETS = [
   '/index.html',
   '/portal',
   '/portal.html',
+  '/app.js',
   '/demo',
   '/demo/index.html',
   '/demo/portal',
@@ -25,11 +26,12 @@ const STATIC_ASSETS = [
 
 // The portal cannot render without these. They were never precached, so an
 // installed app on a weak connection showed a blank screen.
+// jsPDF is deliberately absent: it is 356KB, loaded on demand by one tutor
+// button, and precaching it would slow every student's first install.
 const VENDOR_ASSETS = [
   'https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/htm/3.1.1/htm.module.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
+  'https://cdnjs.cloudflare.com/ajax/libs/htm/3.1.1/htm.module.js'
 ];
 
 const cacheable = res => res && (res.ok || res.type === 'opaque');
